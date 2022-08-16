@@ -1,0 +1,4 @@
+GitPython
+hjson
+tabulate
+pylint

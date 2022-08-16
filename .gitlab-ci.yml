@@ -1,0 +1,142 @@
+# Copyright 2022 ETH Zurich and University of Bologna.
+# Solderpad Hardware License, Version 0.51, see LICENSE for details.
+# SPDX-License-Identifier: SHL-0.51
+
+# Author: Thomas Benz <tbenz@iis.ee.ethz.ch>
+
+before_script:
+  - source ~paulsc/.bashrc
+
+stages:
+  - compile
+  - simulate-Questa
+  - simulate-Questa-multivers
+
+vsim-compile:
+  stage: compile
+  script:
+    - make scripts/compile_vsim.tcl
+    - questa-2021.3 vsim -64 -c -do "source scripts/compile_vsim.tcl; quit"
+    - (! grep -n "Error:" transcript)
+    - (! grep -n "Fatal:" transcript)
+  artifacts:
+      expire_in: 1 week
+      paths:
+        - work
+
+vsim-axi_llc:
+  stage: simulate-Questa
+  needs:
+    - vsim-compile
+  script:
+    - questa-2021.3 vsim -64 -c -t 1ps -voptargs=+acc tb_axi_llc -logfile logs/axi_llc.vsim.log -wlf logs/axi_llc.wlf -do "run -all"
+    - (! grep -n "Error:" logs/axi_llc.vsim.log)
+    - (! grep -n "Fatal:" logs/axi_llc.vsim.log)
+  artifacts:
+      paths:
+        - logs/axi_llc.vsim.log
+
+vsim-10.7b-kgf-vers:
+  stage: simulate-Questa-multivers
+  allow_failure: true
+  script:
+    - make scripts/compile_vsim.tcl
+    - vlib-10.7b-kgf work
+    - vsim-10.7b-kgf -c -do "source scripts/compile_vsim.tcl; quit"
+    - vsim-10.7b-kgf -64 -c -t 1ps -voptargs=+acc tb_axi_llc -logfile logs/axi_llc.vsim.log -wlf logs/axi_llc.wlf -do "run -all"
+    - (! grep -n "Error:" logs/axi_llc.vsim.log)
+    - (! grep -n "Fatal:" logs/axi_llc.vsim.log)
+    - (! grep -n "No Design Loaded!" logs/axi_llc.vsim.log)
+  artifacts:
+      paths:
+        - logs/axi_llc.vsim.log
+
+vsim-10.7e-kgf-vers:
+  stage: simulate-Questa-multivers
+  allow_failure: true
+  script:
+    - make scripts/compile_vsim.tcl
+    - vlib-10.7e-kgf work
+    - vsim-10.7e-kgf -c -do "source scripts/compile_vsim.tcl; quit"
+    - vsim-10.7e-kgf -64 -c -t 1ps -voptargs=+acc tb_axi_llc -logfile logs/axi_llc.vsim.log -wlf logs/axi_llc.wlf -do "run -all"
+    - (! grep -n "Error:" logs/axi_llc.vsim.log)
+    - (! grep -n "Fatal:" logs/axi_llc.vsim.log)
+    - (! grep -n "No Design Loaded!" logs/axi_llc.vsim.log)
+  artifacts:
+      paths:
+        - logs/axi_llc.vsim.log
+
+questa-2019.3-kgf-vers:
+  stage: simulate-Questa-multivers
+  allow_failure: true
+  script:
+    - make scripts/compile_vsim.tcl
+    - questa-2019.3-kgf vlib work
+    - questa-2019.3-kgf vsim -c -do "source scripts/compile_vsim.tcl; quit"
+    - questa-2019.3-kgf vsim -64 -c -t 1ps -voptargs=+acc tb_axi_llc -logfile logs/axi_llc.vsim.log -wlf logs/axi_llc.wlf -do "run -all"
+    - (! grep -n "Error:" logs/axi_llc.vsim.log)
+    - (! grep -n "Fatal:" logs/axi_llc.vsim.log)
+    - (! grep -n "No Design Loaded!" logs/axi_llc.vsim.log)
+  artifacts:
+      paths:
+        - logs/axi_llc.vsim.log
+
+questa-2020.1-kgf-vers:
+  stage: simulate-Questa-multivers
+  allow_failure: true
+  script:
+    - make scripts/compile_vsim.tcl
+    - questa-2020.1-kgf vlib work
+    - questa-2020.1-kgf vsim -c -do "source scripts/compile_vsim.tcl; quit"
+    - questa-2020.1-kgf vsim -64 -c -t 1ps -voptargs=+acc tb_axi_llc -logfile logs/axi_llc.vsim.log -wlf logs/axi_llc.wlf -do "run -all"
+    - (! grep -n "Error:" logs/axi_llc.vsim.log)
+    - (! grep -n "Fatal:" logs/axi_llc.vsim.log)
+    - (! grep -n "No Design Loaded!" logs/axi_llc.vsim.log)
+  artifacts:
+      paths:
+        - logs/axi_llc.vsim.log
+
+questa-2021.1-bt-vers:
+  stage: simulate-Questa-multivers
+  allow_failure: true
+  script:
+    - make scripts/compile_vsim.tcl
+    - questa-2021.1-bt vlib work
+    - questa-2021.1-bt vsim -c -do "source scripts/compile_vsim.tcl; quit"
+    - questa-2021.1-bt vsim -64 -c -t 1ps -voptargs=+acc tb_axi_llc -logfile logs/axi_llc.vsim.log -wlf logs/axi_llc.wlf -do "run -all"
+    - (! grep -n "Error:" logs/axi_llc.vsim.log)
+    - (! grep -n "Fatal:" logs/axi_llc.vsim.log)
+    - (! grep -n "No Design Loaded!" logs/axi_llc.vsim.log)
+  artifacts:
+      paths:
+        - logs/axi_llc.vsim.log
+
+questa-2021.2-bt-vers:
+  stage: simulate-Questa-multivers
+  allow_failure: true
+  script:
+    - make scripts/compile_vsim.tcl
+    - questa-2021.2-bt vlib work
+    - questa-2021.2-bt vsim -c -do "source scripts/compile_vsim.tcl; quit"
+    - questa-2021.2-bt vsim -64 -c -t 1ps -voptargs=+acc tb_axi_llc -logfile logs/axi_llc.vsim.log -wlf logs/axi_llc.wlf -do "run -all"
+    - (! grep -n "Error:" logs/axi_llc.vsim.log)
+    - (! grep -n "Fatal:" logs/axi_llc.vsim.log)
+    - (! grep -n "No Design Loaded!" logs/axi_llc.vsim.log)
+  artifacts:
+      paths:
+        - logs/axi_llc.vsim.log
+
+questa-2021.3-kgf-vers:
+  stage: simulate-Questa-multivers
+  allow_failure: true
+  script:
+    - make scripts/compile_vsim.tcl
+    - questa-2021.3-kgf vlib work
+    - questa-2021.3-kgf vsim -c -do "source scripts/compile_vsim.tcl; quit"
+    - questa-2021.3-kgf vsim -64 -c -t 1ps -voptargs=+acc tb_axi_llc -logfile logs/axi_llc.vsim.log -wlf logs/axi_llc.wlf -do "run -all"
+    - (! grep -n "Error:" logs/axi_llc.vsim.log)
+    - (! grep -n "Fatal:" logs/axi_llc.vsim.log)
+    - (! grep -n "No Design Loaded!" logs/axi_llc.vsim.log)
+  artifacts:
+      paths:
+        - logs/axi_llc.vsim.log
