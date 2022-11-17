@@ -10,7 +10,7 @@
 /// of 8, and line length of 8 blocks, one block equals the AXI data width of the
 /// master port. Each set, also called way, can be configured to be directly
 /// accessible as scratch pad memory. This can be done by setting the corresponding
-/// register over the AXI LITE port.
+/// register.
 ///
 /// AXI ports: The FULL AXI ports, have different ID widths. The master ports ID is
 ///            one bit wider than the slave port. The reason is the `axi_mux` which
@@ -36,11 +36,11 @@
 /// ![Block-diagram he Top Level of the LLC.](axi_llc_top.svg "Block-diagram of the Top Level of the LLC.")
 ///
 ///
-/// It is required to provide the detailed AXI4+ATOP and AXI4-Lite structs as parameters.
+/// It is required to provide the detailed AXI4+ATOP and configuration register structs as parameters.
 /// The structs follow the naming scheme *port*\_*xx*\_chan_t. Where *port* stands for the
-/// respective port and have the values *slv*, *mst* and *lite*. In addition the respective request
+/// respective port and have the values *slv* and *mst*. In addition the respective request
 /// and response structs have to be given. The address rule struct from the
-/// `common_cells/addr_decode` has to be specified for the AXI4+ATOP and AXI4-Lite ports as they are
+/// `common_cells/addr_decode` has to be specified for the AXI4+ATOP ports as they are
 /// used internally to provide address mapping for the AXI transfers onto the different SPM and
 /// cache regions.
 ///
@@ -64,7 +64,7 @@
 /// * AW beat is valid on the slave port of the LLC.
 /// * AW address gets decoded in the configuration module.
 /// * AW enters the split unit and first descriptor enters the spill register.
-/// * Request gets issued to the tag-storage (compromised of one SRAM block per set of the cache).
+/// * Request gets issued to the tag-storage (comprised of one SRAM block per set of the cache).
 /// * Hit or miss and exact cacheline location (set) is determined. The dirty flag is set.
 ///   Cache line is locked for other following descriptors. Lock is taken away when descriptor
 ///   is finished with operation on this cache line.
@@ -121,7 +121,7 @@ module axi_llc_top #(
   /// Restrictions:
   /// * Minimum value: `32'd1`
   /// * Maximum value: `32'd63`
-  /// The maximum value depends on the AXI-Lite register mapping of `axi_llc_config`.
+  /// The maximum value depends on the internal register width
   parameter int unsigned SetAssociativity = 32'd0,
   /// Number of cache lines per way.
   ///
@@ -157,10 +157,12 @@ module axi_llc_top #(
   parameter int unsigned AxiDataWidth = 32'd0,
   /// AXI4+ATOP user field width of both the slave and the master port.
   parameter int unsigned AxiUserWidth = 32'd0,
-  /// AXI4-Lite address field width of the configuration slave port.
-  parameter int unsigned AxiLiteAddrWidth = 32'd0,
-  /// AXI4-Lite data field width of the configuration slave port.
-  parameter int unsigned AxiLiteDataWidth = 32'd0,
+  /// Internal register width
+  parameter int unsigned RegWidth = 64,
+  /// Register type for HW -> Register direction
+  parameter type conf_regs_d_t  = logic,
+  /// Register type for Register -> HW direction
+  parameter type conf_regs_q_t  = logic,
   /// AXI4+ATOP request type on the slave port.
   /// Expected format can be defined using `AXI_TYPEDEF_REQ_T.
   parameter type slv_req_t      = logic,
@@ -173,18 +175,15 @@ module axi_llc_top #(
   /// AXI4+ATOP response type on the master port.
   /// Expected format can be defined using `AXI_TYPEDEF_RESP_T.
   parameter type mst_resp_t     = logic,
-  /// AXI4-Lite request type on the configuration port.
-  /// Expected format can be defined using `AXI_LITE_TYPEDEF_REQ_T.
-  parameter type lite_req_t     = logic,
-  /// AXI4+ATOP response type on the configuration port.
-  /// Expected format can be defined using `AXI_LITE_TYPEDEF_RESP_T.
-  parameter type lite_resp_t    = logic,
   /// Full AXI4+ATOP Port address decoding rule
   parameter type rule_full_t    = axi_pkg::xbar_rule_64_t,
   /// Dependent parameter, do **not** overwrite!
   /// Address type of the AXI4+ATOP ports.
   /// The address fields of the rule type have to be the same.
-  parameter type axi_addr_t     = logic[AxiAddrWidth-1:0]
+  parameter type axi_addr_t     = logic[AxiAddrWidth-1:0],
+  /// Dependent parameter, do **not** overwrite!
+  /// Data type of set associativity wide registers
+  parameter type way_ind_t      = logic[SetAssociativity-1:0]
 ) (
   /// Rising-edge clock of all ports.
   input logic clk_i,
@@ -200,10 +199,10 @@ module axi_llc_top #(
   output mst_req_t mst_req_o,
   /// AXI4+ATOP master port response, memory side
   input mst_resp_t mst_resp_i,
-  /// AXI4-Lite slave port request, configuration
-  input lite_req_t conf_req_i,
-  /// AXI4-Lite slave port response, configuration
-  output lite_resp_t conf_resp_o,
+  /// Configuration registers Registers -> HW
+  input  conf_regs_q_t conf_regs_i,
+  /// Configuration registers HW -> Registers
+  output conf_regs_d_t conf_regs_o,
   /// Start of address region mapped to cache
   input axi_addr_t cached_start_addr_i,
   /// End of address region mapped to cache
@@ -225,9 +224,7 @@ module axi_llc_top #(
   localparam axi_llc_pkg::llc_axi_cfg_t AxiCfg = axi_llc_pkg::llc_axi_cfg_t'{
     SlvPortIdWidth:    AxiIdWidth,
     AddrWidthFull:     AxiAddrWidth,
-    DataWidthFull:     AxiDataWidth,
-    LitePortAddrWidth: AxiLiteAddrWidth,
-    LitePortDataWidth: AxiLiteDataWidth
+    DataWidthFull:     AxiDataWidth
   };
 
   typedef logic [AxiCfg.SlvPortIdWidth-1:0]    axi_slv_id_t;
@@ -259,10 +256,6 @@ module axi_llc_top #(
     ByteOffsetLength  : unsigned'($clog2(AxiCfg.DataWidthFull / 32'd8)),
     SPMLength         : SetAssociativity * NumLines * NumBlocks * (AxiCfg.DataWidthFull / 32'd8)
   };
-
-  // definition of the descriptor struct that gets sent around in the llc
-  // (necessary here, because we can not have variable length structs in a package...)
-  typedef logic [Cfg.SetAssociativity-1:0] way_ind_t;
 
   typedef struct packed {
     // AXI4+ATOP specific descriptor signals
@@ -401,19 +394,21 @@ module axi_llc_top #(
 
   // configuration, also has control over bypass logic and flush
   axi_llc_config #(
-    .Cfg            ( Cfg         ),
-    .AxiCfg         ( AxiCfg      ),
-    .desc_t         ( llc_desc_t  ),
-    .lite_req_t     ( lite_req_t  ),
-    .lite_resp_t    ( lite_resp_t ),
-    .rule_full_t    ( rule_full_t ),
-    .set_asso_t     ( way_ind_t   ),
-    .addr_full_t    ( axi_addr_t  )
+    .Cfg            ( Cfg           ),
+    .AxiCfg         ( AxiCfg        ),
+    .RegWidth       ( RegWidth      ),
+    .conf_regs_d_t  ( conf_regs_d_t ),
+    .conf_regs_q_t  ( conf_regs_q_t ),
+    .desc_t         ( llc_desc_t    ),
+    .rule_full_t    ( rule_full_t   ),
+    .set_asso_t     ( way_ind_t     ),
+    .addr_full_t    ( axi_addr_t    )
   ) i_llc_config (
     .clk_i             ( clk_i                                  ),
     .rst_ni            ( rst_ni                                 ),
-    .conf_req_i        ( conf_req_i                             ),
-    .conf_resp_o       ( conf_resp_o                            ),
+    // Configuration registers
+    .conf_regs_i,
+    .conf_regs_o,
     .spm_lock_o        ( spm_lock                               ),
     .flushed_o         ( flushed                                ),
     .desc_o            ( ax_desc[axi_llc_pkg::ConfigUnit]       ),
@@ -459,7 +454,7 @@ module axi_llc_top #(
     .isolated_o ( llc_isolated  )
   );
 
-  axi_llc_demux #(
+  axi_demux #(
     .AxiIdWidth     ( AxiCfg.SlvPortIdWidth  ),
     .aw_chan_t      ( slv_aw_chan_t          ),
     .w_chan_t       ( w_chan_t               ),
@@ -471,7 +466,6 @@ module axi_llc_top #(
     .NoMstPorts     ( 32'd2                  ),
     .MaxTrans       ( axi_llc_pkg::MaxTrans  ),
     .AxiLookBits    ( axi_llc_pkg::UseIdBits ),
-    .FallThrough    ( 1'b0                   ),
     .SpillAw        ( 1'b0                   ),
     .SpillW         ( 1'b0                   ),
     .SpillB         ( 1'b0                   ),
@@ -999,19 +993,6 @@ module axi_llc_top #(
       $fatal(1, $sformatf("llc> AXI Master port, mst_ar_chan_t and mst_req_i.ar not equal"));
     mst_req_r    : assert ($bits(mst_r_chan_t) == $bits(mst_resp_i.r)) else
       $fatal(1, $sformatf("llc> AXI Slave port, slv_r_chan_t and mst_resp_i.r not equal"));
-    // check the config lite port against the cfg
-    lite_aw_addr : assert ($bits(conf_req_i.aw.addr) == AxiCfg.LitePortAddrWidth ) else
-      $fatal(1, $sformatf("llc> Cfg Lite port, AW ADDR width not equal to AxiCfg"));
-    lite_ar_addr : assert ($bits(conf_req_i.ar.addr) == AxiCfg.LitePortAddrWidth ) else
-      $fatal(1, $sformatf("llc> Cfg Lite port, AR ADDR width not equal to AxiCfg"));
-    lite_data    : assert (AxiCfg.LitePortDataWidth inside {32'd32, 32'd64}) else
-      $fatal(1, $sformatf("llc> Axi 4 LITE spec defines a DATA width of 32 or 64 bits!"));
-    lite_w_data  : assert ($bits(conf_req_i.w.data) == AxiCfg.LitePortDataWidth) else
-      $fatal(1, $sformatf("llc> Cfg Lite port, W DATA width not equal to AxiCfg"));
-    lite_r_data  : assert ($bits(conf_resp_o.r.data) == AxiCfg.LitePortDataWidth) else
-      $fatal(1, $sformatf("llc> Cfg Lite port, R DATA width not equal to AxiCfg"));
-    // Check the address rue struct
-
   end
 `endif
 // pragma translate_on

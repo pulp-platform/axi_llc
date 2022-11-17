@@ -18,16 +18,12 @@ package axi_llc_pkg;
     int unsigned AddrWidthFull;
     /// AXI4+ATOP data width of the ports for accessing the LLC, in bits
     int unsigned DataWidthFull;
-    /// AXI4+ATOP address width of the config AXI LITE port, in bits
-    int unsigned LitePortAddrWidth;
-    /// AXI4+ATOP Data width of the config AXI LITE port Has to be 32 bit
-    int unsigned LitePortDataWidth;
   } llc_axi_cfg_t;
 
   /// Version parameter, can be read out from configuration port.
   ///
   /// This is ASCII encoded after the scheme: `Llc:XXXX` where X stands for the version number.
-  parameter logic [63:0] AxiLlcVersion = 64'h4C6C_633a_3030_3031;
+  parameter logic [63:0] AxiLlcVersion = 64'h4C6C_633a_3030_3032;
 
   /// Cache configuration, used internally as localparam in the LLC submodules.
   /// Automatically set in (module.axi_llc_top).

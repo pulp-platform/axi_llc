@@ -14,6 +14,7 @@
     exclude_paths: [
         # Exclude anything in vendored directories
         'util/lowrisc_misc-linters/*',
-        'scripts/waves/*'
+        'scripts/waves/*',
+        'sw/include/axi_llc_regs.h'
     ],
 }

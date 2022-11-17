@@ -15,6 +15,7 @@ on:
 
 env:
   BENDER: ./bender
+  MORTY: ./morty
 
 jobs:
   check-clean:
@@ -25,13 +26,17 @@ jobs:
         with:
           python-version: '3.9'
           cache: 'pip'
+      - name: Setup Graphviz
+        uses: ts-graphviz/setup-graphviz@v1
       - name: Install Bender
         run: make bender
+      - name: Install Morty
+        run: make morty
       - name: Python Requirements
         run: pip install -r requirements.txt
       - name: Check clean make targets
         run: |
-          make -B all
+          make -B pickle doc graph regs
           make clean
           git status && test -z "$(git status --porcelain)"
   check-stale:
@@ -42,13 +47,17 @@ jobs:
         with:
           python-version: '3.9'
           cache: 'pip'
+      - name: Setup Graphviz
+        uses: ts-graphviz/setup-graphviz@v1
       - name: Install Bender
         run: make bender
+      - name: Install Morty
+        run: make morty
       - name: Python Requirements
         run: pip install -r requirements.txt
       - name: Check clean makefile
         run: |
-          make -B all
+          make -B pickle doc graph regs
           git status && test -z "$(git status --porcelain)"
   lint:
     runs-on: ubuntu-latest
@@ -153,10 +162,7 @@ jobs:
       - name: Python Requirements
         run: python3 -m pip install -r requirements.txt
       - name: Install Morty
-        run: |
-          curl --proto '=https' --tlsv1.2 -sLO https://github.com/pulp-platform/morty/releases/download/v0.8.0/morty-ubuntu.22.04-x86_64.tar.gz
-          tar -xvf morty-ubuntu.22.04-x86_64.tar.gz morty
-          rm -f morty-ubuntu.22.04-x86_64.tar.gz
+        run: make morty
       - name: Build Doc
         run: make doc
       - name: Pickle

@@ -5,6 +5,10 @@
 # Author: Thomas Benz <tbenz@iis.ee.ethz.ch>
 
 BENDER ?= bender
+PYTHON ?= python3
+
+REGGEN_PATH  = $(shell $(BENDER) path register_interface)/vendor/lowrisc_opentitan/util/regtool.py
+REGGEN	     = $(PYTHON) $(REGGEN_PATH)
 
 .PHONY: all clean
 
@@ -29,12 +33,20 @@ help:
 	@echo "pickle:                            uses morty to generate a pickled version of the hardware"
 	@echo "doc:                               generates the documentation in doc/morty"
 	@echo "graph:                             generates the module hierarchy graph in doc/morty-graph"
+	@echo "regs:                              generates the RegBus compatible register file"
 	@echo ""
 	@echo "clean:                             cleans generated files"
 	@echo "nuke:                              cleans all generated file, also almost all files checked in"
 	@echo ""
 
 
+# --------------
+# Registers
+# --------------
+
+regs:
+	$(REGGEN) -r --outdir src/ data/axi_llc_regs.hjson
+	$(REGGEN) --cdefines --outfile sw/include/axi_llc_regs.h data/axi_llc_regs.hjson
 
 # --------------
 # QuestaSim
@@ -193,6 +205,20 @@ bender-rm:
 	rm -f bender
 
 
+.PHONY: morty-rm
+
+morty:
+ifeq (,$(wildcard ./morty))
+	mkdir -p morty-dl
+	cd morty-dl; wget https://github.com/pulp-platform/morty/releases/download/v0.8.0/morty-centos.7.9.2009-x86_64.tar.gz
+	cd morty-dl; tar -xvf morty-centos.7.9.2009-x86_64.tar.gz; rm -f morty-centos.7.9.2009-x86_64.tar.gz
+	mv morty-dl/morty .; rm -rf morty-dl
+endif
+
+morty-rm:
+	rm -f morty
+
+
 # --------------
 # Misc Clean
 # --------------
@@ -205,5 +231,5 @@ misc_clean:
 	rm -f  open_todos.txt
 	rm -f  gmon.out
 
-nuke: clean
+nuke: clean morty-rm bender-rm
 	rm -rf .bender
