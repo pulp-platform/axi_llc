@@ -135,7 +135,7 @@ vcs_clean:
 .PHONY: pickle pickle_clean doc doc_clean graph graph_clean morty_clean
 
 MORTY               ?= morty
-MORTY_TOP           ?= axi_llc_top
+MORTY_TOP           ?= axi_llc_reg_wrap
 MORTY_TOP_TB        ?= tb_axi_llc
 PATH_ESCAPED         = $(shell pwd | sed 's_/_\\/_g')
 RELATIVE_PATH_REGEX  = 's/$(PATH_ESCAPED)/./'
