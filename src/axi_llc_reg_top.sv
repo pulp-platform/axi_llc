@@ -87,7 +87,6 @@ module axi_llc_reg_top #(
   logic [31:0] flushed_high_qs;
   logic [31:0] bist_out_low_qs;
   logic [31:0] bist_out_high_qs;
-  logic bist_status_qs;
   logic [31:0] set_asso_low_qs;
   logic [31:0] set_asso_high_qs;
   logic [31:0] num_lines_low_qs;
@@ -96,6 +95,7 @@ module axi_llc_reg_top #(
   logic [31:0] num_blocks_high_qs;
   logic [31:0] version_low_qs;
   logic [31:0] version_high_qs;
+  logic bist_status_qs;
 
   // Register instances
   // R[cfg_spm_low]: V(False)
@@ -337,32 +337,6 @@ module axi_llc_reg_top #(
   );
 
 
-  // R[bist_status]: V(False)
-
-  prim_subreg #(
-    .DW      (1),
-    .SWACCESS("RO"),
-    .RESVAL  (1'h0)
-  ) u_bist_status (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    .we     (1'b0),
-    .wd     ('0  ),
-
-    // from internal hardware
-    .de     (hw2reg.bist_status.de),
-    .d      (hw2reg.bist_status.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (),
-
-    // to register interface (read)
-    .qs     (bist_status_qs)
-  );
-
-
   // R[set_asso_low]: V(False)
 
   prim_subreg #(
@@ -571,6 +545,32 @@ module axi_llc_reg_top #(
   );
 
 
+  // R[bist_status]: V(False)
+
+  prim_subreg #(
+    .DW      (1),
+    .SWACCESS("RO"),
+    .RESVAL  (1'h0)
+  ) u_bist_status (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    .we     (1'b0),
+    .wd     ('0  ),
+
+    // from internal hardware
+    .de     (hw2reg.bist_status.de),
+    .d      (hw2reg.bist_status.d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (bist_status_qs)
+  );
+
+
 
 
   logic [17:0] addr_hit;
@@ -585,15 +585,15 @@ module axi_llc_reg_top #(
     addr_hit[ 6] = (reg_addr == AXI_LLC_FLUSHED_HIGH_OFFSET);
     addr_hit[ 7] = (reg_addr == AXI_LLC_BIST_OUT_LOW_OFFSET);
     addr_hit[ 8] = (reg_addr == AXI_LLC_BIST_OUT_HIGH_OFFSET);
-    addr_hit[ 9] = (reg_addr == AXI_LLC_BIST_STATUS_OFFSET);
-    addr_hit[10] = (reg_addr == AXI_LLC_SET_ASSO_LOW_OFFSET);
-    addr_hit[11] = (reg_addr == AXI_LLC_SET_ASSO_HIGH_OFFSET);
-    addr_hit[12] = (reg_addr == AXI_LLC_NUM_LINES_LOW_OFFSET);
-    addr_hit[13] = (reg_addr == AXI_LLC_NUM_LINES_HIGH_OFFSET);
-    addr_hit[14] = (reg_addr == AXI_LLC_NUM_BLOCKS_LOW_OFFSET);
-    addr_hit[15] = (reg_addr == AXI_LLC_NUM_BLOCKS_HIGH_OFFSET);
-    addr_hit[16] = (reg_addr == AXI_LLC_VERSION_LOW_OFFSET);
-    addr_hit[17] = (reg_addr == AXI_LLC_VERSION_HIGH_OFFSET);
+    addr_hit[ 9] = (reg_addr == AXI_LLC_SET_ASSO_LOW_OFFSET);
+    addr_hit[10] = (reg_addr == AXI_LLC_SET_ASSO_HIGH_OFFSET);
+    addr_hit[11] = (reg_addr == AXI_LLC_NUM_LINES_LOW_OFFSET);
+    addr_hit[12] = (reg_addr == AXI_LLC_NUM_LINES_HIGH_OFFSET);
+    addr_hit[13] = (reg_addr == AXI_LLC_NUM_BLOCKS_LOW_OFFSET);
+    addr_hit[14] = (reg_addr == AXI_LLC_NUM_BLOCKS_HIGH_OFFSET);
+    addr_hit[15] = (reg_addr == AXI_LLC_VERSION_LOW_OFFSET);
+    addr_hit[16] = (reg_addr == AXI_LLC_VERSION_HIGH_OFFSET);
+    addr_hit[17] = (reg_addr == AXI_LLC_BIST_STATUS_OFFSET);
   end
 
   assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0 ;
@@ -677,39 +677,39 @@ module axi_llc_reg_top #(
       end
 
       addr_hit[9]: begin
-        reg_rdata_next[0] = bist_status_qs;
-      end
-
-      addr_hit[10]: begin
         reg_rdata_next[31:0] = set_asso_low_qs;
       end
 
-      addr_hit[11]: begin
+      addr_hit[10]: begin
         reg_rdata_next[31:0] = set_asso_high_qs;
       end
 
-      addr_hit[12]: begin
+      addr_hit[11]: begin
         reg_rdata_next[31:0] = num_lines_low_qs;
       end
 
-      addr_hit[13]: begin
+      addr_hit[12]: begin
         reg_rdata_next[31:0] = num_lines_high_qs;
       end
 
-      addr_hit[14]: begin
+      addr_hit[13]: begin
         reg_rdata_next[31:0] = num_blocks_low_qs;
       end
 
-      addr_hit[15]: begin
+      addr_hit[14]: begin
         reg_rdata_next[31:0] = num_blocks_high_qs;
       end
 
-      addr_hit[16]: begin
+      addr_hit[15]: begin
         reg_rdata_next[31:0] = version_low_qs;
       end
 
-      addr_hit[17]: begin
+      addr_hit[16]: begin
         reg_rdata_next[31:0] = version_high_qs;
+      end
+
+      addr_hit[17]: begin
+        reg_rdata_next[0] = bist_status_qs;
       end
 
       default: begin

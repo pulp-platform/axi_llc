@@ -90,15 +90,6 @@
         {bits: "31:0", name: "high", desc: "upper 32 bit"}
       ]
     },
-    { name: "BIST_STATUS",
-      desc: "Status register of the BIST",
-      swaccess: "ro",
-      hwaccess: "hwo",
-      fields: [
-        {bits: "0:0", name: "done", desc: "BIST successfully completed"}
-      ]
-    },
-    {skipto: "0x30"}
     { name: "SET_ASSO_LOW",
       desc: "Instantiated Set-Associativity (lower 32 bit)",
       swaccess: "ro",
@@ -161,6 +152,14 @@
       hwaccess: "hwo",
       fields: [
         {bits: "31:0", name: "high", desc: "upper 32 bit"}
+      ]
+    },
+    { name: "BIST_STATUS",
+      desc: "Status register of the BIST",
+      swaccess: "ro",
+      hwaccess: "hwo",
+      fields: [
+        {bits: "0:0", name: "done", desc: "BIST successfully completed"}
       ]
     }
   ]

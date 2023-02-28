@@ -87,11 +87,6 @@ package axi_llc_reg_pkg;
   } axi_llc_hw2reg_bist_out_high_reg_t;
 
   typedef struct packed {
-    logic        d;
-    logic        de;
-  } axi_llc_hw2reg_bist_status_reg_t;
-
-  typedef struct packed {
     logic [31:0] d;
     logic        de;
   } axi_llc_hw2reg_set_asso_low_reg_t;
@@ -131,6 +126,11 @@ package axi_llc_reg_pkg;
     logic        de;
   } axi_llc_hw2reg_version_high_reg_t;
 
+  typedef struct packed {
+    logic        d;
+    logic        de;
+  } axi_llc_hw2reg_bist_status_reg_t;
+
   // Register -> HW type
   typedef struct packed {
     axi_llc_reg2hw_cfg_spm_low_reg_t cfg_spm_low; // [192:161]
@@ -153,15 +153,15 @@ package axi_llc_reg_pkg;
     axi_llc_hw2reg_flushed_high_reg_t flushed_high; // [364:332]
     axi_llc_hw2reg_bist_out_low_reg_t bist_out_low; // [331:299]
     axi_llc_hw2reg_bist_out_high_reg_t bist_out_high; // [298:266]
-    axi_llc_hw2reg_bist_status_reg_t bist_status; // [265:264]
-    axi_llc_hw2reg_set_asso_low_reg_t set_asso_low; // [263:231]
-    axi_llc_hw2reg_set_asso_high_reg_t set_asso_high; // [230:198]
-    axi_llc_hw2reg_num_lines_low_reg_t num_lines_low; // [197:165]
-    axi_llc_hw2reg_num_lines_high_reg_t num_lines_high; // [164:132]
-    axi_llc_hw2reg_num_blocks_low_reg_t num_blocks_low; // [131:99]
-    axi_llc_hw2reg_num_blocks_high_reg_t num_blocks_high; // [98:66]
-    axi_llc_hw2reg_version_low_reg_t version_low; // [65:33]
-    axi_llc_hw2reg_version_high_reg_t version_high; // [32:0]
+    axi_llc_hw2reg_set_asso_low_reg_t set_asso_low; // [265:233]
+    axi_llc_hw2reg_set_asso_high_reg_t set_asso_high; // [232:200]
+    axi_llc_hw2reg_num_lines_low_reg_t num_lines_low; // [199:167]
+    axi_llc_hw2reg_num_lines_high_reg_t num_lines_high; // [166:134]
+    axi_llc_hw2reg_num_blocks_low_reg_t num_blocks_low; // [133:101]
+    axi_llc_hw2reg_num_blocks_high_reg_t num_blocks_high; // [100:68]
+    axi_llc_hw2reg_version_low_reg_t version_low; // [67:35]
+    axi_llc_hw2reg_version_high_reg_t version_high; // [34:2]
+    axi_llc_hw2reg_bist_status_reg_t bist_status; // [1:0]
   } axi_llc_hw2reg_t;
 
   // Register offsets
@@ -174,15 +174,15 @@ package axi_llc_reg_pkg;
   parameter logic [BlockAw-1:0] AXI_LLC_FLUSHED_HIGH_OFFSET = 7'h 1c;
   parameter logic [BlockAw-1:0] AXI_LLC_BIST_OUT_LOW_OFFSET = 7'h 20;
   parameter logic [BlockAw-1:0] AXI_LLC_BIST_OUT_HIGH_OFFSET = 7'h 24;
-  parameter logic [BlockAw-1:0] AXI_LLC_BIST_STATUS_OFFSET = 7'h 28;
-  parameter logic [BlockAw-1:0] AXI_LLC_SET_ASSO_LOW_OFFSET = 7'h 30;
-  parameter logic [BlockAw-1:0] AXI_LLC_SET_ASSO_HIGH_OFFSET = 7'h 34;
-  parameter logic [BlockAw-1:0] AXI_LLC_NUM_LINES_LOW_OFFSET = 7'h 38;
-  parameter logic [BlockAw-1:0] AXI_LLC_NUM_LINES_HIGH_OFFSET = 7'h 3c;
-  parameter logic [BlockAw-1:0] AXI_LLC_NUM_BLOCKS_LOW_OFFSET = 7'h 40;
-  parameter logic [BlockAw-1:0] AXI_LLC_NUM_BLOCKS_HIGH_OFFSET = 7'h 44;
-  parameter logic [BlockAw-1:0] AXI_LLC_VERSION_LOW_OFFSET = 7'h 48;
-  parameter logic [BlockAw-1:0] AXI_LLC_VERSION_HIGH_OFFSET = 7'h 4c;
+  parameter logic [BlockAw-1:0] AXI_LLC_SET_ASSO_LOW_OFFSET = 7'h 28;
+  parameter logic [BlockAw-1:0] AXI_LLC_SET_ASSO_HIGH_OFFSET = 7'h 2c;
+  parameter logic [BlockAw-1:0] AXI_LLC_NUM_LINES_LOW_OFFSET = 7'h 30;
+  parameter logic [BlockAw-1:0] AXI_LLC_NUM_LINES_HIGH_OFFSET = 7'h 34;
+  parameter logic [BlockAw-1:0] AXI_LLC_NUM_BLOCKS_LOW_OFFSET = 7'h 38;
+  parameter logic [BlockAw-1:0] AXI_LLC_NUM_BLOCKS_HIGH_OFFSET = 7'h 3c;
+  parameter logic [BlockAw-1:0] AXI_LLC_VERSION_LOW_OFFSET = 7'h 40;
+  parameter logic [BlockAw-1:0] AXI_LLC_VERSION_HIGH_OFFSET = 7'h 44;
+  parameter logic [BlockAw-1:0] AXI_LLC_BIST_STATUS_OFFSET = 7'h 48;
 
   // Register index
   typedef enum int {
@@ -195,7 +195,6 @@ package axi_llc_reg_pkg;
     AXI_LLC_FLUSHED_HIGH,
     AXI_LLC_BIST_OUT_LOW,
     AXI_LLC_BIST_OUT_HIGH,
-    AXI_LLC_BIST_STATUS,
     AXI_LLC_SET_ASSO_LOW,
     AXI_LLC_SET_ASSO_HIGH,
     AXI_LLC_NUM_LINES_LOW,
@@ -203,7 +202,8 @@ package axi_llc_reg_pkg;
     AXI_LLC_NUM_BLOCKS_LOW,
     AXI_LLC_NUM_BLOCKS_HIGH,
     AXI_LLC_VERSION_LOW,
-    AXI_LLC_VERSION_HIGH
+    AXI_LLC_VERSION_HIGH,
+    AXI_LLC_BIST_STATUS
   } axi_llc_id_e;
 
   // Register width information to check illegal writes
@@ -217,15 +217,15 @@ package axi_llc_reg_pkg;
     4'b 1111, // index[ 6] AXI_LLC_FLUSHED_HIGH
     4'b 1111, // index[ 7] AXI_LLC_BIST_OUT_LOW
     4'b 1111, // index[ 8] AXI_LLC_BIST_OUT_HIGH
-    4'b 0001, // index[ 9] AXI_LLC_BIST_STATUS
-    4'b 1111, // index[10] AXI_LLC_SET_ASSO_LOW
-    4'b 1111, // index[11] AXI_LLC_SET_ASSO_HIGH
-    4'b 1111, // index[12] AXI_LLC_NUM_LINES_LOW
-    4'b 1111, // index[13] AXI_LLC_NUM_LINES_HIGH
-    4'b 1111, // index[14] AXI_LLC_NUM_BLOCKS_LOW
-    4'b 1111, // index[15] AXI_LLC_NUM_BLOCKS_HIGH
-    4'b 1111, // index[16] AXI_LLC_VERSION_LOW
-    4'b 1111  // index[17] AXI_LLC_VERSION_HIGH
+    4'b 1111, // index[ 9] AXI_LLC_SET_ASSO_LOW
+    4'b 1111, // index[10] AXI_LLC_SET_ASSO_HIGH
+    4'b 1111, // index[11] AXI_LLC_NUM_LINES_LOW
+    4'b 1111, // index[12] AXI_LLC_NUM_LINES_HIGH
+    4'b 1111, // index[13] AXI_LLC_NUM_BLOCKS_LOW
+    4'b 1111, // index[14] AXI_LLC_NUM_BLOCKS_HIGH
+    4'b 1111, // index[15] AXI_LLC_VERSION_LOW
+    4'b 1111, // index[16] AXI_LLC_VERSION_HIGH
+    4'b 0001  // index[17] AXI_LLC_BIST_STATUS
   };
 
 endpackage

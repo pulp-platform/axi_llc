@@ -44,33 +44,33 @@ extern "C" {
 // Tag Storage BIST Result (upper 32 bit)
 #define AXI_LLC_BIST_OUT_HIGH_REG_OFFSET 0x24
 
-// Status register of the BIST
-#define AXI_LLC_BIST_STATUS_REG_OFFSET 0x28
-#define AXI_LLC_BIST_STATUS_DONE_BIT 0
-
 // Instantiated Set-Associativity (lower 32 bit)
-#define AXI_LLC_SET_ASSO_LOW_REG_OFFSET 0x30
+#define AXI_LLC_SET_ASSO_LOW_REG_OFFSET 0x28
 
 // Instantiated Set-Associativity (upper 32 bit)
-#define AXI_LLC_SET_ASSO_HIGH_REG_OFFSET 0x34
+#define AXI_LLC_SET_ASSO_HIGH_REG_OFFSET 0x2c
 
 // Instantiated Number of Cache-Lines (lower 32 bit)
-#define AXI_LLC_NUM_LINES_LOW_REG_OFFSET 0x38
+#define AXI_LLC_NUM_LINES_LOW_REG_OFFSET 0x30
 
 // Instantiated Number of Cache-Lines (upper 32 bit)
-#define AXI_LLC_NUM_LINES_HIGH_REG_OFFSET 0x3c
+#define AXI_LLC_NUM_LINES_HIGH_REG_OFFSET 0x34
 
 // Instantiated Number of Blocks (lower 32 bit)
-#define AXI_LLC_NUM_BLOCKS_LOW_REG_OFFSET 0x40
+#define AXI_LLC_NUM_BLOCKS_LOW_REG_OFFSET 0x38
 
 // Instantiated Number of Blocks (upper 32 bit)
-#define AXI_LLC_NUM_BLOCKS_HIGH_REG_OFFSET 0x44
+#define AXI_LLC_NUM_BLOCKS_HIGH_REG_OFFSET 0x3c
 
 // AXI LLC Version (lower 32 bit)
-#define AXI_LLC_VERSION_LOW_REG_OFFSET 0x48
+#define AXI_LLC_VERSION_LOW_REG_OFFSET 0x40
 
 // AXI LLC Version (upper 32 bit)
-#define AXI_LLC_VERSION_HIGH_REG_OFFSET 0x4c
+#define AXI_LLC_VERSION_HIGH_REG_OFFSET 0x44
+
+// Status register of the BIST
+#define AXI_LLC_BIST_STATUS_REG_OFFSET 0x48
+#define AXI_LLC_BIST_STATUS_DONE_BIT 0
 
 #ifdef __cplusplus
 }  // extern "C"

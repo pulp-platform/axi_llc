@@ -90,15 +90,15 @@ module tb_axi_llc #(
     FlushedHigh   = 32'h1C,
     BistOutLow    = 32'h20,
     BistOutHigh   = 32'h24,
-    BistStatus    = 32'h28,
-    SetAssoLow    = 32'h30,
-    SetAssoHigh   = 32'h34,
-    NumLinesLow   = 32'h38,
-    NumLinesHigh  = 32'h3C,
-    NumBlocksLow  = 32'h40,
-    NumBlocksHigh = 32'h44,
-    VersionLow    = 32'h48,
-    VersionHigh   = 32'h4c
+    SetAssoLow    = 32'h28,
+    SetAssoHigh   = 32'h2C,
+    NumLinesLow   = 32'h30,
+    NumLinesHigh  = 32'h34,
+    NumBlocksLow  = 32'h38,
+    NumBlocksHigh = 32'h3C,
+    VersionLow    = 32'h40,
+    VersionHigh   = 32'h44,
+    BistStatus    = 32'h48
   } llc_cfg_addr_e;
 
   ////////////////////////////////
