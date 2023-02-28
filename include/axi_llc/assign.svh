@@ -26,6 +26,8 @@
     `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, cfg_flush)      \
     assign regbus.commit_cfg.d = d_struct.commit_cfg;                           \
     assign regbus.commit_cfg.de = d_struct.commit_cfg_en;                       \
+    assign regbus.bist_status.d = d_struct.bist_status_done;                    \
+    assign regbus.bist_status.de = d_struct.bist_status_en;                     \
     `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, flushed)        \
     `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, bist_out)       \
     `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, set_asso)       \

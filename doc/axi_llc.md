@@ -11,7 +11,7 @@ The cache features a transaction bypass for enabling direct accesses from the sl
 The LLC has a number of fixed parameters which have to be given during instantiation. The module features three main parameters, which determine the overall size and shape of the LLC. They are all of the type `int unsigned`.
 
 
-* `SetAssociativity`: The set-associativity of the LLC. This parameter determines how many ways/sets will be instantiated. The minimum value is 1. The maximum value depends on the data width of the AXI LITE configuration port and should either be 32 or 64 to stay inside the protocol specification. The reason is that the SPM configuration register matches in width the data width of the LITE configuration port.
+* `SetAssociativity`: The set-associativity of the LLC. This parameter determines how many ways/sets will be instantiated. The minimum value is 1. The maximum value depends on the data width of the flat configuration port and should either be 32 or 64 to stay inside the protocol specification. The reason is that the SPM configuration register matches in width the data width of the LITE configuration port.
 * `NoLines`: Specifies the number of lines in each way. This value has to be higher than two. The reason is that in the address at least one bit has to be mapped onto a cache-line index. This is a limitation of the *system verilog* language, which requires at least one bit wide fields inside of a struct. Further this value has to be a power of 2. This has to do with the requirement that the address mapping from the address onto the cache-line index has to be continuous.
 * `NoBlocks`: Specifies the number of blocks inside a cache line. A block is defined to have the data width of the master port. Currently this also matches the data with of the slave port. The same value limitation as with the *NoLines* parameter applies. Fixing the minimum value to 2 and the overall value to be a power of 2.
 
@@ -88,7 +88,14 @@ Another responsibility of the `axi_llc_burst_cutter` module is to determine the 
 
 Coming from the splitter modules and the spill register the descriptor enters the `axi_llc_hit_miss` detection unit. This unit is responsible for the tag lookup and determines if a descriptor is allowed through the hit bypass or not. It has three sub components. First the `axi_llc_tag_store` module, which does the lookup of the tag. The `axi_llc_lock_box_bloom` module which ensures that only one descriptor is allowed to operate on the same cache line at a time. And lastly the `axi_llc_miss_counters` module, which is responsible of the right ordering of the descriptors. The sub-modules are handshaked to enable back pressure.
 
-The module gets initialized each time when the LLC comes out from a reset. The tag-storage macros have to be initialized to ensure correct behavior. During this initialization phase the tag-storage module runs a build in self test (BIST) on the tag-storage SRAM macros. The BIST is run in parallel on all macros and reuses the lookup comparators, which have to be there anyway to make the tag lookup work. The BIST uses the *march X* pattern to check for eventual defects. The advantage of using this pattern is that in the end all macros are initialized to zero and no further initialization steps are required. The result of the BIST can then be read out in the respective configuration address over the AXI LITE port.
+The module gets initialized each time when the LLC comes out from a reset. The tag-storage macros have to be initialized to ensure correct behavior. During this initialization phase the tag-storage module runs a build in self test (BIST) on the tag-storage SRAM macros. The BIST is run in parallel on all macros and reuses the lookup comparators, which have to be there anyway to make the tag lookup work. The BIST uses the *march X* pattern to check for eventual defects. The advantage of using this pattern is that in the end all macros are initialized to zero and no further initialization steps are required. The result of the BIST can then be read out in the respective configuration address over the flat port.
+
+
+### BIST Initialization Sequence
+
+After each reset, the internal BIST starts checking the tag-store for errors. During this time the LLC is stalling all accesses over the AXI BUS. As soon as the BIST completes, **ALL WAYS** with no errors will be set to **CACHE**. This in particular **OVERWRITES** any configuration committed during the BIST cycle.
+
+It is therefore strongly advised to wait with configuring the LLC for the BIST to finish. The status of the BISC can be checked polling on the `DONE` bit of the `BIST_STATUS` register.
 
 
 ### Tag Lookup and Storage
@@ -119,7 +126,7 @@ Each descriptor generated from a transaction on the slave port ultimately ends u
 
 | Name        | Type               | Function |
 |:-------------- |:----------------- |:-------------------------------------- |
-| `cache_unit`    | `llc_pkg::unit_e`     | Indicated which of the units made the request towards the data-ways. This value is used for routing back the response from an individual way. |
+| `cache_unit`   | `llc_pkg::unit_e`     | Indicated which of the units made the request towards the data-ways. This value is used for routing back the response from an individual way. |
 | `way_ind`      | `logic [SetAsso]`     | Indicates to which way the request should go. Controls the request routing inside `llc_data_ways`. |
 | `line_addr`    | `logic [Index]`       | The cache line index indicating which cache line the request is for. |
 | `block_offset` | `logic [BlockOffs]`   | The block offset indication to which cache block the request is for. |
@@ -148,9 +155,7 @@ After the evict unit the descriptor enters the refill unit. It has the reverse f
 
 The `axi_llc_config` module is the unit which controls the SPM configuration and the flushing of the LLC. It also feature a set of performance counters, which can be used to track the descriptor utilization of the LLC. These functionalities all can be accessed over a dedicated AXI4 LITE slave port.
 
-
-![Configuration Registers and their respective relative addresses on the AXI LITE port.](axi_llc_crf_reg_map.png "Configuration Registers and their respective relative addresses on the AXI LITE port.")
-
+The configuration of the LLC happens over a flat configuration port. Internally there are no registers. A default wrapper module is provided that wraps the LLC with configuration registers. The address map of this configuration can be found in the corresponding `axi_llc_reg_pkg` package.
 
 There are three registers which can be written to and are located at the lower part of the address map. The map gets generated automatically from a combination of lite port data width and the start address of the configuration map. These registers are also responsible for the maximum set-associativity of the cache. As the SPM configuration is encoded as a one-hot signal each way index matches to a bit in the respective register. As the register is a wide as the LITE port data width the maximum set-associativity is in consequence also limited to that value. This mapping makes the read out of the BIST from the tag storage macros trivial. The set/way mapping is the same for SPM configuration, BIST readout and manual flush initialization, where each bit index matches the way index.
 

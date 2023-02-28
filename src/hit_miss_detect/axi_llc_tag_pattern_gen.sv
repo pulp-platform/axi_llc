@@ -57,6 +57,8 @@ module axi_llc_tag_pattern_gen #(
 
   // unit status
   logic         busy_d, busy_q, switch_busy;
+  // BIST eoc status
+  logic         eoc_d, eoc_q;
   // BIST state implements March X
   typedef enum logic [3:0] {
     WZEROUP, RZEROUP, WONEUP, RONEDOWN, WZERODOWN, RZERODOWN, BISTEND
@@ -84,7 +86,7 @@ module axi_llc_tag_pattern_gen #(
     ready_o     = 1'b0;
     req_o       = 1'b0;
     we_o        = 1'b0;
-    eoc_o       = 1'b0;
+    eoc_d       = eoc_q;
     // counter signals
     clear_cnt   = 1'b0;
     en_cnt      = 1'b0;
@@ -191,7 +193,7 @@ module axi_llc_tag_pattern_gen #(
         BISTEND   : begin
           bist_d      = WZEROUP;
           update_bist = 1'b1;
-          eoc_o       = 1'b1;
+          eoc_d       = 1'b1;
           busy_d      = 1'b0;
           switch_busy = 1'b1;
         end
@@ -227,6 +229,10 @@ module axi_llc_tag_pattern_gen #(
 
   // Flip Flops
   `FFLARN(busy_q,     busy_d,     switch_busy,      '0, clk_i, rst_ni)
+  `FFLARN(eoc_q,      eoc_d,      '1,               '0, clk_i, rst_ni)
   `FFLARN(bist_q,     bist_d,     update_bist, WZEROUP, clk_i, rst_ni)
   `FFLARN(bist_res_q, bist_res_d, error_bist,       '0, clk_i, rst_ni)
+
+  // assign outputs
+  assign eoc_o = eoc_q;
 endmodule
