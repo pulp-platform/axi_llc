@@ -49,6 +49,70 @@
         {bits: "31:0", name: "high", desc: "upper 32 bit"}
       ]
     },
+    { name: "CFG_FLUSH_SET0_LOW",
+      desc: "Index-based Flush Configuration [31:0] (lower 32 bit)",
+      swaccess: "rw",
+      hwaccess: "hrw",
+      fields: [
+        {bits: "31:0", name: "low", desc: "lower 32 bit"}
+      ]
+    },
+    { name: "CFG_FLUSH_SET0_HIGH",
+      desc: "Index-based Flush Configuration [63:32] (upper 32 bit)",
+      swaccess: "rw",
+      hwaccess: "hrw",
+      fields: [
+        {bits: "31:0", name: "high", desc: "upper 32 bit"}
+      ]
+    },
+    { name: "CFG_FLUSH_SET1_LOW",
+      desc: "Index-based Flush Configuration [95:64] (lower 32 bit)",
+      swaccess: "rw",
+      hwaccess: "hrw",
+      fields: [
+        {bits: "31:0", name: "low", desc: "lower 32 bit"}
+      ]
+    },
+    { name: "CFG_FLUSH_SET1_HIGH",
+      desc: "Index-based Flush Configuration [127:96] (upper 32 bit)",
+      swaccess: "rw",
+      hwaccess: "hrw",
+      fields: [
+        {bits: "31:0", name: "high", desc: "upper 32 bit"}
+      ]
+    },
+    { name: "CFG_FLUSH_SET2_LOW",
+      desc: "Index-based Flush Configuration [159:128] (lower 32 bit)",
+      swaccess: "rw",
+      hwaccess: "hrw",
+      fields: [
+        {bits: "31:0", name: "low", desc: "lower 32 bit"}
+      ]
+    },
+    { name: "CFG_FLUSH_SET2_HIGH",
+      desc: "Index-based Flush Configuration [191:160] (upper 32 bit)",
+      swaccess: "rw",
+      hwaccess: "hrw",
+      fields: [
+        {bits: "31:0", name: "high", desc: "upper 32 bit"}
+      ]
+    },
+    { name: "CFG_FLUSH_SET3_LOW",
+      desc: "Index-based Flush Configuration [223:192] (lower 32 bit)",
+      swaccess: "rw",
+      hwaccess: "hrw",
+      fields: [
+        {bits: "31:0", name: "low", desc: "lower 32 bit"}
+      ]
+    },
+    { name: "CFG_FLUSH_SET3_HIGH",
+      desc: "Index-based Flush Configuration [255:224] (upper 32 bit)",
+      swaccess: "rw",
+      hwaccess: "hrw",
+      fields: [
+        {bits: "31:0", name: "high", desc: "upper 32 bit"}
+      ]
+    },
     { name: "COMMIT_CFG",
       desc: "Commit the configuration",
       swaccess: "rw1s",
@@ -57,7 +121,7 @@
         {bits: "0", name: "commit", desc: "commit configuration"}
       ]
     },
-    {skipto: "0x18"}
+    {skipto: "0x38"}
     { name: "FLUSHED_LOW",
       desc: "Flushed Flag (lower 32 bit)",
       swaccess: "ro",
@@ -150,6 +214,70 @@
       desc: "AXI LLC Version (upper 32 bit)",
       swaccess: "ro",
       hwaccess: "hwo",
+      fields: [
+        {bits: "31:0", name: "high", desc: "upper 32 bit"}
+      ]
+    },
+    { name: "FLUSHED_SET0_LOW",
+      desc: "Index-based Flushed Flag [31:0] (lower 32 bit)",
+      swaccess: "ro",
+      hwaccess: "hrw",
+      fields: [
+        {bits: "31:0", name: "low", desc: "lower 32 bit"}
+      ]
+    },
+    { name: "FLUSHED_SET0_HIGH",
+      desc: "Index-based Flushed Flag [63:32] (upper 32 bit)",
+      swaccess: "ro",
+      hwaccess: "hrw",
+      fields: [
+        {bits: "31:0", name: "high", desc: "upper 32 bit"}
+      ]
+    },
+    { name: "FLUSHED_SET1_LOW",
+      desc: "Index-based Flushed Flag [95:64] (lower 32 bit)",
+      swaccess: "ro",
+      hwaccess: "hrw",
+      fields: [
+        {bits: "31:0", name: "low", desc: "lower 32 bit"}
+      ]
+    },
+    { name: "FLUSHED_SET1_HIGH",
+      desc: "Index-based Flushed Flag [127:96] (upper 32 bit)",
+      swaccess: "ro",
+      hwaccess: "hrw",
+      fields: [
+        {bits: "31:0", name: "high", desc: "upper 32 bit"}
+      ]
+    },
+    { name: "FLUSHED_SET2_LOW",
+      desc: "Index-based Flushed Flag [159:128] (lower 32 bit)",
+      swaccess: "ro",
+      hwaccess: "hrw",
+      fields: [
+        {bits: "31:0", name: "low", desc: "lower 32 bit"}
+      ]
+    },
+    { name: "FLUSHED_SET2_HIGH",
+      desc: "Index-based Flushed Flag [191:160] (upper 32 bit)",
+      swaccess: "ro",
+      hwaccess: "hrw",
+      fields: [
+        {bits: "31:0", name: "high", desc: "upper 32 bit"}
+      ]
+    },
+    { name: "FLUSHED_SET3_LOW",
+      desc: "Index-based Flushed Flag [223:192] (lower 32 bit)",
+      swaccess: "ro",
+      hwaccess: "hrw",
+      fields: [
+        {bits: "31:0", name: "low", desc: "lower 32 bit"}
+      ]
+    },
+    { name: "FLUSHED_SET3_HIGH",
+      desc: "Index-based Flushed Flag [255:224] (upper 32 bit)",
+      swaccess: "ro",
+      hwaccess: "hrw",
       fields: [
         {bits: "31:0", name: "high", desc: "upper 32 bit"}
       ]

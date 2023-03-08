@@ -56,6 +56,22 @@
     logic       num_blocks_en;                                          \
     reg_data_t  version;                                                \
     logic       version_en;                                             \
+    reg_data_t  cfg_flush_set0;                                         \
+    logic       cfg_flush_set0_en;                                      \
+    reg_data_t  cfg_flush_set1;                                         \
+    logic       cfg_flush_set1_en;                                      \
+    reg_data_t  cfg_flush_set2;                                         \
+    logic       cfg_flush_set2_en;                                      \
+    reg_data_t  cfg_flush_set3;                                         \
+    logic       cfg_flush_set3_en;                                      \
+    reg_data_t  flushed_set0;                                           \
+    logic       flushed_set0_en;                                        \
+    reg_data_t  flushed_set1;                                           \
+    logic       flushed_set1_en;                                        \
+    reg_data_t  flushed_set2;                                           \
+    logic       flushed_set2_en;                                        \
+    reg_data_t  flushed_set3;                                           \
+    logic       flushed_set3_en;                                        \
   } cfg_regs_d_t;
 
 // Registers -> HW
@@ -71,6 +87,14 @@
     set_asso_t  cfg_flush;                                              \
     logic       commit_cfg;                                             \
     set_asso_t  flushed;                                                \
+    reg_data_t  cfg_flush_set0;                                         \
+    reg_data_t  cfg_flush_set1;                                         \
+    reg_data_t  cfg_flush_set2;                                         \
+    reg_data_t  cfg_flush_set3;                                         \
+    reg_data_t  flushed_set0;                                           \
+    reg_data_t  flushed_set1;                                           \
+    reg_data_t  flushed_set2;                                           \
+    reg_data_t  flushed_set3;                                           \
   } cfg_regs_q_t;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

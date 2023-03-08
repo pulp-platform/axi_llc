@@ -31,7 +31,15 @@
     `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, set_asso)       \
     `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, num_lines)      \
     `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, num_blocks)     \
-    `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, version)
+    `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, version)        \
+    `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, cfg_flush_set0) \
+    `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, cfg_flush_set1) \
+    `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, cfg_flush_set2) \
+    `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, cfg_flush_set3) \
+    `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, flushed_set0)   \
+    `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, flushed_set1)   \
+    `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, flushed_set2)   \
+    `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, flushed_set3)
 
 // Assign the 64-bit q_struct values from the corresponding 32-bit _low and _high
 // REG2HW signals
@@ -39,6 +47,14 @@
     assign q_struct.cfg_spm = {regbus.cfg_spm_high.q, regbus.cfg_spm_low.q};        \
     assign q_struct.cfg_flush = {regbus.cfg_flush_high.q, regbus.cfg_flush_low.q};  \
     assign q_struct.commit_cfg = regbus.commit_cfg.q;                               \
-    assign q_struct.flushed = {regbus.flushed_high.q, regbus.flushed_low.q};
+    assign q_struct.flushed = {regbus.flushed_high.q, regbus.flushed_low.q};        \
+    assign q_struct.flushed_set0 = {regbus.flushed_set0_high.q, regbus.flushed_set0_low.q}; \
+    assign q_struct.flushed_set1 = {regbus.flushed_set1_high.q, regbus.flushed_set1_low.q}; \
+    assign q_struct.flushed_set2 = {regbus.flushed_set2_high.q, regbus.flushed_set2_low.q}; \
+    assign q_struct.flushed_set3 = {regbus.flushed_set3_high.q, regbus.flushed_set3_low.q}; \
+    assign q_struct.cfg_flush_set0 = {regbus.cfg_flush_set0_high.q, regbus.cfg_flush_set0_low.q}; \
+    assign q_struct.cfg_flush_set1 = {regbus.cfg_flush_set1_high.q, regbus.cfg_flush_set1_low.q}; \
+    assign q_struct.cfg_flush_set2 = {regbus.cfg_flush_set2_high.q, regbus.cfg_flush_set2_low.q}; \
+    assign q_struct.cfg_flush_set3 = {regbus.cfg_flush_set3_high.q, regbus.cfg_flush_set3_low.q};
 
 `endif

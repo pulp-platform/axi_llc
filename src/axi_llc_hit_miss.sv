@@ -46,7 +46,8 @@ module axi_llc_hit_miss #(
   /// } cnt_t;
   parameter type                       cnt_t     = logic,
   /// Way indicator, is a onehot signal with width: `Cfg.SetAssociativity`.
-  parameter type                       way_ind_t = logic
+  parameter type                       way_ind_t = logic,
+  parameter type                       set_ind_t = logic
 ) (
   /// Clock, positive edge triggered.
   input  logic     clk_i,
@@ -69,6 +70,7 @@ module axi_llc_hit_miss #(
   // Configuration input
   input  way_ind_t spm_lock_i,
   input  way_ind_t flushed_i,
+  input  set_ind_t flushed_set_i,
   // unlock inputs from the units
   input  lock_t    w_unlock_i,
   input  logic     w_unlock_req_i,
@@ -332,6 +334,7 @@ module axi_llc_hit_miss #(
   axi_llc_tag_store #(
     .Cfg         ( Cfg         ),
     .way_ind_t   ( way_ind_t   ),
+    .set_ind_t   ( set_ind_t   ),
     .store_req_t ( store_req_t ),
     .store_res_t ( store_res_t )
   ) i_tag_store (
@@ -340,6 +343,7 @@ module axi_llc_hit_miss #(
     .test_i,
     .spm_lock_i   ( spm_lock_i      ),
     .flushed_i    ( flushed_i       ),
+    .flushed_set_i ( flushed_set_i  ),
     .req_i        ( store_req       ),
     .valid_i      ( store_req_valid ),
     .ready_o      ( store_req_ready ),

@@ -183,7 +183,10 @@ module axi_llc_top #(
   parameter type axi_addr_t     = logic[AxiAddrWidth-1:0],
   /// Dependent parameter, do **not** overwrite!
   /// Data type of set associativity wide registers
-  parameter type way_ind_t      = logic[SetAssociativity-1:0]
+  parameter type way_ind_t      = logic[SetAssociativity-1:0],
+  /// Dependent parameter, do **not** overwrite!
+  /// Data type of set wide registers
+  parameter type set_ind_t      = logic[NumLines-1:0]
 ) (
   /// Rising-edge clock of all ports.
   input logic clk_i,
@@ -372,6 +375,7 @@ module axi_llc_top #(
   // global SPM lock signal
   logic [Cfg.SetAssociativity-1:0] spm_lock;
   logic [Cfg.SetAssociativity-1:0] flushed;
+  logic [Cfg.NumLines-1:0]         flushed_set;
 
   // BIST from tag_store
   logic [Cfg.SetAssociativity-1:0] bist_res;
@@ -402,6 +406,7 @@ module axi_llc_top #(
     .desc_t         ( llc_desc_t    ),
     .rule_full_t    ( rule_full_t   ),
     .set_asso_t     ( way_ind_t     ),
+    .set_t          ( set_ind_t     ),
     .addr_full_t    ( axi_addr_t    )
   ) i_llc_config (
     .clk_i             ( clk_i                                  ),
@@ -411,6 +416,7 @@ module axi_llc_top #(
     .conf_regs_o,
     .spm_lock_o        ( spm_lock                               ),
     .flushed_o         ( flushed                                ),
+    .flushed_set_o     ( flushed_set                            ),
     .desc_o            ( ax_desc[axi_llc_pkg::ConfigUnit]       ),
     .desc_valid_o      ( ax_desc_valid[axi_llc_pkg::ConfigUnit] ),
     .desc_ready_i      ( ax_desc_ready[axi_llc_pkg::ConfigUnit] ),
@@ -567,7 +573,8 @@ module axi_llc_top #(
     .desc_t    ( llc_desc_t ),
     .lock_t    ( lock_t     ),
     .cnt_t     ( cnt_t      ),
-    .way_ind_t ( way_ind_t  )
+    .way_ind_t ( way_ind_t  ),
+    .set_ind_t ( set_ind_t  )
   ) i_hit_miss_unit (
     .clk_i,
     .rst_ni,
@@ -582,6 +589,7 @@ module axi_llc_top #(
     .hit_ready_i    ( hit_ready    ),
     .spm_lock_i     ( spm_lock     ),
     .flushed_i      ( flushed      ),
+    .flushed_set_i  ( flushed_set  ),
     .w_unlock_i     ( w_unlock     ),
     .w_unlock_req_i ( w_unlock_req ),
     .w_unlock_gnt_o ( w_unlock_gnt ),
