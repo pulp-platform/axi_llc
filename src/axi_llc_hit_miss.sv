@@ -28,6 +28,7 @@ module axi_llc_hit_miss #(
   parameter axi_llc_pkg::llc_cfg_t     Cfg       = axi_llc_pkg::llc_cfg_t'{default: '0},
   /// AXI parameter configuration
   parameter axi_llc_pkg::llc_axi_cfg_t AxiCfg    = axi_llc_pkg::llc_axi_cfg_t'{default: '0},
+  // parameter int unsigned               ThreadBit = 0,
   /// LLC descriptor type
   parameter type                       desc_t    = logic,
   /// Lock struct definition. The lock signal indicate that a cache line is unlocked.
@@ -47,6 +48,8 @@ module axi_llc_hit_miss #(
   parameter type                       cnt_t     = logic,
   /// Way indicator, is a onehot signal with width: `Cfg.SetAssociativity`.
   parameter type                       way_ind_t = logic,
+  parameter type                       set_ind_t = logic,
+  parameter type                       partition_table_t = logic,
   /// Whether to print SRAM configs
   parameter bit                        PrintSramCfg = 0
 ) (
@@ -71,6 +74,7 @@ module axi_llc_hit_miss #(
   // Configuration input
   input  way_ind_t spm_lock_i,
   input  way_ind_t flushed_i,
+  input  set_ind_t flushed_set_i,
   // unlock inputs from the units
   input  lock_t    w_unlock_i,
   input  logic     w_unlock_req_i,
@@ -82,12 +86,24 @@ module axi_llc_hit_miss #(
   input  cnt_t     cnt_down_i,
   // bist aoutput
   output way_ind_t bist_res_o,
-  output logic     bist_valid_o
+  output logic     bist_valid_o,
+  // partition table
+  input partition_table_t   partition_table_i,
+  input partition_table_t   partition_share_i
 );
   `include "common_cells/registers.svh"
   localparam int unsigned IndexBase = Cfg.ByteOffsetLength + Cfg.BlockOffsetLength;
   localparam int unsigned TagBase   = Cfg.ByteOffsetLength + Cfg.BlockOffsetLength +
                                       Cfg.IndexLength;
+
+  // CACHE-PARTITION
+  logic [Cfg.IndexLength-1:0] start_index;
+  logic [Cfg.IndexLength-1:0] pat_size;
+  assign start_index  = partition_table_i.StartIndex;
+  assign pat_size     = partition_table_i.NumIndex;
+  // localparam int unsigned  old_set_size  = Cfg.IndexLength-ThreadBit;
+
+
   // Type definitions for the requests and responses to/from the tag storage
       // typedef logic [Cfg.SetAssociativity-1:0] way_ind_t;
   typedef logic [Cfg.IndexLength-1:0]      index_t;
@@ -142,6 +158,15 @@ module axi_llc_hit_miss #(
   desc_t desc_d,    desc_q;            // descriptor residing in unit
   logic  load_desc;
 
+  // CACHE-PARTITION
+  logic [Cfg.TagLength-1:0]                   tag_partition;
+  logic [Cfg.IndexLength-1:0]                 index_partition;
+
+  // should be inputs passed to this block
+  // or, pass PatID to this module and calculate corresponding values
+
+
+
   // control
   always_comb begin
     // default assignments
@@ -152,6 +177,7 @@ module axi_llc_hit_miss #(
     desc_d    = desc_q;
     // output
     desc_o    = desc_q; // some fields get combinatorically overwritten from the tag lookup
+    desc_o.index_partition = desc_q.flush ? desc_q.a_x_addr[IndexBase+:Cfg.IndexLength] : desc_q.index_partition;
     load_desc = 1'b0;
     // unit handshaking
     ready_o      = 1'b0;
@@ -196,8 +222,7 @@ module axi_llc_hit_miss #(
               end
             end
           end
-
-        end else begin
+        end else begin       
           ////////////////////////////////////////////////////////////////
           // NORMAL or FLUSH descriptor in unit, made req to tag_store
           // wait for the response
@@ -244,15 +269,31 @@ module axi_llc_hit_miss #(
                       desc_d    = desc_i;
                       load_desc = 1'b1;
                     end else begin
-                      // make the request to the tag store,
+                      /********** CACHE-PARTITION **********/
+                      tag_partition = desc_i.a_x_addr[IndexBase+:Cfg.TagLength];
+                      // index_partition = pat_size ? start_index : partition_share_i.StartIndex;
+                      // index_partition = (pat_size != 0) ? start_index + (desc_i.a_x_addr[IndexBase+:Cfg.IndexLength] % pat_size) : 
+                      //   partition_share_i.StartIndex + (desc_i.a_x_addr[IndexBase+:Cfg.IndexLength] % partition_share_i.NumIndex);
+                      
                       store_req = store_req_t'{
                         mode:      desc_i.flush ? axi_llc_pkg::Flush : axi_llc_pkg::Lookup,
                         indicator: desc_i.flush ? desc_i.way_ind     : ~flushed_i,
-                        index:     desc_i.a_x_addr[IndexBase+:Cfg.IndexLength],
-                        tag:       desc_i.flush ? tag_t'(0)          : desc_i.a_x_addr[TagBase+:Cfg.TagLength],
+                        index:     desc_i.flush ? desc_i.a_x_addr[IndexBase+:Cfg.IndexLength] : desc_i.index_partition,
+                        tag:       desc_i.flush ? tag_t'(0)          : tag_partition,
                         dirty:     desc_i.rw,
                         default:   '0
                       };
+
+                      /*************************************/
+                      // make the request to the tag store,
+                      // store_req = store_req_t'{
+                      //   mode:      desc_i.flush ? axi_llc_pkg::Flush : axi_llc_pkg::Lookup,
+                      //   indicator: desc_i.flush ? desc_i.way_ind     : ~flushed_i,
+                      //   index:     desc_i.a_x_addr[IndexBase+:Cfg.IndexLength],
+                      //   tag:       desc_i.flush ? tag_t'(0)          : desc_i.a_x_addr[TagBase+:Cfg.TagLength],
+                      //   dirty:     desc_i.rw,
+                      //   default:   '0
+                      // };
                       store_req_valid = 1'b1;
                       // transfer
                       if (store_req_ready) begin
@@ -291,15 +332,32 @@ module axi_llc_hit_miss #(
             desc_d    = desc_i;
             load_desc = 1'b1;
           end else begin
-            // make the request to the tag store,
+            /********** CACHE-PARTITION **********/
+            tag_partition = desc_i.a_x_addr[IndexBase+:Cfg.TagLength];
+            // tag_partition = desc_i.a_x_addr[31:IndexBase];
+            // index_partition = pat_size ? start_index : partition_share_i.StartIndex;
+            // index_partition = (pat_size != 0) ? start_index + (desc_i.a_x_addr[IndexBase+:Cfg.IndexLength] % pat_size) : 
+            //   partition_share_i.StartIndex + (desc_i.a_x_addr[IndexBase+:Cfg.IndexLength] % partition_share_i.NumIndex);
+            
             store_req = store_req_t'{
               mode:      desc_i.flush ? axi_llc_pkg::Flush : axi_llc_pkg::Lookup,
               indicator: desc_i.flush ? desc_i.way_ind     : ~flushed_i,
-              index:     desc_i.a_x_addr[IndexBase+:Cfg.IndexLength],
-              tag:       desc_i.flush ? tag_t'(0)          : desc_i.a_x_addr[TagBase+:Cfg.TagLength],
+              index:     desc_i.flush ? desc_i.a_x_addr[IndexBase+:Cfg.IndexLength] : desc_i.index_partition,
+              tag:       desc_i.flush ? tag_t'(0)          : tag_partition,
               dirty:     desc_i.rw,
               default:   '0
             };
+            /*************************************/
+
+            // make the request to the tag store,
+            // store_req = store_req_t'{
+            //   mode:      desc_i.flush ? axi_llc_pkg::Flush : axi_llc_pkg::Lookup,
+            //   indicator: desc_i.flush ? desc_i.way_ind     : ~flushed_i,
+            //   index:     desc_i.a_x_addr[IndexBase+:Cfg.IndexLength],
+            //   tag:       desc_i.flush ? tag_t'(0)          : desc_i.a_x_addr[TagBase+:Cfg.TagLength],
+            //   dirty:     desc_i.rw,
+            //   default:   '0
+            // };
             store_req_valid = 1'b1;
             // transfer
             if (store_req_ready) begin
@@ -332,17 +390,26 @@ module axi_llc_hit_miss #(
   end
 
   axi_llc_tag_store #(
+<<<<<<< HEAD
     .Cfg          ( Cfg          ),
     .way_ind_t    ( way_ind_t    ),
     .store_req_t  ( store_req_t  ),
     .store_res_t  ( store_res_t  ),
     .PrintSramCfg ( PrintSramCfg )
+=======
+    .Cfg         ( Cfg         ),
+    .way_ind_t   ( way_ind_t   ),
+    .set_ind_t   ( set_ind_t   ),
+    .store_req_t ( store_req_t ),
+    .store_res_t ( store_res_t )
+>>>>>>> e3bba33 (In Process: Index-based flushing (with way-based flushing function verified))
   ) i_tag_store (
     .clk_i,
     .rst_ni,
     .test_i,
     .spm_lock_i   ( spm_lock_i      ),
     .flushed_i    ( flushed_i       ),
+    .flushed_set_i ( flushed_set_i  ),
     .req_i        ( store_req       ),
     .valid_i      ( store_req_valid ),
     .ready_o      ( store_req_ready ),
@@ -373,7 +440,10 @@ module axi_llc_hit_miss #(
 
   // inputs to the lock box
   assign lock = '{
-    index:   desc_o.a_x_addr[(Cfg.ByteOffsetLength + Cfg.BlockOffsetLength)+:Cfg.IndexLength],
+    // index:   desc_o.a_x_addr[(Cfg.ByteOffsetLength + Cfg.BlockOffsetLength)+:Cfg.IndexLength],
+    // index:   (pat_size != 0) ? start_index + (desc_o.a_x_addr[IndexBase+:Cfg.IndexLength] % pat_size) : 
+    //           partition_share_i.StartIndex + (desc_o.a_x_addr[IndexBase+:Cfg.IndexLength] % partition_share_i.NumIndex),
+    index:   desc_o.index_partition,
     way_ind: desc_o.way_ind
   };
   // Lock it if a transfer happens on ether channel and no flush!

@@ -17,6 +17,7 @@ module axi_llc_read_unit #(
   parameter axi_llc_pkg::llc_cfg_t Cfg = axi_llc_pkg::llc_cfg_t'{default: 0},
   /// Static LLC AXI configuration parameters.
   parameter axi_llc_pkg::llc_axi_cfg_t AxiCfg = axi_llc_pkg::llc_axi_cfg_t'{default: '0},
+  parameter MaxThread = 0,
   /// LLC descriptor type definition.
   parameter type                       desc_t    = logic,
   /// Data way request payload type definition.
@@ -26,7 +27,8 @@ module axi_llc_read_unit #(
   /// Lock struct definition. This is for the bloom filter to signal, that the line is unlocked.
   parameter type                       lock_t    = logic,
   /// AXI slave port R channel struct definition.
-  parameter type                       r_chan_t  = logic
+  parameter type                       r_chan_t  = logic, 
+  parameter type                       partition_table_t = logic
 ) (
   /// Clock, positive edge triggered.
   input logic clk_i,
@@ -65,8 +67,11 @@ module axi_llc_read_unit #(
   output logic r_unlock_req_o,
   /// Grant for the unlock request.
   /// NOT AXI compliant!
-  input logic r_unlock_gnt_i
+  input logic r_unlock_gnt_i,
+  /// Cache-Partition
+  input partition_table_t [MaxThread:0] partition_table_i
 );
+  localparam int unsigned IndexBase = Cfg.ByteOffsetLength + Cfg.BlockOffsetLength;
   `include "common_cells/registers.svh"
   typedef logic [AxiCfg.SlvPortIdWidth-1:0] id_t;
   typedef logic [AxiCfg.DataWidthFull-1:0]  data_t;
@@ -96,18 +101,33 @@ module axi_llc_read_unit #(
   logic           meta_fifo_empty;
   logic           meta_fifo_pop;
 
+  
+  // Cache-Partition
+  logic [Cfg.IndexLength-1:0] pat_size, start_index, share_size, share_index;
+
+  assign pat_size = partition_table_i[desc_q.patid].NumIndex;
+  assign start_index = partition_table_i[desc_q.patid].StartIndex;
+  assign share_size = partition_table_i[MaxThread].NumIndex;
+  assign share_index = partition_table_i[MaxThread].StartIndex;
+
   // way_inp assignments
   assign way_inp_o = '{
     cache_unit: axi_llc_pkg::RChanUnit,
     way_ind:    desc_q.way_ind,
-    line_addr:  desc_q.a_x_addr[(Cfg.ByteOffsetLength + Cfg.BlockOffsetLength)+:Cfg.IndexLength],
+    line_addr: desc_q.index_partition,
+    // line_addr:  (pat_size != 0) ? start_index + (desc_q.a_x_addr[IndexBase+:Cfg.IndexLength] % pat_size) : 
+    //               share_index + (desc_q.a_x_addr[IndexBase+:Cfg.IndexLength] % share_size),
+    // line_addr:  desc_q.a_x_addr[(Cfg.ByteOffsetLength + Cfg.BlockOffsetLength)+:Cfg.IndexLength],
     blk_offset: desc_q.a_x_addr[ Cfg.ByteOffsetLength +: Cfg.BlockOffsetLength],
     default: '0
   }; // other fields not needed, `we` is `1'b0.
 
   // unlock assignment
   assign r_unlock_o = '{
-    index:   desc_q.a_x_addr[(Cfg.ByteOffsetLength + Cfg.BlockOffsetLength)+:Cfg.IndexLength],
+    index: desc_q.index_partition,
+    // index:  (pat_size != 0) ? start_index + (desc_q.a_x_addr[IndexBase+:Cfg.IndexLength] % pat_size) : 
+    //           share_index + (desc_q.a_x_addr[IndexBase+:Cfg.IndexLength] % share_size),
+    // index:   desc_q.a_x_addr[(Cfg.ByteOffsetLength + Cfg.BlockOffsetLength)+:Cfg.IndexLength],
     way_ind: desc_q.way_ind
   };
 

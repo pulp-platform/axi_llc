@@ -21,6 +21,7 @@ module axi_llc_tag_store #(
   /// Way indicator type
   /// EG: typedef logic [Cfg.SetAssociativity-1:0] way_ind_t;
   parameter type way_ind_t = logic,
+  parameter type set_ind_t = logic,
   /// Type of the request payload made to the tag storage
   parameter type store_req_t = logic,
   /// Type of the response payload expected from the tag storage
@@ -43,6 +44,7 @@ module axi_llc_tag_store #(
   ///
   /// This indicates that a way is flushed. No LOOKUP operations are performed on flushed ways.
   input  way_ind_t   flushed_i,
+  input  set_ind_t   flushed_set_i,
   /// Tag storage request payload.
   input  store_req_t req_i,
   /// Request to the tag storage is valid.
