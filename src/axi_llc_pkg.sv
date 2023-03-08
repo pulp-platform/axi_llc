@@ -270,4 +270,14 @@ package axi_llc_pkg;
     /// Configuration module (Flush descriptors)
     ConfigUnit = 2'b10
   } desc_unit_e;
+
+  /// Indicates the algorithm used in index_assigner for partitioning
+  typedef enum logic [1:0] {
+    /// Modulo
+    Modulo = 2'b00,
+    /// Multiply-shifting
+    Mulsft = 2'b01,
+    /// Truncation and mapping on both side
+    TruncDual = 2'b10
+  } algorithm_e;
 endpackage
