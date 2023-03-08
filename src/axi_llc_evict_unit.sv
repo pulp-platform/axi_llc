@@ -15,6 +15,8 @@ module axi_llc_evict_unit #(
   parameter axi_llc_pkg::llc_cfg_t Cfg = axi_llc_pkg::llc_cfg_t'{default: '0},
   /// Static LLC AXI configuration parameters.
   parameter axi_llc_pkg::llc_axi_cfg_t AxiCfg = axi_llc_pkg::llc_axi_cfg_t'{default: '0},
+  /// Cache partitioning enabling parameter
+  parameter logic CachePartition              = 1,
   /// LLC descriptor type definition.
   parameter type desc_t = logic,
   /// LLC way input request payload type.
@@ -99,6 +101,7 @@ module axi_llc_evict_unit #(
   axi_llc_ax_master #(
     .Cfg             ( Cfg                    ),
     .AxiCfg          ( AxiCfg                 ),
+    .CachePartition  ( CachePartition ),
     .desc_t          ( desc_t                 ),
     .ax_chan_t       ( aw_chan_t              ),
     .cache_unit      ( axi_llc_pkg::EvictUnit )
@@ -141,6 +144,7 @@ module axi_llc_evict_unit #(
   axi_llc_w_master #(
     .Cfg       ( Cfg       ),
     .AxiCfg    ( AxiCfg    ),
+    .CachePartition ( CachePartition ),
     .desc_t    ( desc_t    ),
     .way_inp_t ( way_inp_t ),
     .way_oup_t ( way_oup_t ),

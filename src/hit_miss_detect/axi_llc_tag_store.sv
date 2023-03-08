@@ -21,6 +21,7 @@ module axi_llc_tag_store #(
   /// Way indicator type
   /// EG: typedef logic [Cfg.SetAssociativity-1:0] way_ind_t;
   parameter type way_ind_t = logic,
+  // parameter type set_ind_t = logic,
   /// Type of the request payload made to the tag storage
   parameter type store_req_t = logic,
   /// Type of the response payload expected from the tag storage
@@ -43,6 +44,7 @@ module axi_llc_tag_store #(
   ///
   /// This indicates that a way is flushed. No LOOKUP operations are performed on flushed ways.
   input  way_ind_t   flushed_i,
+  // input  set_ind_t   flushed_set_i,
   /// Tag storage request payload.
   input  store_req_t req_i,
   /// Request to the tag storage is valid.
@@ -262,15 +264,23 @@ module axi_llc_tag_store #(
   assign ram_rvalid_d = (res_valid & res_ready) ? way_ind_t'(0) : ram_rvalid;
   assign lock_rvalid  = (res_valid & res_ready) | (|ram_rvalid);
 
+  localparam int unsigned SRAMDataWidth = 1'b1 << ($clog2(TagDataLen));
+  localparam int unsigned SRAMExtendedWidth = SRAMDataWidth - TagDataLen;
+  logic [SRAMDataWidth-1:0] sram_wdata;
+  assign sram_wdata = {{SRAMExtendedWidth{1'b0}}, ram_wdata};
+
+
   // generate for each Way one tag storage macro
   for (genvar i = 0; unsigned'(i) < Cfg.SetAssociativity; i++) begin : gen_tag_macros
+    logic [SRAMDataWidth-1:0] sram_rdata;
     tag_data_t ram_rdata;    // read data from the sram
     tag_data_t ram_compared; // comparison result of tags
 
-    tc_sram #(
+    // For functional test
+    axi_llc_sram_tag #(
       .NumWords    ( Cfg.NumLines                 ),
-      .DataWidth   ( TagDataLen                   ),
-      .ByteWidth   ( TagDataLen                   ),
+      .DataWidth   ( SRAMDataWidth                ),
+      .ByteWidth   ( SRAMDataWidth                ),
       .NumPorts    ( 32'd1                        ),
       .Latency     ( axi_llc_pkg::TagMacroLatency ),
       .SimInit     ( "none"                       ),
@@ -281,10 +291,34 @@ module axi_llc_tag_store #(
       .req_i   ( ram_req[i] ),
       .we_i    ( ram_we[i]  ),
       .addr_i  ( ram_index  ),
-      .wdata_i ( ram_wdata  ),
+      .wdata_i ( sram_wdata ),
       .be_i    ( ram_we[i]  ),
-      .rdata_o ( ram_rdata  )
+      .rdata_o ( sram_rdata )
     );
+
+    // // For synthesis
+    // axi_llc_sram_tag_fpga #(
+    //   .NumWords    ( Cfg.NumLines                 ),
+    //   .DataWidth   ( SRAMDataWidth                ),
+    //   .ByteWidth   ( SRAMDataWidth                ),
+    //   .NumPorts    ( 32'd1                        ),
+    //   .Latency     ( axi_llc_pkg::TagMacroLatency ),
+    //   .SimInit     ( "none"                       ),
+    //   .PrintSimCfg ( 1'b1                         ),
+    //   .NumLines    ( Cfg.NumLines                 ),
+    //   .PrintSimCfg ( PrintSramCfg                 )
+    // ) i_tag_store (
+    //   .clk_i,
+    //   .rst_ni,
+    //   .req_i   ( ram_req[i] ),
+    //   .we_i    ( ram_we[i]  ),
+    //   .addr_i  ( ram_index  ),
+    //   .wdata_i ( sram_wdata  ),
+    //   .be_i    ( ram_we[i]  ),
+    //   .rdata_o ( sram_rdata  )
+    // );
+
+    assign ram_rdata = sram_rdata[TagDataLen-1:0];
 
     // shift register for a validtoken for read data, this pulses once for each read request
     shift_reg #(

@@ -10,22 +10,28 @@
 /// line.
 module axi_llc_chan_splitter #(
   /// Static configuration parameters of the LLC.
-  parameter axi_llc_pkg::llc_cfg_t Cfg = axi_llc_pkg::llc_cfg_t'{default: '0},
+  parameter axi_llc_pkg::llc_cfg_t Cfg         = axi_llc_pkg::llc_cfg_t'{default: '0},
   /// Give the exact AXI parameters in struct form. This is passed down from
   /// [`axi_llc_top`](module.axi_llc_top).
   ///
   /// Required struct definition in: `axi_llc_pkg`.
-  parameter axi_llc_pkg::llc_axi_cfg_t AxiCfg = axi_llc_pkg::llc_axi_cfg_t'{default: '0},
+  parameter axi_llc_pkg::llc_axi_cfg_t AxiCfg  = axi_llc_pkg::llc_axi_cfg_t'{default: '0},
+  /// Cache partitioning enabling parameter
+  parameter logic CachePartition               = 1,
+  parameter int unsigned MaxPartition          = 0,
+  /// Index remapping hash function used in cache partitioning
+  parameter axi_llc_pkg::algorithm_e RemapHash = axi_llc_pkg::Modulo,
   /// AXI4 AX channel type. This can either be the AW or AR channel.
   parameter type chan_t = logic,
   /// This defines if the unit is on the AW or the AR channel.
   /// AW: 1
   /// AR: 0
-  parameter bit Write = 1'b1,
+  parameter bit Write   = 1'b1,
   /// AXI LLC descriptor type definition.
   parameter type desc_t = logic,
   /// Address rule type definitions for the AXI slave port.
-  parameter type rule_t = axi_pkg::xbar_rule_64_t
+  parameter type rule_t = axi_pkg::xbar_rule_64_t,
+  parameter type partition_table_t = logic
 ) (
   /// Clock, positive edge triggered.
   input logic clk_i,
@@ -53,7 +59,8 @@ module axi_llc_chan_splitter #(
   /// This is used in the address decoder for finding out the exact way where the access is
   /// matching.
   /// Only `start_addr` is used.
-  input rule_t spm_rule_i
+  input rule_t spm_rule_i,
+  input partition_table_t [MaxPartition:0] partition_table_i
 );
   `include "common_cells/registers.svh"
   // Registers
@@ -133,13 +140,18 @@ module axi_llc_chan_splitter #(
   end
 
   // this module determines how many data beats of the AX request map onto a cache line
+  // Cache-Partition: add the port of partition table for burst_cutter to calculate the value
   axi_llc_burst_cutter #(
-    .Cfg    ( Cfg      ),
-    .AxiCfg ( AxiCfg   ),
-    .chan_t ( chan_t   ),
-    .Write  ( Write    ),
-    .desc_t ( desc_t   ),
-    .rule_t ( rule_t   )
+    .Cfg            ( Cfg                 ),
+    .AxiCfg         ( AxiCfg              ),
+    .CachePartition ( CachePartition      ),
+    .MaxPartition   ( MaxPartition        ),
+    .RemapHash      ( RemapHash           ),
+    .chan_t         ( chan_t              ),
+    .Write          ( Write               ),
+    .desc_t         ( desc_t              ),
+    .rule_t         ( rule_t              ),
+    .partition_table_t (partition_table_t)
   ) i_burst_cutter (
     .clk_i,
     .rst_ni,
@@ -147,7 +159,8 @@ module axi_llc_chan_splitter #(
     .next_chan_o   ( next_chan     ),
     .desc_o        ( desc_o        ),
     .cached_rule_i ( cached_rule_i ),
-    .spm_rule_i    ( spm_rule_i    )
+    .spm_rule_i    ( spm_rule_i    ),
+    .partition_table_i ( partition_table_i )
   );
 
   // Flip Flops

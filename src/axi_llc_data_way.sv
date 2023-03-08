@@ -116,7 +116,8 @@ module axi_llc_data_way #(
     end
   end
 
-  tc_sram #(
+  // For functional test
+  axi_llc_sram_data #(
     .NumWords   ( Cfg.NumLines * Cfg.NumBlocks ),
     .DataWidth  ( Cfg.BlockSize                ),
     .ByteWidth  ( 32'd8                        ),
@@ -134,6 +135,28 @@ module axi_llc_data_way #(
     .be_i    ( inp_i.strb ),
     .rdata_o ( out_o.data )
   );
+
+  // // For synthesis
+  // axi_llc_sram_data_fpga #(
+  //   .NumWords   ( Cfg.NumLines * Cfg.NumBlocks ),
+  //   .DataWidth  ( Cfg.BlockSize                ),
+  //   .ByteWidth  ( 32'd8                        ),
+  //   .NumPorts   ( 32'd1                        ),
+  //   .Latency    ( 32'd1                        ),
+  //   .SimInit    ( "none"                       ),
+  //   .PrintSimCfg( 1'b1                         ),
+  //   .NumLines   ( Cfg.NumLines                 ),
+  //   .PrintSimCfg( PrintSramCfg                 )
+  // ) i_data_sram (
+  //   .clk_i,
+  //   .rst_ni,
+  //   .req_i   ( ram_req    ),
+  //   .we_i    ( inp_i.we   ),
+  //   .addr_i  ( addr       ),
+  //   .wdata_i ( inp_i.data ),
+  //   .be_i    ( inp_i.strb ),
+  //   .rdata_o ( out_o.data )
+  // );
 
   // Flip Flops to hold the read request meta information
   `FFLARN(outp_valid_q, outp_valid_d, load_valid, '0, clk_i, rst_ni)
