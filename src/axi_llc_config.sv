@@ -296,8 +296,8 @@ module axi_llc_config #(
   logic       [Cfg.NumLines-1:0] conf_regs_i_cfg_flush_set;
   // logic       [Cfg.NumLines-1:0] conf_regs_o_flushed_set;
   // logic       [Cfg.NumLines-1:0] conf_regs_o_cfg_flush_set;
-  assign conf_regs_i_flushed_set = {conf_regs_i.flushed_set0, conf_regs_i.flushed_set1, conf_regs_i.flushed_set2, conf_regs_i.flushed_set3};
-  assign conf_regs_i_cfg_flush_set = {conf_regs_i.cfg_flush_set0, conf_regs_i.cfg_flush_set1, conf_regs_i.cfg_flush_set2, conf_regs_i.cfg_flush_set3};
+  assign conf_regs_i_flushed_set = {conf_regs_i.flushed_set3, conf_regs_i.flushed_set2, conf_regs_i.flushed_set1, conf_regs_i.flushed_set0};
+  assign conf_regs_i_cfg_flush_set = {conf_regs_i.cfg_flush_set3, conf_regs_i.cfg_flush_set2, conf_regs_i.cfg_flush_set1, conf_regs_i.cfg_flush_set0};
   // assign conf_regs_o.flushed_set0 = conf_regs_o_flushed_set[RegWidth-1:0];
   // assign conf_regs_o.flushed_set1 = conf_regs_o_flushed_set[2*RegWidth-1:RegWidth];
   // assign conf_regs_o.flushed_set1 = conf_regs_o_flushed_set[3*RegWidth-1:2*RegWidth];
@@ -313,6 +313,8 @@ module axi_llc_config #(
   logic       index_based_flush_d, index_based_flush_q;
   logic       load_index_based_flush;
 
+  assign load_index_based_flush = (index_based_flush_d != index_based_flush_q);
+
   `FFLARN(index_based_flush_q, index_based_flush_d, load_index_based_flush, '0, clk_i, rst_ni)
 
   always_comb begin : proc_axi_rule
@@ -326,7 +328,7 @@ module axi_llc_config #(
     // !!!!!TODO!!!!!: this should be modifled later. The second part should depend on both 
     //slv_aw_addr_i/slv_ar_addr_i and segmentation flushed situation. If the section correspondng 
     //to the slv_aw_addr_i/slv_ar_addr_i has all cache lines flushed, then the req should bypass LLC 
-    axi_addr_map[1].idx[0] = index_based_flush_q ? conf_regs_i_flushed_set[slv_aw_addr_i[IndexBase+:Cfg.IndexLength]] : (&conf_regs_i.flushed); 
+    axi_addr_map[1].idx[0] = index_based_flush_q ? (conf_regs_i_flushed_set[slv_aw_addr_i[IndexBase+:Cfg.IndexLength]] | (&conf_regs_i.flushed)) : (&conf_regs_i.flushed); 
     // axi_addr_map[1].idx[0] = &conf_regs_i.flushed; 
     // ***********************************************************************************************************************
   end
@@ -389,7 +391,6 @@ module axi_llc_config #(
   assign switch_state  = (flush_state_d != flush_state_q);
   assign load_to_flush = (to_flush_d    != to_flush_q);
   assign load_to_flush_set = (to_flush_set_d != to_flush_set_q);
-  assign load_index_based_flush = (index_based_flush_d != index_based_flush_q);
 
   // Constant hardware registers
   assign conf_regs_o.bist_out       = bist_res_i;
@@ -493,34 +494,40 @@ module axi_llc_config #(
         if (|conf_regs_i_cfg_flush_set) begin
           to_flush_set_d          = conf_regs_i_cfg_flush_set & ~conf_regs_i_flushed_set;
           index_based_flush_d = 1'b1; //meaning that the current flush operation is index-based
+          if (to_flush_set_d == '0) begin
+            // nothing to flush, go to idle
+            flush_state_d = FsmIdle;
+            index_based_flush_d = 1'b0;
+
+            conf_regs_o.cfg_flush_set0 = 64'b0;
+            conf_regs_o.cfg_flush_set1 = 64'b0;
+            conf_regs_o.cfg_flush_set2 = 64'b0;
+            conf_regs_o.cfg_flush_set3 = 64'b0;
+          end else begin
+            flush_state_d = FsmSendFlush;
+            load_cnt_set      = 1'b1;
+          end
         // this state determines which cache way should be flushed
         // it also sets up the counters for state-keeping how far
         // the flush operation has progressed
-        // define if the user requested a flush
+        // define if the user requested a flush       
         end else if (|conf_regs_i.cfg_flush) begin
           to_flush_d              = conf_regs_i.cfg_flush & ~conf_regs_i.flushed;
           index_based_flush_d = 1'b0; //meaning that the current flush operation is way-based
+          if (to_flush_d == '0) begin
+            // nothing to flush, go to idle
+            flush_state_d = FsmIdle;
+            
+            conf_regs_o.cfg_flush = set_asso_t'(1'b0);
+          end else begin
+            flush_state_d = FsmSendFlush;
+            load_cnt      = 1'b1;
+          end
         end else begin
           to_flush_d              = conf_regs_i.cfg_spm & ~conf_regs_i.flushed;
           conf_regs_o.flushed     = conf_regs_i.cfg_spm & conf_regs_i.flushed;
           conf_regs_o.flushed_en  = 1'b1;
           index_based_flush_d = 1'b0; //meaning that the current flush operation is way-based
-        end
-        // now determine if we have something to do at all
-        if (|conf_regs_i_cfg_flush_set) begin
-          if (to_flush_set_d == '0) begin
-            // nothing to flush, go to idle
-            flush_state_d = FsmIdle;
-
-            conf_regs_o.cfg_flush_set0 = set_t'(1'b0);
-            conf_regs_o.cfg_flush_set1 = set_t'(1'b0);
-            conf_regs_o.cfg_flush_set2 = set_t'(1'b0);
-            conf_regs_o.cfg_flush_set3 = set_t'(1'b0);
-          end else begin
-            flush_state_d = FsmSendFlush;
-            load_cnt_set      = 1'b1;
-          end
-        end else begin
           if (to_flush_d == '0) begin
             // nothing to flush, go to idle
             flush_state_d = FsmIdle;
@@ -531,6 +538,32 @@ module axi_llc_config #(
             load_cnt      = 1'b1;
           end
         end
+        // now determine if we have something to do at all
+        // if (index_based_flush_d) begin
+        //   if (to_flush_set_d == '0) begin
+        //     // nothing to flush, go to idle
+        //     flush_state_d = FsmIdle;
+        //     index_based_flush_d = 1'b0;
+
+        //     conf_regs_o.cfg_flush_set0 = set_t'(1'b0);
+        //     conf_regs_o.cfg_flush_set1 = set_t'(1'b0);
+        //     conf_regs_o.cfg_flush_set2 = set_t'(1'b0);
+        //     conf_regs_o.cfg_flush_set3 = set_t'(1'b0);
+        //   end else begin
+        //     flush_state_d = FsmSendFlush;
+        //     load_cnt_set      = 1'b1;
+        //   end
+        // end else begin
+        //   if (to_flush_d == '0) begin
+        //     // nothing to flush, go to idle
+        //     flush_state_d = FsmIdle;
+            
+        //     conf_regs_o.cfg_flush = set_asso_t'(1'b0);
+        //   end else begin
+        //     flush_state_d = FsmSendFlush;
+        //     load_cnt      = 1'b1;
+        //   end
+        // end
       end
       FsmSendFlush: begin
         // this state sends all required flush descriptors to the specified way
@@ -589,22 +622,22 @@ module axi_llc_config #(
           clear_cnt_set = 1'b1;
           if (to_flush_set_q == flush_set_ind) begin
             flush_state_d = FsmIdle;
-            index_based_flush_d = 1'b0; // reset flush type
+            // index_based_flush_d = 1'b0; // reset flush type
             // reset the flushed register to SPM as new requests can enter the cache
-            conf_regs_o.flushed_set0    = '0; /**************** temperarily not used since SPM is way-based ****************/ 
-            conf_regs_o.flushed_set1    = '0; /**************** temperarily not used since SPM is way-based ****************/ 
-            conf_regs_o.flushed_set2    = '0; /**************** temperarily not used since SPM is way-based ****************/ 
-            conf_regs_o.flushed_set3    = '0; /**************** temperarily not used since SPM is way-based ****************/ 
+            conf_regs_o.flushed_set0    = 64'b0; /**************** temperarily not used since SPM is way-based ****************/ 
+            conf_regs_o.flushed_set1    = 64'b0; /**************** temperarily not used since SPM is way-based ****************/ 
+            conf_regs_o.flushed_set2    = 64'b0; /**************** temperarily not used since SPM is way-based ****************/ 
+            conf_regs_o.flushed_set3    = 64'b0; /**************** temperarily not used since SPM is way-based ****************/ 
             conf_regs_o.flushed_set0_en = 1'b1;
             conf_regs_o.flushed_set1_en = 1'b1;
             conf_regs_o.flushed_set2_en = 1'b1;
             conf_regs_o.flushed_set3_en = 1'b1;
             to_flush_set_d              = set_t'(1'b0);
             // Clear the `CfgFlushSet` register, load enable is default '1
-            conf_regs_o.cfg_flush_set0  = '0;
-            conf_regs_o.cfg_flush_set1  = '0;
-            conf_regs_o.cfg_flush_set2  = '0;
-            conf_regs_o.cfg_flush_set3  = '0;
+            conf_regs_o.cfg_flush_set0  = 64'b0;
+            conf_regs_o.cfg_flush_set1  = 64'b0;
+            conf_regs_o.cfg_flush_set2  = 64'b0;
+            conf_regs_o.cfg_flush_set3  = 64'b0;
           end else begin
             // there are still cache lines to flush
             flush_state_d = FsmInitFlush;
@@ -660,16 +693,18 @@ module axi_llc_config #(
   ////////////////////////
   // Flush descriptor output is static, except for the fields defined here.
   localparam int unsigned FlushAddrShift = Cfg.BlockOffsetLength + Cfg.ByteOffsetLength;
+  set_asso_t flush_way_onehot;
+  assign flush_way_onehot = set_asso_t'(8'd1) << flush_way;
 
   always_comb begin
     if (index_based_flush_q == 1'b1) begin
       desc_o           = '0;
-      desc_o.a_x_addr  = addr_full_t'(flush_set_ind) << FlushAddrShift;
+      desc_o.a_x_addr  = addr_full_t'(to_flush_set_nub) << FlushAddrShift;
       desc_o.a_x_len   = axi_pkg::len_t'(Cfg.NumBlocks - 32'd1);
       desc_o.a_x_size  = axi_pkg::size_t'($clog2(Cfg.BlockSize / 32'd8));
       desc_o.a_x_burst = axi_pkg::BURST_INCR;
       desc_o.x_resp    = axi_pkg::RESP_OKAY;
-      desc_o.way_ind   = flush_way;
+      desc_o.way_ind   = flush_way_onehot;
       desc_o.flush     = 1'b1;
     end else begin
       desc_o           = '0;

@@ -84,6 +84,14 @@ module tb_axi_llc #(
     CfgSpmHigh    = 32'h04,
     CfgFlushLow   = 32'h08,
     CfgFlushHigh  = 32'h0C,
+    CfgFlushSet0Low  = 32'h10,
+    CfgFlushSet0High = 32'h14,
+    CfgFlushSet1Low  = 32'h18,
+    CfgFlushSet1High = 32'h1c,
+    CfgFlushSet2Low  = 32'h20,
+    CfgFlushSet2High = 32'h24,
+    CfgFlushSet3Low  = 32'h28,
+    CfgFlushSet3High = 32'h2c,
     CommitCfg     = 32'h30,
     CommitPadding = 32'h34,
     FlushedLow    = 32'h38,
@@ -97,7 +105,15 @@ module tb_axi_llc #(
     NumBlocksLow  = 32'h58,
     NumBlocksHigh = 32'h5C,
     VersionLow    = 32'h60,
-    VersionHigh   = 32'h64
+    VersionHigh   = 32'h64,
+    FlushedSet0Low  = 32'h68,
+    FlushedSet0High  = 32'h6c,
+    FlushedSet1Low  = 32'h70,
+    FlushedSet1High  = 32'h74,
+    FlushedSet2Low  = 32'h78,
+    FlushedSet2High  = 32'h7c,
+    FlushedSet3Low  = 32'h80,
+    FlushedSet3High  = 32'h84
   } llc_cfg_addr_e;
 
   ////////////////////////////////
@@ -304,6 +320,14 @@ module tb_axi_llc #(
     reg_conf_driver.send_read(CfgSpmHigh,     cfg_data, cfg_error);
     reg_conf_driver.send_read(CfgFlushLow,    cfg_data, cfg_error);
     reg_conf_driver.send_read(CfgFlushHigh,   cfg_data, cfg_error);
+    reg_conf_driver.send_read(CfgFlushSet0Low,    cfg_data, cfg_error);
+    reg_conf_driver.send_read(CfgFlushSet0High,   cfg_data, cfg_error);
+    reg_conf_driver.send_read(CfgFlushSet1Low,    cfg_data, cfg_error);
+    reg_conf_driver.send_read(CfgFlushSet1High,   cfg_data, cfg_error);
+    reg_conf_driver.send_read(CfgFlushSet2Low,    cfg_data, cfg_error);
+    reg_conf_driver.send_read(CfgFlushSet2High,   cfg_data, cfg_error);
+    reg_conf_driver.send_read(CfgFlushSet3Low,    cfg_data, cfg_error);
+    reg_conf_driver.send_read(CfgFlushSet3High,   cfg_data, cfg_error);
     reg_conf_driver.send_read(CommitCfg,      cfg_data, cfg_error);
     reg_conf_driver.send_read(FlushedLow,     cfg_data, cfg_error);
     reg_conf_driver.send_read(FlushedHigh,    cfg_data, cfg_error);
@@ -317,10 +341,19 @@ module tb_axi_llc #(
     reg_conf_driver.send_read(NumBlocksHigh,  cfg_data, cfg_error);
     reg_conf_driver.send_read(VersionLow,     cfg_data, cfg_error);
     reg_conf_driver.send_read(VersionHigh,    cfg_data, cfg_error);
+    reg_conf_driver.send_read(FlushedSet0Low,     cfg_data, cfg_error);
+    reg_conf_driver.send_read(FlushedSet0High,    cfg_data, cfg_error);
+    reg_conf_driver.send_read(FlushedSet1Low,     cfg_data, cfg_error);
+    reg_conf_driver.send_read(FlushedSet1High,    cfg_data, cfg_error);
+    reg_conf_driver.send_read(FlushedSet2Low,     cfg_data, cfg_error);
+    reg_conf_driver.send_read(FlushedSet2High,    cfg_data, cfg_error);
+    reg_conf_driver.send_read(FlushedSet3Low,     cfg_data, cfg_error);
+    reg_conf_driver.send_read(FlushedSet3High,    cfg_data, cfg_error);
 
     $info("Random read and write");
     axi_master.run(TbNumReads, TbNumWrites);
     flush_all(reg_conf_driver);
+    // flush_all_set(reg_conf_driver);
     compare_mems(cpu_scoreboard, mem_scoreboard);
     clear_spm_cpu(cpu_scoreboard);
 
@@ -335,6 +368,7 @@ module tb_axi_llc #(
     reg_conf_driver.send_write(cfg_addr, cfg_data, cfg_wstrb, cfg_error);
     axi_master.run(TbNumReads, TbNumWrites);
     flush_all(reg_conf_driver);
+    // flush_all_set(reg_conf_driver);
     compare_mems(cpu_scoreboard, mem_scoreboard);
     clear_spm_cpu(cpu_scoreboard);
 
@@ -353,6 +387,7 @@ module tb_axi_llc #(
     reg_conf_driver.send_write(cfg_addr, cfg_data, cfg_wstrb, cfg_error);
     axi_master.run(TbNumReads, TbNumWrites);
     flush_all(reg_conf_driver);
+    // flush_all_set(reg_conf_driver);
     compare_mems(cpu_scoreboard, mem_scoreboard);
     clear_spm_cpu(cpu_scoreboard);
 
@@ -374,6 +409,7 @@ module tb_axi_llc #(
     print_perf_couters();
 
     flush_all(reg_conf_driver);
+    // flush_all_set(reg_conf_driver);
     compare_mems(cpu_scoreboard, mem_scoreboard);
     clear_spm_cpu(cpu_scoreboard);
 
@@ -392,15 +428,22 @@ module tb_axi_llc #(
   task compare_mems(axi_scoreboard_cpu_t cpu_scoreboard, axi_scoreboard_mem_t mem_scoreboard);
     automatic byte_t     cpu_byte, mem_byte;
     automatic axi_addr_t compare_addr = CachedRegionStart;
+    automatic longint unsigned correct_num = 0;
+    automatic longint unsigned uncorrect_num = 0;
     while (compare_addr < (CachedRegionStart + 2*CachedRegionLength)) begin
       cpu_scoreboard.get_byte(compare_addr, cpu_byte);
       mem_scoreboard.get_byte(compare_addr, mem_byte);
       // As the whole cache line is written back there are some bytes which are only present
       // in the scoreboard of the memory and X in the CPU memory.
       if (cpu_byte !== 8'hxx) begin
-        assert (cpu_byte === mem_byte) /*$display("Pass addr: %h", compare_addr);*/ else
-          $error("At addr: %h differeing memory values are encoutered! \n CPU: %h \n MEM: %h",
-              compare_addr, cpu_byte, mem_byte);
+        assert (cpu_byte === mem_byte) begin 
+          correct_num++;
+          // $display("Pass addr: %h \n Correct_count: %d, Wrong_count: %d", compare_addr, correct_num, uncorrect_num);
+        end else begin
+          uncorrect_num++;
+          $error("At addr: %h differeing memory values are encoutered! \n CPU: %h \n MEM: %h \n Correct_count: %d, Wrong_count: %d",
+              compare_addr, cpu_byte, mem_byte, correct_num, uncorrect_num);
+        end
       end
       compare_addr++;
     end
@@ -428,8 +471,42 @@ module tb_axi_llc #(
       data = {rdata_high, rdata_low};
       repeat (5000) @(posedge clk);
     end
-    $info("Finished flushing the cache!");
+    $info("Finished flushing the cache set!");
   endtask : flush_all
+
+  task flush_all_set(regbus_conf_driver_t reg_conf_driver);
+    automatic logic       cfg_error;
+    automatic logic[63:0] data = {64{1'b1}};
+    automatic logic[31:0] rdata0_low, rdata1_low, rdata2_low, rdata3_low;
+    automatic logic[31:0] rdata0_high, rdata1_high, rdata2_high, rdata3_high;
+    automatic logic[255:0] data_set = {256{1'b1}};
+    $info("Flushing the cache set!");
+    reg_conf_driver.send_write(CfgFlushSet0Low, data[31:0], 4'hF, cfg_error);
+    reg_conf_driver.send_write(CfgFlushSet0High, data[63:32], 4'hF, cfg_error);
+    reg_conf_driver.send_write(CfgFlushSet1Low, data[31:0], 4'hF, cfg_error);
+    reg_conf_driver.send_write(CfgFlushSet1High, data[63:32], 4'hF, cfg_error);
+    reg_conf_driver.send_write(CfgFlushSet2Low, data[31:0], 4'hF, cfg_error);
+    reg_conf_driver.send_write(CfgFlushSet2High, data[63:32], 4'hF, cfg_error);
+    reg_conf_driver.send_write(CfgFlushSet3Low, data[31:0], 4'hF, cfg_error);
+    reg_conf_driver.send_write(CfgFlushSet3High, data[63:32], 4'hF, cfg_error);
+    data  = 64'd1;
+    reg_conf_driver.send_write(CommitCfg, data[31:0], 4'hF, cfg_error);
+
+    // poll on the flush config until it is cleared
+    while (|data_set) begin
+      reg_conf_driver.send_read(CfgFlushSet0Low, rdata0_low, cfg_error);
+      reg_conf_driver.send_read(CfgFlushSet0High, rdata0_high, cfg_error);
+      reg_conf_driver.send_read(CfgFlushSet1Low, rdata1_low, cfg_error);
+      reg_conf_driver.send_read(CfgFlushSet1High, rdata1_high, cfg_error);
+      reg_conf_driver.send_read(CfgFlushSet2Low, rdata2_low, cfg_error);
+      reg_conf_driver.send_read(CfgFlushSet2High, rdata2_high, cfg_error);
+      reg_conf_driver.send_read(CfgFlushSet3Low, rdata3_low, cfg_error);
+      reg_conf_driver.send_read(CfgFlushSet3High, rdata3_high, cfg_error);
+      data_set = {rdata3_high, rdata3_low, rdata2_high, rdata2_low, rdata1_high, rdata1_low, rdata0_high, rdata0_low};
+      repeat (5000) @(posedge clk);
+    end
+    $info("Finished flushing the cache set!");
+  endtask : flush_all_set
 
   task print_perf_couters();
     @(negedge clk);
