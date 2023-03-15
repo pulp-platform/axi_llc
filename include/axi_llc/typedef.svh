@@ -44,6 +44,8 @@
     logic       cfg_flush_en;                                           \
     logic       commit_cfg;                                             \
     logic       commit_cfg_en;                                          \
+    logic       commit_partition_cfg;                                   \
+    logic       commit_partition_cfg_en;                                \
     set_asso_t  flushed;                                                \
     logic       flushed_en;                                             \
     set_asso_t  bist_out;                                               \
@@ -64,6 +66,14 @@
     logic       cfg_flush_set2_en;                                      \
     reg_data_t  cfg_flush_set3;                                         \
     logic       cfg_flush_set3_en;                                      \
+    reg_data_t  cfg_set_partition0;                                     \
+    logic       cfg_set_partition0_en;                                  \
+    reg_data_t  cfg_set_partition1;                                     \
+    logic       cfg_set_partition1_en;                                  \
+    reg_data_t  cfg_set_partition2;                                     \
+    logic       cfg_set_partition2_en;                                  \
+    reg_data_t  cfg_set_partition3;                                     \
+    logic       cfg_set_partition3_en;                                  \
     reg_data_t  flushed_set0;                                           \
     logic       flushed_set0_en;                                        \
     reg_data_t  flushed_set1;                                           \
@@ -86,11 +96,16 @@
     set_asso_t  cfg_spm;                                                \
     set_asso_t  cfg_flush;                                              \
     logic       commit_cfg;                                             \
+    logic       commit_partition_cfg;                                   \
     set_asso_t  flushed;                                                \
     reg_data_t  cfg_flush_set0;                                         \
     reg_data_t  cfg_flush_set1;                                         \
     reg_data_t  cfg_flush_set2;                                         \
     reg_data_t  cfg_flush_set3;                                         \
+    reg_data_t  cfg_set_partition0;                                     \
+    reg_data_t  cfg_set_partition1;                                     \
+    reg_data_t  cfg_set_partition2;                                     \
+    reg_data_t  cfg_set_partition3;                                     \
     reg_data_t  flushed_set0;                                           \
     reg_data_t  flushed_set1;                                           \
     reg_data_t  flushed_set2;                                           \

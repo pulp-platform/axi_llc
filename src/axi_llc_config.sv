@@ -166,6 +166,8 @@ module axi_llc_config #(
   parameter axi_llc_pkg::llc_axi_cfg_t AxiCfg = axi_llc_pkg::llc_axi_cfg_t'{default: '0},
   /// Register Width
   parameter int unsigned RegWidth = 64,
+  /// Max. number of threads supported for partitioning
+  parameter int unsigned MaxThread = 32,
   /// Register type for HW -> Register direction
   parameter type conf_regs_d_t  = logic,
   /// Register type for Register -> HW direction
@@ -182,7 +184,10 @@ module axi_llc_config #(
   parameter type set_t = logic,
   /// Address type for the memory regions defined for caching and SPM. The same width as
   /// the address field of the AXI4+ATOP slave and master port.
-  parameter type addr_full_t = logic
+  parameter type addr_full_t = logic,
+  parameter type thread_id_t = logic,
+  /// Type for partition table
+  parameter type partition_table_t = logic
 ) (
   /// Rising-edge clock
   input logic clk_i,
@@ -216,10 +221,14 @@ module axi_llc_config #(
   ///
   /// This is for controlling the bypass multiplexer.
   input addr_full_t slv_aw_addr_i,
+  /// This is for controlling the bypass multiplexer.
+  input thread_id_t slv_aw_thread_id_i,
   /// AXI4 AR address from AXI4 slave port.
   ///
   /// This is for controlling the bypass multiplexer.
   input addr_full_t slv_ar_addr_i,
+  /// This is for controlling the bypass multiplexer.
+  input thread_id_t slv_ar_thread_id_i,
   /// Bypass selection for the AXI AW channel.
   output logic mst_aw_bypass_o,
   /// Bypass selection for the AXI AR channel.
@@ -261,7 +270,14 @@ module axi_llc_config #(
   /// Address rule for the AXI memory region which maps to the scratch pad memory region.
   ///
   /// Accesses are only successful, if the corresponding way is mapped as SPM
-  input  rule_full_t axi_spm_rule_i
+  input  rule_full_t axi_spm_rule_i,
+  /// Partition table which tells the range of index assigned to each thread:
+  /// The number of entry in partition_table is one more than Maxthread because it needs to hold 
+  /// the remaining part as shared region for any other thread that has not been allocated.
+  /// if the corresponding entry for PID_x is 0, then it means that that thread uses the shared 
+  /// region of cache. When we process data access of such thread, we should turn to 
+  /// partition_table_o[MaxThread] for hit/miss information.
+  output partition_table_t [MaxThread:0] partition_table_o
 );
   // register macros from `common_cells`
   `include "common_cells/registers.svh"
@@ -291,7 +307,7 @@ module axi_llc_config #(
   // AXI Bypass control //
   ////////////////////////
   // local address maps for bypass 1:Bypass 0:LLC
-  rule_full_t [1:0] axi_addr_map;
+  rule_full_t [1:0] axi_addr_map_ar, axi_addr_map_aw;
   logic       [Cfg.NumLines-1:0] conf_regs_i_flushed_set;
   logic       [Cfg.NumLines-1:0] conf_regs_i_cfg_flush_set;
   // logic       [Cfg.NumLines-1:0] conf_regs_o_flushed_set;
@@ -317,20 +333,77 @@ module axi_llc_config #(
 
   `FFLARN(index_based_flush_q, index_based_flush_d, load_index_based_flush, '0, clk_i, rst_ni)
 
-  always_comb begin : proc_axi_rule
-    axi_addr_map[0] = axi_spm_rule_i;
-    axi_addr_map[1] = axi_cached_rule_i;
+  // partition_table_t [MaxThread:0] partition_table_d, partition_table_q;
+  // logic                             load_partition_table;
+
+  // assign load_partition_table = (partition_table_d != partition_table_q);
+
+  // `FFLARN(partition_table_q, partition_table_d, load_partition_table, '0, clk_i, rst_ni)\
+
+  // assign partition_table_o = partition_table_q;
+
+  logic [MaxThread << 3 - 1:0] conf_regs_i_cfg_set_partition;
+  assign conf_regs_i_cfg_set_partition = {conf_regs_i.cfg_set_partition3, conf_regs_i.cfg_set_partition2, conf_regs_i.cfg_set_partition1, conf_regs_i.cfg_set_partition0};
+
+  logic [Cfg.IndexLength-1:0] slv_ar_addr_index, slv_aw_addr_index;
+
+  always_comb begin : proc_partition_table
+    conf_regs_o.commit_partition_cfg_en = 1'b0;
+    // partition_table_d         = partition_table_q;
+    if (conf_regs_i.commit_cfg) begin
+      conf_regs_o.commit_partition_cfg      = 1'b0;   // Clear the commit configuration flag
+      conf_regs_o.commit_partition_cfg_en   = 1'b1;
+
+      partition_table_o = '0;
+      partition_table_o[0].NumIndex = conf_regs_i_cfg_set_partition[7:0];
+
+      for (int unsigned i = 1; i < MaxThread; i++) begin : gen_partition_table
+        partition_table_o[i].StartIndex = partition_table_o[i-1].StartIndex + partition_table_o[i-1].NumIndex;
+        partition_table_o[i].NumIndex = conf_regs_i_cfg_set_partition[(i<<3)+7 -: Cfg.NumLines];
+      end
+
+      partition_table_o[MaxThread].StartIndex = partition_table_o[MaxThread-1].StartIndex + partition_table_o[MaxThread-1].NumIndex;
+      partition_table_o[MaxThread].NumIndex = Cfg.NumLines - partition_table_o[MaxThread].StartIndex;
+    end
+  // end
+
+  // always_comb begin : proc_axi_rule
+    //we need to differentiate different situations between ar and aw
+    // for aw channel input
+    axi_addr_map_aw[0] = axi_spm_rule_i;
+    axi_addr_map_aw[1] = axi_cached_rule_i;
     // Define that accesses to the SPM region always go into the `axi_llc`.
-    axi_addr_map[0].idx    = 32'd0;
+    axi_addr_map_aw[0].idx    = 32'd0;
     // define that all burst go to the bypass, if flushed is completely set
-    axi_addr_map[1].idx    = 32'd0;
-    // ***********************************************************************************************************************
-    // !!!!!TODO!!!!!: this should be modifled later. The second part should depend on both 
-    //slv_aw_addr_i/slv_ar_addr_i and segmentation flushed situation. If the section correspondng 
-    //to the slv_aw_addr_i/slv_ar_addr_i has all cache lines flushed, then the req should bypass LLC 
-    axi_addr_map[1].idx[0] = index_based_flush_q ? (conf_regs_i_flushed_set[slv_aw_addr_i[IndexBase+:Cfg.IndexLength]] | (&conf_regs_i.flushed)) : (&conf_regs_i.flushed); 
+    axi_addr_map_aw[1].idx    = 32'd0;
+
+    if (partition_table_o[slv_aw_thread_id_i].NumIndex) begin
+      slv_aw_addr_index = partition_table_o[slv_aw_thread_id_i].StartIndex + (slv_aw_addr_i[IndexBase+:Cfg.IndexLength] % partition_table_o[slv_aw_thread_id_i].NumIndex);
+    end else begin
+      slv_aw_addr_index = partition_table_o[MaxThread].StartIndex + (slv_aw_addr_i[IndexBase+:Cfg.IndexLength] % partition_table_o[MaxThread].NumIndex);
+    end
+
+    // axi_addr_map_aw[1].idx[0] = index_based_flush_q ? (conf_regs_i_flushed_set[slv_aw_addr_index] | (&conf_regs_i.flushed)) : (&conf_regs_i.flushed); 
+    axi_addr_map_aw[1].idx[0] = index_based_flush_q ? (conf_regs_i_flushed_set[slv_aw_addr_i[IndexBase+:Cfg.IndexLength]] | (&conf_regs_i.flushed)) : (&conf_regs_i.flushed); 
     // axi_addr_map[1].idx[0] = &conf_regs_i.flushed; 
-    // ***********************************************************************************************************************
+
+    // for ar channel input
+    axi_addr_map_ar[0] = axi_spm_rule_i;
+    axi_addr_map_ar[1] = axi_cached_rule_i;
+    // Define that accesses to the SPM region always go into the `axi_llc`.
+    axi_addr_map_ar[0].idx    = 32'd0;
+    // define that all burst go to the bypass, if flushed is completely set
+    axi_addr_map_ar[1].idx    = 32'd0;
+
+    if (partition_table_o[slv_ar_thread_id_i].NumIndex) begin
+      slv_ar_addr_index = partition_table_o[slv_ar_thread_id_i].StartIndex + (slv_ar_addr_i[IndexBase+:Cfg.IndexLength] % partition_table_o[slv_ar_thread_id_i].NumIndex);
+    end else begin
+      slv_ar_addr_index = partition_table_o[MaxThread].StartIndex + (slv_ar_addr_i[IndexBase+:Cfg.IndexLength] % partition_table_o[MaxThread].NumIndex);
+    end
+
+    // axi_addr_map_ar[1].idx[0] = index_based_flush_q ? (conf_regs_i_flushed_set[slv_ar_addr_index] | (&conf_regs_i.flushed)) : (&conf_regs_i.flushed);  
+    axi_addr_map_ar[1].idx[0] = index_based_flush_q ? (conf_regs_i_flushed_set[slv_ar_addr_i[IndexBase+:Cfg.IndexLength]] | (&conf_regs_i.flushed)) : (&conf_regs_i.flushed); 
+    // axi_addr_map[1].idx[0] = &conf_regs_i.flushed; 
   end
 
   addr_decode #(
@@ -340,7 +413,7 @@ module axi_llc_config #(
     .rule_t    ( rule_full_t )
   ) i_aw_addr_decode (
     .addr_i           ( slv_aw_addr_i   ),
-    .addr_map_i       ( axi_addr_map    ),
+    .addr_map_i       ( axi_addr_map_aw ),
     .idx_o            ( mst_aw_bypass_o ),
     .dec_valid_o      ( /*not used*/    ),
     .dec_error_o      ( /*not used*/    ),
@@ -355,7 +428,7 @@ module axi_llc_config #(
     .rule_t    ( rule_full_t )
   ) i_ar_addr_decode (
     .addr_i           ( slv_ar_addr_i   ),
-    .addr_map_i       ( axi_addr_map    ),
+    .addr_map_i       ( axi_addr_map_ar ),
     .idx_o            ( mst_ar_bypass_o ),
     .dec_valid_o      ( /*not used*/    ),
     .dec_error_o      ( /*not used*/    ),

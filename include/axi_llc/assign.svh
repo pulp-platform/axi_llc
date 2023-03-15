@@ -26,6 +26,8 @@
     `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, cfg_flush)      \
     assign regbus.commit_cfg.d = d_struct.commit_cfg;                           \
     assign regbus.commit_cfg.de = d_struct.commit_cfg_en;                       \
+    assign regbus.commit_partition_cfg.d = d_struct.commit_partition_cfg;                           \
+    assign regbus.commit_partition_cfg.de = d_struct.commit_partition_cfg_en;                       \
     `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, flushed)        \
     `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, bist_out)       \
     `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, set_asso)       \
@@ -36,6 +38,10 @@
     `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, cfg_flush_set1) \
     `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, cfg_flush_set2) \
     `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, cfg_flush_set3) \
+    `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, cfg_set_partition0) \
+    `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, cfg_set_partition1) \
+    `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, cfg_set_partition2) \
+    `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, cfg_set_partition3) \
     `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, flushed_set0)   \
     `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, flushed_set1)   \
     `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, flushed_set2)   \
@@ -47,11 +53,16 @@
     assign q_struct.cfg_spm = {regbus.cfg_spm_high.q, regbus.cfg_spm_low.q};        \
     assign q_struct.cfg_flush = {regbus.cfg_flush_high.q, regbus.cfg_flush_low.q};  \
     assign q_struct.commit_cfg = regbus.commit_cfg.q;                               \
+    assign q_struct.commit_partition_cfg = regbus.commit_partition_cfg.q;           \
     assign q_struct.flushed = {regbus.flushed_high.q, regbus.flushed_low.q};        \
     assign q_struct.flushed_set0 = {regbus.flushed_set0_high.q, regbus.flushed_set0_low.q}; \
     assign q_struct.flushed_set1 = {regbus.flushed_set1_high.q, regbus.flushed_set1_low.q}; \
     assign q_struct.flushed_set2 = {regbus.flushed_set2_high.q, regbus.flushed_set2_low.q}; \
     assign q_struct.flushed_set3 = {regbus.flushed_set3_high.q, regbus.flushed_set3_low.q}; \
+    assign q_struct.cfg_set_partition0 = {regbus.cfg_set_partition0_high.q, regbus.cfg_set_partition0_low.q}; \
+    assign q_struct.cfg_set_partition1 = {regbus.cfg_set_partition1_high.q, regbus.cfg_set_partition1_low.q}; \
+    assign q_struct.cfg_set_partition2 = {regbus.cfg_set_partition2_high.q, regbus.cfg_set_partition2_low.q}; \
+    assign q_struct.cfg_set_partition3 = {regbus.cfg_set_partition3_high.q, regbus.cfg_set_partition3_low.q}; \
     assign q_struct.cfg_flush_set0 = {regbus.cfg_flush_set0_high.q, regbus.cfg_flush_set0_low.q}; \
     assign q_struct.cfg_flush_set1 = {regbus.cfg_flush_set1_high.q, regbus.cfg_flush_set1_low.q}; \
     assign q_struct.cfg_flush_set2 = {regbus.cfg_flush_set2_high.q, regbus.cfg_flush_set2_low.q}; \

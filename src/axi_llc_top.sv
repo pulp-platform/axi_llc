@@ -148,6 +148,11 @@ module axi_llc_top #(
   /// Note on restrictions:
   /// The same restriction as of parameter `NumLines` applies.
   parameter int unsigned NumBlocks = 32'd0,
+  /// Max. number of threads supported for partitioning:
+  /// to currently make it work should set as a integer multiplcation of 8
+  /// e.g. MaxThread should be 8 even though we have only 6 threads running 
+  /// (this is for the sake of the compliance of partition tabe size).
+  parameter int unsigned MaxThread = 32'd0,
   /// AXI4+ATOP ID field width of the slave port.
   /// The ID field width of the master port is this parameter + 1.
   parameter int unsigned AxiIdWidth = 32'd0,
@@ -156,7 +161,12 @@ module axi_llc_top #(
   /// AXI4+ATOP data field width of both the slave and the master port.
   parameter int unsigned AxiDataWidth = 32'd0,
   /// AXI4+ATOP user field width of both the slave and the master port.
-  parameter int unsigned AxiUserWidth = 32'd0,
+  parameter int unsigned AxiUserWidth = 32'd0, // Here, "user" data part of AXI channel is used for 
+                                               // signaling the id of each thread from which the data 
+                                               // access is issued. AxiUserWidth should be equal to 
+                                               // PIDWidth, which signals the id of the thread. For current 
+                                               // system, the upper bound of the number of threads
+                                               // running is 256, so AxiUserWidth should be 8.
   /// Internal register width
   parameter int unsigned RegWidth = 64,
   /// Register type for HW -> Register direction
@@ -311,6 +321,19 @@ module axi_llc_top #(
     logic [Cfg.SetAssociativity-1:0] way_ind;       // way which is locked
   } lock_t;
 
+  typedef struct packed {
+    logic [Cfg.IndexLength-1:0] StartIndex; // Start index in the partition region assigned to the thread.
+    logic [Cfg.IndexLength-1:0] NumIndex; // Number of index required by the thread.
+  } partition_table_t;
+
+  /// Partition table which tells the range of index assigned to each thread:
+  /// The number of entry in partition_table is one more than Maxthread because it needs to hold 
+  /// the remaining part as shared region for any other thread that has not been allocated.
+  /// if the corresponding entry for PID_x is 0, then it means that that thread uses the shared 
+  /// region of cache. When we process data access of such thread, we should turn to 
+  /// partition_table_o[MaxThread] for hit/miss information.
+  partition_table_t [MaxThread:0] partition_table;
+
   // slave requests, that go into the bypass `axi_demux` from the config module
   // `index` for the axi_mux and axi_demux: bypass: 1, llc: 0
   logic slv_aw_bypass, slv_ar_bypass;
@@ -407,7 +430,9 @@ module axi_llc_top #(
     .rule_full_t    ( rule_full_t   ),
     .set_asso_t     ( way_ind_t     ),
     .set_t          ( set_ind_t     ),
-    .addr_full_t    ( axi_addr_t    )
+    .addr_full_t    ( axi_addr_t    ),
+    .thread_id_t    ( axi_user_t    ),
+    .partition_table_t ( partition_table_t )
   ) i_llc_config (
     .clk_i             ( clk_i                                  ),
     .rst_ni            ( rst_ni                                 ),
@@ -422,7 +447,9 @@ module axi_llc_top #(
     .desc_ready_i      ( ax_desc_ready[axi_llc_pkg::ConfigUnit] ),
     // AXI address input from slave port for controlling bypass
     .slv_aw_addr_i     ( slv_req_i.aw.addr                      ),
+    .slv_aw_thread_id_i ( slv_req_i.aw.user                     ),
     .slv_ar_addr_i     ( slv_req_i.ar.addr                      ),
+    .slv_ar_thread_id_i ( slv_req_i.ar.user                     ),
     .mst_aw_bypass_o   ( slv_aw_bypass                          ),
     .mst_ar_bypass_o   ( slv_ar_bypass                          ),
     // flush control signals to prevent new data in ax_cutter loading
@@ -436,7 +463,9 @@ module axi_llc_top #(
     .bist_valid_i      ( bist_valid                             ),
     // address rules for bypass selection
     .axi_cached_rule_i ( cached_addr_rule                       ),
-    .axi_spm_rule_i    ( spm_addr_rule                          )
+    .axi_spm_rule_i    ( spm_addr_rule                          ),
+    // partition table
+    .partition_table_o ( partition_table                        )
   );
 
   // Isolation module before demux to easy flushing,

@@ -154,6 +154,11 @@ module axi_llc_reg_wrap #(
   /// Note on restrictions:
   /// The same restriction as of parameter `NumLines` applies.
   parameter int unsigned NumBlocks = 32'd0,
+  /// Max. number of threads supported for partitioning:
+  /// to currently make it work should set as a integer multiplcation of 8
+  /// e.g. MaxThread should be 8 even though we have only 6 threads running 
+  /// (this is for the sake of the compliance of partition tabe size).
+  parameter int unsigned MaxThread = 32'd0,
   /// AXI4+ATOP ID field width of the slave port.
   /// The ID field width of the master port is this parameter + 1.
   parameter int unsigned AxiIdWidth = 32'd0,

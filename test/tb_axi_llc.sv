@@ -12,9 +12,11 @@ module tb_axi_llc #(
   /// Set Associativity of the LLC
   parameter int unsigned TbSetAssociativity = 32'd8,
   /// Number of cache lines of the LLC
-  parameter int unsigned TbNumLines         = 32'd256,
+  parameter int unsigned TbNumLines         = 32'd256, // must be 256 currently
   /// Number of Blocks per cache line
   parameter int unsigned TbNumBlocks        = 32'd8,
+  /// Max. number of threads supported for partitioning
+  parameter int unsigned TbMaxThread        = 32'd32,
   /// ID width of the Full AXI slave port, master port has ID `AxiIdWidthFull + 32'd1`
   parameter int unsigned TbAxiIdWidthFull   = 32'd6,
   /// Address width of the full AXI bus
@@ -92,28 +94,38 @@ module tb_axi_llc #(
     CfgFlushSet2High = 32'h24,
     CfgFlushSet3Low  = 32'h28,
     CfgFlushSet3High = 32'h2c,
-    CommitCfg     = 32'h30,
-    CommitPadding = 32'h34,
-    FlushedLow    = 32'h38,
-    FlushedHigh   = 32'h3C,
-    BistOutLow    = 32'h40,
-    BistOutHigh   = 32'h44,
-    SetAssoLow    = 32'h48,
-    SetAssoHigh   = 32'h4C,
-    NumLinesLow   = 32'h50,
-    NumLinesHigh  = 32'h54,
-    NumBlocksLow  = 32'h58,
-    NumBlocksHigh = 32'h5C,
-    VersionLow    = 32'h60,
-    VersionHigh   = 32'h64,
-    FlushedSet0Low  = 32'h68,
-    FlushedSet0High  = 32'h6c,
-    FlushedSet1Low  = 32'h70,
-    FlushedSet1High  = 32'h74,
-    FlushedSet2Low  = 32'h78,
-    FlushedSet2High  = 32'h7c,
-    FlushedSet3Low  = 32'h80,
-    FlushedSet3High  = 32'h84
+    CfgSetPartition0Low = 32'h30,
+    CfgSetPartition0High = 32'h34,
+    CfgSetPartition1Low = 32'h38,
+    CfgSetPartition1High = 32'h3c,
+    CfgSetPartition2Low = 32'h40,
+    CfgSetPartition2High = 32'h44,
+    CfgSetPartition3Low = 32'h48,
+    CfgSetPartition3High = 32'h4c,
+    CommitCfg     = 32'h50,
+    CommitPadding = 32'h54,
+    CommitPartitionCfg     = 32'h58,
+    CommitPartitionPadding = 32'h5c,
+    FlushedLow    = 32'h60,
+    FlushedHigh   = 32'h64,
+    BistOutLow    = 32'h68,
+    BistOutHigh   = 32'h6c,
+    SetAssoLow    = 32'h70,
+    SetAssoHigh   = 32'h74,
+    NumLinesLow   = 32'h78,
+    NumLinesHigh  = 32'h7c,
+    NumBlocksLow  = 32'h80,
+    NumBlocksHigh = 32'h84,
+    VersionLow    = 32'h88,
+    VersionHigh   = 32'h8c,
+    FlushedSet0Low  = 32'h90,
+    FlushedSet0High  = 32'h94,
+    FlushedSet1Low  = 32'h98,
+    FlushedSet1High  = 32'h9c,
+    FlushedSet2Low  = 32'ha0,
+    FlushedSet2High  = 32'ha4,
+    FlushedSet3Low  = 32'ha8,
+    FlushedSet3High  = 32'hac
   } llc_cfg_addr_e;
 
   ////////////////////////////////
@@ -314,6 +326,10 @@ module tb_axi_llc #(
     mem_scoreboard.monitor();
     enable_counters = 1'b1;
     enable_progress = 1'b1;
+
+    if ( TbNumLines != 32'd256) begin
+      $error("!!! Number of cache lines must be 256 currently !!!");
+    end
 
     $info("Read all Cfg registers.");
     reg_conf_driver.send_read(CfgSpmLow,      cfg_data, cfg_error);
@@ -523,6 +539,7 @@ module tb_axi_llc #(
     .SetAssociativity ( TbSetAssociativity ),
     .NumLines         ( TbNumLines         ),
     .NumBlocks        ( TbNumBlocks        ),
+    .MaxThread        ( TbMaxThread        ),
     .AxiIdWidth       ( TbAxiIdWidthFull   ),
     .AxiAddrWidth     ( TbAxiAddrWidthFull ),
     .AxiDataWidth     ( TbAxiDataWidthFull ),
