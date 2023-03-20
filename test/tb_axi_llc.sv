@@ -45,7 +45,7 @@ module tb_axi_llc #(
   `include "register_interface/assign.svh"
 
   localparam int unsigned TbAxiStrbWidthFull = TbAxiDataWidthFull / 32'd8;
-  localparam int unsigned TbAxiUserWidthFull = 32'd1;
+  localparam int unsigned TbAxiUserWidthFull = 32'd8;
 
   typedef logic [TbAxiIdWidthFull-1:0]     axi_slv_id_t;
   typedef logic [TbAxiIdWidthFull:0]       axi_mst_id_t;
@@ -366,6 +366,9 @@ module tb_axi_llc #(
     reg_conf_driver.send_read(FlushedSet3Low,     cfg_data, cfg_error);
     reg_conf_driver.send_read(FlushedSet3High,    cfg_data, cfg_error);
 
+    $info("Configure partitioning");
+    cache_partition(reg_conf_driver);
+
     $info("Random read and write");
     axi_master.run(TbNumReads, TbNumWrites);
     flush_all(reg_conf_driver);
@@ -523,6 +526,28 @@ module tb_axi_llc #(
     end
     $info("Finished flushing the cache set!");
   endtask : flush_all_set
+
+  task cache_partition(regbus_conf_driver_t reg_conf_driver);
+    automatic logic       cfg_error;
+    automatic logic[59:0] data0 = {60{1'b0}};
+    automatic logic[3:0]  data1 = {4{1'b0}};
+    automatic logic[63:0] data = {data0,data1};
+    automatic logic[31:0] rdata0_low, rdata1_low, rdata2_low, rdata3_low;
+    automatic logic[31:0] rdata0_high, rdata1_high, rdata2_high, rdata3_high;
+    automatic logic[255:0] data_set = {256{1'b1}};
+    $info("Configure cache partitioning!");
+    reg_conf_driver.send_write(CfgSetPartition0Low, data[31:0], 4'hF, cfg_error);
+    reg_conf_driver.send_write(CfgSetPartition0High, data[63:32], 4'hF, cfg_error);
+    reg_conf_driver.send_write(CfgSetPartition1Low, data[31:0], 4'hF, cfg_error);
+    reg_conf_driver.send_write(CfgSetPartition1High, data[63:32], 4'hF, cfg_error);
+    reg_conf_driver.send_write(CfgSetPartition2Low, data[31:0], 4'hF, cfg_error);
+    reg_conf_driver.send_write(CfgSetPartition2High, data[63:32], 4'hF, cfg_error);
+    reg_conf_driver.send_write(CfgSetPartition3Low, data[31:0], 4'hF, cfg_error);
+    reg_conf_driver.send_write(CfgSetPartition3High, data[63:32], 4'hF, cfg_error);
+    data  = 64'd1;
+    reg_conf_driver.send_write(CommitPartitionCfg, data[31:0], 4'hF, cfg_error);
+    $info("Finished partition configuration!");
+  endtask : cache_partition
 
   task print_perf_couters();
     @(negedge clk);

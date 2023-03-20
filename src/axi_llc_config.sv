@@ -342,24 +342,27 @@ module axi_llc_config #(
 
   // assign partition_table_o = partition_table_q;
 
-  logic [MaxThread << 3 - 1:0] conf_regs_i_cfg_set_partition;
+  logic [(MaxThread<<$clog2(Cfg.IndexLength))-1:0] conf_regs_i_cfg_set_partition;
   assign conf_regs_i_cfg_set_partition = {conf_regs_i.cfg_set_partition3, conf_regs_i.cfg_set_partition2, conf_regs_i.cfg_set_partition1, conf_regs_i.cfg_set_partition0};
 
   logic [Cfg.IndexLength-1:0] slv_ar_addr_index, slv_aw_addr_index;
 
+  // assign partition_table_o = 0;
+
   always_comb begin : proc_partition_table
     conf_regs_o.commit_partition_cfg_en = 1'b0;
     // partition_table_d         = partition_table_q;
-    if (conf_regs_i.commit_cfg) begin
+    if (conf_regs_i.commit_partition_cfg) begin
       conf_regs_o.commit_partition_cfg      = 1'b0;   // Clear the commit configuration flag
       conf_regs_o.commit_partition_cfg_en   = 1'b1;
 
-      partition_table_o = '0;
+      // partition_table_o = 0;
       partition_table_o[0].NumIndex = conf_regs_i_cfg_set_partition[7:0];
+      partition_table_o[0].StartIndex = 0;
 
       for (int unsigned i = 1; i < MaxThread; i++) begin : gen_partition_table
         partition_table_o[i].StartIndex = partition_table_o[i-1].StartIndex + partition_table_o[i-1].NumIndex;
-        partition_table_o[i].NumIndex = conf_regs_i_cfg_set_partition[(i<<3)+7 -: Cfg.NumLines];
+        partition_table_o[i].NumIndex = conf_regs_i_cfg_set_partition[(i<<$clog2(Cfg.IndexLength))-1 +: Cfg.IndexLength];
       end
 
       partition_table_o[MaxThread].StartIndex = partition_table_o[MaxThread-1].StartIndex + partition_table_o[MaxThread-1].NumIndex;

@@ -28,6 +28,7 @@ module axi_llc_hit_miss #(
   parameter axi_llc_pkg::llc_cfg_t     Cfg       = axi_llc_pkg::llc_cfg_t'{default: '0},
   /// AXI parameter configuration
   parameter axi_llc_pkg::llc_axi_cfg_t AxiCfg    = axi_llc_pkg::llc_axi_cfg_t'{default: '0},
+  // parameter int unsigned               ThreadBit = 0,
   /// LLC descriptor type
   parameter type                       desc_t    = logic,
   /// Lock struct definition. The lock signal indicate that a cache line is unlocked.
@@ -47,7 +48,8 @@ module axi_llc_hit_miss #(
   parameter type                       cnt_t     = logic,
   /// Way indicator, is a onehot signal with width: `Cfg.SetAssociativity`.
   parameter type                       way_ind_t = logic,
-  parameter type                       set_ind_t = logic
+  parameter type                       set_ind_t = logic,
+  parameter type                       partition_table_t = logic
 ) (
   /// Clock, positive edge triggered.
   input  logic     clk_i,
@@ -82,12 +84,24 @@ module axi_llc_hit_miss #(
   input  cnt_t     cnt_down_i,
   // bist aoutput
   output way_ind_t bist_res_o,
-  output logic     bist_valid_o
+  output logic     bist_valid_o,
+  // partition table
+  input partition_table_t   partition_table_i,
+  input partition_table_t   partition_share_i
 );
   `include "common_cells/registers.svh"
   localparam int unsigned IndexBase = Cfg.ByteOffsetLength + Cfg.BlockOffsetLength;
   localparam int unsigned TagBase   = Cfg.ByteOffsetLength + Cfg.BlockOffsetLength +
                                       Cfg.IndexLength;
+
+  // CACHE-PARTITION
+  logic [Cfg.IndexLength-1:0] start_index;
+  logic [Cfg.IndexLength-1:0] pat_size;
+  assign start_index  = partition_table_i.StartIndex;
+  assign pat_size     = partition_table_i.NumIndex;
+  // localparam int unsigned  old_set_size  = Cfg.IndexLength-ThreadBit;
+
+
   // Type definitions for the requests and responses to/from the tag storage
       // typedef logic [Cfg.SetAssociativity-1:0] way_ind_t;
   typedef logic [Cfg.IndexLength-1:0]      index_t;
@@ -141,6 +155,15 @@ module axi_llc_hit_miss #(
   logic  init_d,    init_q, load_init; // is the tag storage initialized?
   desc_t desc_d,    desc_q;            // descriptor residing in unit
   logic  load_desc;
+
+  // CACHE-PARTITION
+  logic [Cfg.TagLength-1:0]                   tag_partition;
+  logic [Cfg.IndexLength-1:0]                 index_partition;
+
+  // should be inputs passed to this block
+  // or, pass PatID to this module and calculate corresponding values
+
+
 
   // control
   always_comb begin
@@ -196,8 +219,7 @@ module axi_llc_hit_miss #(
               end
             end
           end
-
-        end else begin
+        end else begin       
           ////////////////////////////////////////////////////////////////
           // NORMAL or FLUSH descriptor in unit, made req to tag_store
           // wait for the response
@@ -244,15 +266,35 @@ module axi_llc_hit_miss #(
                       desc_d    = desc_i;
                       load_desc = 1'b1;
                     end else begin
-                      // make the request to the tag store,
+                      /********** CACHE-PARTITION **********/
+                      tag_partition = desc_i.a_x_addr[IndexBase+:Cfg.TagLength];
+                      // index_partition = pat_size ? start_index : partition_share_i.StartIndex;
+                      index_partition = pat_size ? start_index + (desc_i.a_x_addr[IndexBase+:Cfg.IndexLength] % pat_size) : 
+                        partition_share_i.StartIndex + (desc_i.a_x_addr[IndexBase+:Cfg.IndexLength] % partition_share_i.NumIndex);
+                      // tag_partition = desc_i.a_x_addr[(TagBase-ThreadBit)+:(Cfg.TagLength+ThreadBit)];
+                      // index_partition[0:ThreadBit-1] = desc_i.a_x_addr[IndexBase+:old_set_size];
+                      // index_partition[ThreadBit:Cfg.IndexLength-1] = start_index + 
+                      //   (desc_i.a_x_addr[(IndexBase+old_set_size)+:ThreadBit] % pat_size);
+                      
                       store_req = store_req_t'{
                         mode:      desc_i.flush ? axi_llc_pkg::Flush : axi_llc_pkg::Lookup,
                         indicator: desc_i.flush ? desc_i.way_ind     : ~flushed_i,
-                        index:     desc_i.a_x_addr[IndexBase+:Cfg.IndexLength],
-                        tag:       desc_i.flush ? tag_t'(0)          : desc_i.a_x_addr[TagBase+:Cfg.TagLength],
+                        index:     index_partition,
+                        tag:       desc_i.flush ? tag_t'(0)          : tag_partition,
                         dirty:     desc_i.rw,
                         default:   '0
                       };
+
+                      /*************************************/
+                      // make the request to the tag store,
+                      // store_req = store_req_t'{
+                      //   mode:      desc_i.flush ? axi_llc_pkg::Flush : axi_llc_pkg::Lookup,
+                      //   indicator: desc_i.flush ? desc_i.way_ind     : ~flushed_i,
+                      //   index:     desc_i.a_x_addr[IndexBase+:Cfg.IndexLength],
+                      //   tag:       desc_i.flush ? tag_t'(0)          : desc_i.a_x_addr[TagBase+:Cfg.TagLength],
+                      //   dirty:     desc_i.rw,
+                      //   default:   '0
+                      // };
                       store_req_valid = 1'b1;
                       // transfer
                       if (store_req_ready) begin
@@ -291,15 +333,31 @@ module axi_llc_hit_miss #(
             desc_d    = desc_i;
             load_desc = 1'b1;
           end else begin
-            // make the request to the tag store,
+            /********** CACHE-PARTITION **********/
+            tag_partition = desc_i.a_x_addr[IndexBase+:Cfg.TagLength];
+            // index_partition = pat_size ? start_index : partition_share_i.StartIndex;
+            index_partition = pat_size ? start_index + (desc_i.a_x_addr[IndexBase+:Cfg.IndexLength] % pat_size) : 
+              partition_share_i.StartIndex + (desc_i.a_x_addr[IndexBase+:Cfg.IndexLength] % partition_share_i.NumIndex);
+            
             store_req = store_req_t'{
               mode:      desc_i.flush ? axi_llc_pkg::Flush : axi_llc_pkg::Lookup,
               indicator: desc_i.flush ? desc_i.way_ind     : ~flushed_i,
-              index:     desc_i.a_x_addr[IndexBase+:Cfg.IndexLength],
-              tag:       desc_i.flush ? tag_t'(0)          : desc_i.a_x_addr[TagBase+:Cfg.TagLength],
+              index:     index_partition,
+              tag:       desc_i.flush ? tag_t'(0)          : tag_partition,
               dirty:     desc_i.rw,
               default:   '0
             };
+            /*************************************/
+
+            // make the request to the tag store,
+            // store_req = store_req_t'{
+            //   mode:      desc_i.flush ? axi_llc_pkg::Flush : axi_llc_pkg::Lookup,
+            //   indicator: desc_i.flush ? desc_i.way_ind     : ~flushed_i,
+            //   index:     desc_i.a_x_addr[IndexBase+:Cfg.IndexLength],
+            //   tag:       desc_i.flush ? tag_t'(0)          : desc_i.a_x_addr[TagBase+:Cfg.TagLength],
+            //   dirty:     desc_i.rw,
+            //   default:   '0
+            // };
             store_req_valid = 1'b1;
             // transfer
             if (store_req_ready) begin

@@ -262,8 +262,10 @@ module axi_llc_top #(
     NumLines          : NumLines,
     NumBlocks         : NumBlocks,
     BlockSize         : AxiCfg.DataWidthFull,
-    TagLength         : AxiCfg.AddrWidthFull - unsigned'($clog2(NumLines)) -
+    TagLength         : AxiCfg.AddrWidthFull -
         unsigned'($clog2(NumBlocks)) - unsigned'($clog2(AxiCfg.DataWidthFull / 32'd8)),
+    // TagLength         : AxiCfg.AddrWidthFull - unsigned'($clog2(NumLines)) -
+    //     unsigned'($clog2(NumBlocks)) - unsigned'($clog2(AxiCfg.DataWidthFull / 32'd8)),
     IndexLength       : unsigned'($clog2(NumLines)),
     BlockOffsetLength : unsigned'($clog2(NumBlocks)),
     ByteOffsetLength  : unsigned'($clog2(AxiCfg.DataWidthFull / 32'd8)),
@@ -290,6 +292,7 @@ module axi_llc_top #(
     logic [Cfg.TagLength -1:0]       evict_tag;// tag for evicting a line
     logic                            refill;   // refill the cache line
     logic                            flush;    // flush this line, comes from config
+    logic [AxiUserWidth-1:0]         patid;
   } llc_desc_t;
 
   // definition of the structs that are between the units and the ways
@@ -322,8 +325,8 @@ module axi_llc_top #(
   } lock_t;
 
   typedef struct packed {
-    logic [Cfg.IndexLength-1:0] StartIndex; // Start index in the partition region assigned to the thread.
-    logic [Cfg.IndexLength-1:0] NumIndex; // Number of index required by the thread.
+    logic [Cfg.IndexLength:0] StartIndex; // Start index in the partition region assigned to the thread.
+    logic [Cfg.IndexLength:0] NumIndex; // Number of index required by the thread.
   } partition_table_t;
 
   /// Partition table which tells the range of index assigned to each thread:
@@ -424,6 +427,7 @@ module axi_llc_top #(
     .Cfg            ( Cfg           ),
     .AxiCfg         ( AxiCfg        ),
     .RegWidth       ( RegWidth      ),
+    .MaxThread      ( MaxThread     ),
     .conf_regs_d_t  ( conf_regs_d_t ),
     .conf_regs_q_t  ( conf_regs_q_t ),
     .desc_t         ( llc_desc_t    ),
@@ -603,7 +607,8 @@ module axi_llc_top #(
     .lock_t    ( lock_t     ),
     .cnt_t     ( cnt_t      ),
     .way_ind_t ( way_ind_t  ),
-    .set_ind_t ( set_ind_t  )
+    .set_ind_t ( set_ind_t  ),
+    .partition_table_t ( partition_table_t )
   ) i_hit_miss_unit (
     .clk_i,
     .rst_ni,
@@ -627,7 +632,11 @@ module axi_llc_top #(
     .r_unlock_gnt_o ( r_unlock_gnt ),
     .cnt_down_i     ( cnt_down     ),
     .bist_res_o     ( bist_res     ),
-    .bist_valid_o   ( bist_valid   )
+    .bist_valid_o   ( bist_valid   ),
+    // partition table
+    // we should only pass the particular entry's patition to this module
+    .partition_table_i ( partition_table[ spill_desc.patid ]),
+    .partition_share_i ( partition_table[ MaxThread ])
   );
 
   axi_llc_evict_unit #(

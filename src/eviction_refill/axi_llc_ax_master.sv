@@ -86,11 +86,17 @@ module axi_llc_ax_master #(
   assign desc_ready_o = ~desc_valid_q & ~chan_valid_q;
 
   // assignment of the addresses, either refill or eviction, calculate address index for request
+  // CACHE-PARTITION
   localparam int AddrOffset = Cfg.BlockOffsetLength + Cfg.ByteOffsetLength;
   assign evict_addr  =
-      {desc_i.evict_tag, desc_i.a_x_addr[AddrOffset+:Cfg.IndexLength], {AddrOffset{1'b0}}};
+      {desc_i.evict_tag, {AddrOffset{1'b0}}};
   assign refill_addr =
-      {desc_i.a_x_addr[AddrOffset+:(Cfg.TagLength + Cfg.IndexLength)], {AddrOffset{1'b0}}};
+      {desc_i.a_x_addr[AddrOffset+:Cfg.TagLength], {AddrOffset{1'b0}}};
+
+  // assign evict_addr  =
+  //     {desc_i.evict_tag, desc_i.a_x_addr[AddrOffset+:Cfg.IndexLength], {AddrOffset{1'b0}}};
+  // assign refill_addr =
+  //     {desc_i.a_x_addr[AddrOffset+:(Cfg.TagLength + Cfg.IndexLength)], {AddrOffset{1'b0}}};
 
   always_comb begin : proc_desc_control
     // default assignments

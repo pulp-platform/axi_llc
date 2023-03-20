@@ -266,6 +266,7 @@ module axi_llc_reg_wrap #(
     .SetAssociativity ( SetAssociativity      ),
     .NumLines         ( NumLines              ),
     .NumBlocks        ( NumBlocks             ),
+    .MaxThread        ( MaxThread             ),
     .AxiIdWidth       ( AxiIdWidth            ),
     .AxiAddrWidth     ( AxiAddrWidth          ),
     .AxiDataWidth     ( AxiDataWidth          ),
