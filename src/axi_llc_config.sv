@@ -357,7 +357,7 @@ module axi_llc_config #(
       conf_regs_o.commit_partition_cfg_en   = 1'b1;
 
       // partition_table_o = 0;
-      partition_table_o[0].NumIndex = conf_regs_i_cfg_set_partition[7:0];
+      partition_table_o[0].NumIndex = conf_regs_i_cfg_set_partition[Cfg.IndexLength-1:0];
       partition_table_o[0].StartIndex = 0;
 
       for (int unsigned i = 1; i < MaxThread; i++) begin : gen_partition_table
@@ -381,13 +381,15 @@ module axi_llc_config #(
     axi_addr_map_aw[1].idx    = 32'd0;
 
     if (partition_table_o[slv_aw_thread_id_i].NumIndex) begin
-      slv_aw_addr_index = partition_table_o[slv_aw_thread_id_i].StartIndex + (slv_aw_addr_i[IndexBase+:Cfg.IndexLength] % partition_table_o[slv_aw_thread_id_i].NumIndex);
+      slv_aw_addr_index = partition_table_o[slv_aw_thread_id_i].StartIndex + (slv_aw_addr_i[IndexBase+:Cfg.IndexLength] % 
+                            partition_table_o[slv_aw_thread_id_i].NumIndex);
     end else begin
-      slv_aw_addr_index = partition_table_o[MaxThread].StartIndex + (slv_aw_addr_i[IndexBase+:Cfg.IndexLength] % partition_table_o[MaxThread].NumIndex);
+      slv_aw_addr_index = partition_table_o[MaxThread].StartIndex + (slv_aw_addr_i[IndexBase+:Cfg.IndexLength] % 
+                            partition_table_o[MaxThread].NumIndex);
     end
 
-    // axi_addr_map_aw[1].idx[0] = index_based_flush_q ? (conf_regs_i_flushed_set[slv_aw_addr_index] | (&conf_regs_i.flushed)) : (&conf_regs_i.flushed); 
-    axi_addr_map_aw[1].idx[0] = index_based_flush_q ? (conf_regs_i_flushed_set[slv_aw_addr_i[IndexBase+:Cfg.IndexLength]] | (&conf_regs_i.flushed)) : (&conf_regs_i.flushed); 
+    axi_addr_map_aw[1].idx[0] = index_based_flush_q ? (conf_regs_i_flushed_set[slv_aw_addr_index] | (&conf_regs_i.flushed)) : (&conf_regs_i.flushed); 
+    // axi_addr_map_aw[1].idx[0] = index_based_flush_q ? (conf_regs_i_flushed_set[slv_aw_addr_i[IndexBase+:Cfg.IndexLength]] | (&conf_regs_i.flushed)) : (&conf_regs_i.flushed); 
     // axi_addr_map[1].idx[0] = &conf_regs_i.flushed; 
 
     // for ar channel input
@@ -404,8 +406,8 @@ module axi_llc_config #(
       slv_ar_addr_index = partition_table_o[MaxThread].StartIndex + (slv_ar_addr_i[IndexBase+:Cfg.IndexLength] % partition_table_o[MaxThread].NumIndex);
     end
 
-    // axi_addr_map_ar[1].idx[0] = index_based_flush_q ? (conf_regs_i_flushed_set[slv_ar_addr_index] | (&conf_regs_i.flushed)) : (&conf_regs_i.flushed);  
-    axi_addr_map_ar[1].idx[0] = index_based_flush_q ? (conf_regs_i_flushed_set[slv_ar_addr_i[IndexBase+:Cfg.IndexLength]] | (&conf_regs_i.flushed)) : (&conf_regs_i.flushed); 
+    axi_addr_map_ar[1].idx[0] = index_based_flush_q ? (conf_regs_i_flushed_set[slv_ar_addr_index] | (&conf_regs_i.flushed)) : (&conf_regs_i.flushed);  
+    // axi_addr_map_ar[1].idx[0] = index_based_flush_q ? (conf_regs_i_flushed_set[slv_ar_addr_i[IndexBase+:Cfg.IndexLength]] | (&conf_regs_i.flushed)) : (&conf_regs_i.flushed); 
     // axi_addr_map[1].idx[0] = &conf_regs_i.flushed; 
   end
 

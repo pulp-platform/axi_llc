@@ -366,7 +366,7 @@ module tb_axi_llc #(
     reg_conf_driver.send_read(FlushedSet3Low,     cfg_data, cfg_error);
     reg_conf_driver.send_read(FlushedSet3High,    cfg_data, cfg_error);
 
-    $info("Configure partitioning");
+    $info("Configure set-based cache partitioning");
     cache_partition(reg_conf_driver);
 
     $info("Random read and write");
@@ -532,10 +532,11 @@ module tb_axi_llc #(
     automatic logic[59:0] data0 = {60{1'b0}};
     automatic logic[3:0]  data1 = {4{1'b0}};
     automatic logic[63:0] data = {data0,data1};
-    automatic logic[31:0] rdata0_low, rdata1_low, rdata2_low, rdata3_low;
-    automatic logic[31:0] rdata0_high, rdata1_high, rdata2_high, rdata3_high;
-    automatic logic[255:0] data_set = {256{1'b1}};
-    $info("Configure cache partitioning!");
+    automatic logic[63:0] zeros = 64'b0;
+    // automatic logic[31:0] rdata0_low, rdata1_low, rdata2_low, rdata3_low;
+    // automatic logic[31:0] rdata0_high, rdata1_high, rdata2_high, rdata3_high;
+    // automatic logic[255:0] data_set = {256{1'b1}};
+    $info("Configuring set-based cache partitioning!");
     reg_conf_driver.send_write(CfgSetPartition0Low, data[31:0], 4'hF, cfg_error);
     reg_conf_driver.send_write(CfgSetPartition0High, data[63:32], 4'hF, cfg_error);
     reg_conf_driver.send_write(CfgSetPartition1Low, data[31:0], 4'hF, cfg_error);
