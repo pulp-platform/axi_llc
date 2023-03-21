@@ -1039,6 +1039,12 @@ module axi_llc_top #(
       $fatal(1, $sformatf("llc> AXI Master port, mst_ar_chan_t and mst_req_i.ar not equal"));
     mst_req_r    : assert ($bits(mst_r_chan_t) == $bits(mst_resp_i.r)) else
       $fatal(1, $sformatf("llc> AXI Slave port, slv_r_chan_t and mst_resp_i.r not equal"));
+
+    cfg_num_lines : assert(Cfg.NumLines > 0 && ((Cfg.NumLines & (Cfg.NumLines - 1)) == 0) && (Cfg.NumLines % 2 == 0)) else
+      $fatal(1, "Parameter 'Cfg.NumLines' must be the integer power of 2 to ensure correct function for set based partition!");
+    max_thread    : assert(MaxThread % (RegWidth / Cfg.IndexLength) == 0) else
+      $fatal(1, "Parameter 'MaxThread' must be the integer multiplication of (RegWidth / Cfg.IndexLength) to ensure correct function for set based partition!");
+
   end
 `endif
 // pragma translate_on
