@@ -45,7 +45,8 @@ module tb_axi_llc #(
   `include "register_interface/assign.svh"
 
   localparam int unsigned TbAxiStrbWidthFull = TbAxiDataWidthFull / 32'd8;
-  localparam int unsigned TbAxiUserWidthFull = 32'd8;
+  // localparam int unsigned TbAxiUserWidthFull = 32'd8;
+  localparam int unsigned TbAxiUserWidthFull = $clog2(TbNumLines);
 
   typedef logic [TbAxiIdWidthFull-1:0]     axi_slv_id_t;
   typedef logic [TbAxiIdWidthFull:0]       axi_mst_id_t;

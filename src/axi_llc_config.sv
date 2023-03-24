@@ -341,13 +341,19 @@ module axi_llc_config #(
   // `FFLARN(partition_table_q, partition_table_d, load_partition_table, '0, clk_i, rst_ni)\
 
   // assign partition_table_o = partition_table_q;
+  
+  localparam int unsigned valid_reg_bit = $floor(RegWidth / Cfg.IndexLength) * Cfg.IndexLength;
 
-  logic [(MaxThread<<$clog2(Cfg.IndexLength))-1:0] conf_regs_i_cfg_set_partition;
-  assign conf_regs_i_cfg_set_partition = {conf_regs_i.cfg_set_partition3, conf_regs_i.cfg_set_partition2, conf_regs_i.cfg_set_partition1, conf_regs_i.cfg_set_partition0};
+  logic [MaxThread * Cfg.IndexLength - 1 : 0] conf_regs_i_cfg_set_partition;
+
+  /******************     INSERT THE CONCAT COMMAND FROM 'config_set_par_reg_concat.hjson' HERE     ******************/
+  assign conf_regs_i_cfg_set_partition = {conf_regs_i.cfg_set_partition3[valid_reg_bit-1:0], 
+                                          conf_regs_i.cfg_set_partition2[valid_reg_bit-1:0], 
+                                          conf_regs_i.cfg_set_partition1[valid_reg_bit-1:0], 
+                                          conf_regs_i.cfg_set_partition0[valid_reg_bit-1:0]};
+  /*******************************************************************************************************************/
 
   logic [Cfg.IndexLength-1:0] slv_ar_addr_index, slv_aw_addr_index;
-
-  // assign partition_table_o = 0;
 
   always_comb begin : proc_partition_table
     conf_regs_o.commit_partition_cfg_en = 1'b0;
@@ -356,17 +362,29 @@ module axi_llc_config #(
       conf_regs_o.commit_partition_cfg      = 1'b0;   // Clear the commit configuration flag
       conf_regs_o.commit_partition_cfg_en   = 1'b1;
 
-      // partition_table_o = 0;
       partition_table_o[0].NumIndex = conf_regs_i_cfg_set_partition[Cfg.IndexLength-1:0];
       partition_table_o[0].StartIndex = 0;
 
+      if (partition_table_o[0].NumIndex > Cfg.NumLines) begin
+        $error("The partition size must not be larger than number of cache lines!");
+      end
+
       for (int unsigned i = 1; i < MaxThread; i++) begin : gen_partition_table
         partition_table_o[i].StartIndex = partition_table_o[i-1].StartIndex + partition_table_o[i-1].NumIndex;
-        partition_table_o[i].NumIndex = conf_regs_i_cfg_set_partition[(i<<$clog2(Cfg.IndexLength))-1 +: Cfg.IndexLength];
+        partition_table_o[i].NumIndex = conf_regs_i_cfg_set_partition[i*Cfg.IndexLength-1 +: Cfg.IndexLength];
+
+        if ((partition_table_o[i].NumIndex > Cfg.NumLines) || (partition_table_o[i].StartIndex > (Cfg.NumLines - 1))) begin
+          $error("Partition Configuration Error!");
+        end
       end
 
       partition_table_o[MaxThread].StartIndex = partition_table_o[MaxThread-1].StartIndex + partition_table_o[MaxThread-1].NumIndex;
       partition_table_o[MaxThread].NumIndex = Cfg.NumLines - partition_table_o[MaxThread].StartIndex;
+
+      if ((partition_table_o[MaxThread].NumIndex < 0) || (partition_table_o[MaxThread].StartIndex > (Cfg.NumLines - 1))) begin
+        $error("Partition Configuration Error!");
+      end
+
     end
   // end
 
