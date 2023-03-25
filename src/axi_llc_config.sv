@@ -371,7 +371,7 @@ module axi_llc_config #(
 
       for (int unsigned i = 1; i < MaxThread; i++) begin : gen_partition_table
         partition_table_o[i].StartIndex = partition_table_o[i-1].StartIndex + partition_table_o[i-1].NumIndex;
-        partition_table_o[i].NumIndex = conf_regs_i_cfg_set_partition[i*Cfg.IndexLength-1 +: Cfg.IndexLength];
+        partition_table_o[i].NumIndex = conf_regs_i_cfg_set_partition[(i+1)*Cfg.IndexLength-1 -: Cfg.IndexLength];
 
         if ((partition_table_o[i].NumIndex > Cfg.NumLines) || (partition_table_o[i].StartIndex > (Cfg.NumLines - 1))) begin
           $error("Partition Configuration Error!");
@@ -419,9 +419,11 @@ module axi_llc_config #(
     axi_addr_map_ar[1].idx    = 32'd0;
 
     if (partition_table_o[slv_ar_thread_id_i].NumIndex) begin
-      slv_ar_addr_index = partition_table_o[slv_ar_thread_id_i].StartIndex + (slv_ar_addr_i[IndexBase+:Cfg.IndexLength] % partition_table_o[slv_ar_thread_id_i].NumIndex);
+      slv_ar_addr_index = partition_table_o[slv_ar_thread_id_i].StartIndex + (slv_ar_addr_i[IndexBase+:Cfg.IndexLength] % 
+                            partition_table_o[slv_ar_thread_id_i].NumIndex);
     end else begin
-      slv_ar_addr_index = partition_table_o[MaxThread].StartIndex + (slv_ar_addr_i[IndexBase+:Cfg.IndexLength] % partition_table_o[MaxThread].NumIndex);
+      slv_ar_addr_index = partition_table_o[MaxThread].StartIndex + (slv_ar_addr_i[IndexBase+:Cfg.IndexLength] % 
+                            partition_table_o[MaxThread].NumIndex);
     end
 
     axi_addr_map_ar[1].idx[0] = index_based_flush_q ? (conf_regs_i_flushed_set[slv_ar_addr_index] | (&conf_regs_i.flushed)) : (&conf_regs_i.flushed);  

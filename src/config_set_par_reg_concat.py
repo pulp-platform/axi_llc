@@ -17,4 +17,4 @@ with open('config_set_par_reg_concat.hjson', 'w') as f:
                                         ''')
     f.write('conf_regs_i.cfg_set_partition0[valid_reg_bit-1:0]};')
 
-print(f'The command is successfully generated in "./config_set_par_reg_concat.hjson!"')
+print(f'The command is successfully generated in "./config_set_par_reg_concat.hjson"!')
