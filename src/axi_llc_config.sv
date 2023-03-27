@@ -365,7 +365,7 @@ module axi_llc_config #(
       partition_table_o[0].NumIndex = conf_regs_i_cfg_set_partition[Cfg.IndexLength-1:0];
       partition_table_o[0].StartIndex = 0;
 
-      if (partition_table_o[0].NumIndex > Cfg.NumLines) begin
+      if (partition_table_o[0].NumIndex >= Cfg.NumLines) begin
         $error("The partition size must not be larger than number of cache lines!");
       end
 
@@ -373,7 +373,7 @@ module axi_llc_config #(
         partition_table_o[i].StartIndex = partition_table_o[i-1].StartIndex + partition_table_o[i-1].NumIndex;
         partition_table_o[i].NumIndex = conf_regs_i_cfg_set_partition[(i+1)*Cfg.IndexLength-1 -: Cfg.IndexLength];
 
-        if ((partition_table_o[i].NumIndex > Cfg.NumLines) || (partition_table_o[i].StartIndex > (Cfg.NumLines - 1))) begin
+        if ((partition_table_o[i].NumIndex >= Cfg.NumLines) || (partition_table_o[i].StartIndex >= Cfg.NumLines)) begin
           $error("Partition Configuration Error!");
         end
       end
@@ -381,7 +381,7 @@ module axi_llc_config #(
       partition_table_o[MaxThread].StartIndex = partition_table_o[MaxThread-1].StartIndex + partition_table_o[MaxThread-1].NumIndex;
       partition_table_o[MaxThread].NumIndex = Cfg.NumLines - partition_table_o[MaxThread].StartIndex;
 
-      if ((partition_table_o[MaxThread].NumIndex < 0) || (partition_table_o[MaxThread].StartIndex > (Cfg.NumLines - 1))) begin
+      if ((partition_table_o[MaxThread].NumIndex < 0) || (partition_table_o[MaxThread].StartIndex >= Cfg.NumLines)) begin
         $error("Partition Configuration Error!");
       end
 

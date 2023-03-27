@@ -17,6 +17,7 @@ module axi_llc_burst_cutter #(
   parameter axi_llc_pkg::llc_cfg_t     Cfg    = axi_llc_pkg::llc_cfg_t'{default: '0},
   /// AXI channel configuration struct.
   parameter axi_llc_pkg::llc_axi_cfg_t AxiCfg = axi_llc_pkg::llc_axi_cfg_t'{default: '0},
+  parameter int unsigned MaxThread            = 0,
   /// AXI AW or AR channel struct definition.
   parameter type                       chan_t = logic,
   /// The type of channel, how the write bit in the descriptor should be set.
@@ -26,7 +27,8 @@ module axi_llc_burst_cutter #(
   /// LLC descriptor type defeintion.
   parameter type                       desc_t = logic,
   /// Type of the address rule struct used for SPM access streeri
-  parameter type                       rule_t = axi_pkg::xbar_rule_64_t
+  parameter type                       rule_t = axi_pkg::xbar_rule_64_t,
+  parameter type                       partition_table_t = logic
 ) (
   /// Clock, positive edge triggered.
  	input  logic  clk_i,
@@ -46,7 +48,8 @@ module axi_llc_burst_cutter #(
   /// Address rule for mapping the SPM mapped region.
   /// Here only the `satrt_addr` field is used. Internal builds an address decoding map
   /// one for each cache way.
-  input  rule_t spm_rule_i
+  input  rule_t spm_rule_i, 
+  input  partition_table_t [MaxThread:0] partition_table_i
   );
 
   // typedefs for casting
@@ -83,6 +86,15 @@ module axi_llc_burst_cutter #(
     end
   end
 
+  // Cache-Partition
+  logic [Cfg.IndexLength-1:0] start_index, share_index;
+  logic [Cfg.IndexLength:0] pat_size, share_size;
+
+  assign pat_size = partition_table_i[curr_chan_i.user].NumIndex;
+  assign start_index = partition_table_i[curr_chan_i.user].StartIndex;
+  assign share_size = partition_table_i[MaxThread].NumIndex;
+  assign share_index = partition_table_i[MaxThread].StartIndex;
+
   always_comb begin : proc_cutter
     // Make sure the outputs are defined to a default.
     next_chan_o         = curr_chan_i;
@@ -97,6 +109,8 @@ module axi_llc_burst_cutter #(
       x_resp:    axi_pkg::RESP_OKAY,
       rw:        Write,
       patid:     curr_chan_i.user,
+      index_partition: (pat_size != 0) ? start_index + (curr_chan_i.addr[LineOffset+:Cfg.IndexLength] % pat_size) : 
+                          share_index + (curr_chan_i.addr[LineOffset+:Cfg.IndexLength] % share_size),
       default: '0
     };
 
@@ -114,11 +128,13 @@ module axi_llc_burst_cutter #(
     if (rule_valid) begin
       if (rule_index != '0) begin
         desc_o.spm     = 1'b1;
+        desc_o.index_partition = curr_chan_i.addr[LineOffset+:Cfg.IndexLength];
         desc_o.way_ind = indi_t'(1 << (rule_index - 1));
       end
     end else begin
       // make it an spm access on decerror go always onto way 0
       desc_o.spm     = 1'b1;
+      desc_o.index_partition = curr_chan_i.addr[LineOffset+:Cfg.IndexLength];
       desc_o.way_ind = indi_t'(1 << 0);
       desc_o.x_resp  = axi_pkg::RESP_SLVERR;
     end

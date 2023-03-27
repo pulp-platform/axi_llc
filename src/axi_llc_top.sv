@@ -293,6 +293,7 @@ module axi_llc_top #(
     logic                            refill;   // refill the cache line
     logic                            flush;    // flush this line, comes from config
     logic [AxiUserWidth-1:0]         patid;
+    logic [Cfg.IndexLength-1:0]      index_partition; // index for storage after set partition
   } llc_desc_t;
 
   // definition of the structs that are between the units and the ways
@@ -526,10 +527,12 @@ module axi_llc_top #(
   axi_llc_chan_splitter #(
     .Cfg    ( Cfg           ),
     .AxiCfg ( AxiCfg        ),
+    .MaxThread ( MaxThread  ),
     .chan_t ( slv_aw_chan_t ),
     .Write  ( 1'b1          ),
     .desc_t ( llc_desc_t    ),
-    .rule_t ( rule_full_t   )
+    .rule_t ( rule_full_t   ),
+    .partition_table_t (partition_table_t)
   ) i_aw_splitter    (
     .clk_i           ( clk_i                                  ),
     .rst_ni          ( rst_ni                                 ),
@@ -541,7 +544,8 @@ module axi_llc_top #(
     .desc_ready_i    ( ax_desc_ready[axi_llc_pkg::AwChanUnit] ),
     .unit_busy_o     ( aw_unit_busy                           ),
     .cached_rule_i   ( cached_addr_rule                       ),
-    .spm_rule_i      ( spm_addr_rule                          )
+    .spm_rule_i      ( spm_addr_rule                          ),
+    .partition_table_i ( partition_table                      )
   );
 
 
@@ -549,10 +553,12 @@ module axi_llc_top #(
   axi_llc_chan_splitter #(
     .Cfg    ( Cfg           ),
     .AxiCfg ( AxiCfg        ),
+    .MaxThread ( MaxThread  ),
     .chan_t ( slv_ar_chan_t ),
     .Write  ( 1'b0          ),
     .desc_t ( llc_desc_t    ),
-    .rule_t ( rule_full_t   )
+    .rule_t ( rule_full_t   ),
+    .partition_table_t (partition_table_t)
   ) i_ar_splitter    (
     .clk_i           ( clk_i                                  ),
     .rst_ni          ( rst_ni                                 ),
@@ -564,7 +570,8 @@ module axi_llc_top #(
     .desc_ready_i    ( ax_desc_ready[axi_llc_pkg::ArChanUnit] ),
     .unit_busy_o     ( ar_unit_busy                           ),
     .cached_rule_i   ( cached_addr_rule                       ),
-    .spm_rule_i      ( spm_addr_rule                          )
+    .spm_rule_i      ( spm_addr_rule                          ),
+    .partition_table_i ( partition_table                      )
   );
 
   // arbitration tree which funnels the flush, read and write descriptors together
@@ -732,11 +739,13 @@ module axi_llc_top #(
   axi_llc_write_unit #(
     .Cfg       ( Cfg          ),
     .AxiCfg    ( AxiCfg       ),
+    .MaxThread ( MaxThread    ),
     .desc_t    ( llc_desc_t   ),
     .way_inp_t ( way_inp_t    ),
     .lock_t    ( lock_t       ),
     .w_chan_t  ( w_chan_t     ),
-    .b_chan_t  ( slv_b_chan_t )
+    .b_chan_t  ( slv_b_chan_t ),
+    .partition_table_t (partition_table_t)
   ) i_write_unit  (
     .clk_i           ( clk_i                                ),
     .rst_ni          ( rst_ni                               ),
@@ -755,18 +764,21 @@ module axi_llc_top #(
     .way_inp_ready_i ( to_way_ready[axi_llc_pkg::WChanUnit] ),
     .w_unlock_o      ( w_unlock                             ),
     .w_unlock_req_o  ( w_unlock_req                         ),
-    .w_unlock_gnt_i  ( w_unlock_gnt                         )
+    .w_unlock_gnt_i  ( w_unlock_gnt                         ),
+    .partition_table_i ( partition_table                    )
   );
 
   // read unit
   axi_llc_read_unit #(
     .Cfg       ( Cfg          ),
     .AxiCfg    ( AxiCfg       ),
+    .MaxThread ( MaxThread    ),
     .desc_t    ( llc_desc_t   ),
     .way_inp_t ( way_inp_t    ),
     .way_oup_t ( way_oup_t    ),
     .lock_t    ( lock_t       ),
-    .r_chan_t  ( slv_r_chan_t )
+    .r_chan_t  ( slv_r_chan_t ),
+    .partition_table_t (partition_table_t)
   ) i_read_unit (
     .clk_i           ( clk_i                                ),
     .rst_ni          ( rst_ni                               ),
@@ -785,7 +797,8 @@ module axi_llc_top #(
     .way_out_ready_o ( read_way_out_ready                   ),
     .r_unlock_o      ( r_unlock                             ),
     .r_unlock_req_o  ( r_unlock_req                         ),
-    .r_unlock_gnt_i  ( r_unlock_gnt                         )
+    .r_unlock_gnt_i  ( r_unlock_gnt                         ),
+    .partition_table_i ( partition_table                    )
   );
 
   // data storage
@@ -1042,8 +1055,8 @@ module axi_llc_top #(
 
     cfg_num_lines : assert(Cfg.NumLines > 0 && $onehot(Cfg.NumLines)) else
       $fatal(1, "Parameter 'Cfg.NumLines' must be the integer power of 2 to ensure correct function for set based partition!");
-    max_thread    : assert(MaxThread % (RegWidth / Cfg.IndexLength) == 0) else
-      $fatal(1, "Parameter 'MaxThread' must be the integer multiplication of (RegWidth / Cfg.IndexLength) to ensure correct function for set based partition!");
+    max_thread    : assert(MaxThread ==0 || $onehot(MaxThread)) else
+      $fatal(1, "Parameter 'MaxThread' must be zero or the integer power of 2 to ensure correct function for set based partition!");
 
   end
 `endif

@@ -175,6 +175,7 @@ module axi_llc_hit_miss #(
     desc_d    = desc_q;
     // output
     desc_o    = desc_q; // some fields get combinatorically overwritten from the tag lookup
+    desc_o.index_partition = desc_q.flush ? desc_q.a_x_addr[IndexBase+:Cfg.IndexLength] : desc_q.index_partition;
     load_desc = 1'b0;
     // unit handshaking
     ready_o      = 1'b0;
@@ -269,17 +270,13 @@ module axi_llc_hit_miss #(
                       /********** CACHE-PARTITION **********/
                       tag_partition = desc_i.a_x_addr[IndexBase+:Cfg.TagLength];
                       // index_partition = pat_size ? start_index : partition_share_i.StartIndex;
-                      index_partition = pat_size ? start_index + (desc_i.a_x_addr[IndexBase+:Cfg.IndexLength] % pat_size) : 
-                        partition_share_i.StartIndex + (desc_i.a_x_addr[IndexBase+:Cfg.IndexLength] % partition_share_i.NumIndex);
-                      // tag_partition = desc_i.a_x_addr[(TagBase-ThreadBit)+:(Cfg.TagLength+ThreadBit)];
-                      // index_partition[0:ThreadBit-1] = desc_i.a_x_addr[IndexBase+:old_set_size];
-                      // index_partition[ThreadBit:Cfg.IndexLength-1] = start_index + 
-                      //   (desc_i.a_x_addr[(IndexBase+old_set_size)+:ThreadBit] % pat_size);
+                      // index_partition = (pat_size != 0) ? start_index + (desc_i.a_x_addr[IndexBase+:Cfg.IndexLength] % pat_size) : 
+                      //   partition_share_i.StartIndex + (desc_i.a_x_addr[IndexBase+:Cfg.IndexLength] % partition_share_i.NumIndex);
                       
                       store_req = store_req_t'{
                         mode:      desc_i.flush ? axi_llc_pkg::Flush : axi_llc_pkg::Lookup,
                         indicator: desc_i.flush ? desc_i.way_ind     : ~flushed_i,
-                        index:     index_partition,
+                        index:     desc_i.flush ? desc_i.a_x_addr[IndexBase+:Cfg.IndexLength] : desc_i.index_partition,
                         tag:       desc_i.flush ? tag_t'(0)          : tag_partition,
                         dirty:     desc_i.rw,
                         default:   '0
@@ -335,14 +332,15 @@ module axi_llc_hit_miss #(
           end else begin
             /********** CACHE-PARTITION **********/
             tag_partition = desc_i.a_x_addr[IndexBase+:Cfg.TagLength];
+            // tag_partition = desc_i.a_x_addr[31:IndexBase];
             // index_partition = pat_size ? start_index : partition_share_i.StartIndex;
-            index_partition = pat_size ? start_index + (desc_i.a_x_addr[IndexBase+:Cfg.IndexLength] % pat_size) : 
-              partition_share_i.StartIndex + (desc_i.a_x_addr[IndexBase+:Cfg.IndexLength] % partition_share_i.NumIndex);
+            // index_partition = (pat_size != 0) ? start_index + (desc_i.a_x_addr[IndexBase+:Cfg.IndexLength] % pat_size) : 
+            //   partition_share_i.StartIndex + (desc_i.a_x_addr[IndexBase+:Cfg.IndexLength] % partition_share_i.NumIndex);
             
             store_req = store_req_t'{
               mode:      desc_i.flush ? axi_llc_pkg::Flush : axi_llc_pkg::Lookup,
               indicator: desc_i.flush ? desc_i.way_ind     : ~flushed_i,
-              index:     index_partition,
+              index:     desc_i.flush ? desc_i.a_x_addr[IndexBase+:Cfg.IndexLength] : desc_i.index_partition,
               tag:       desc_i.flush ? tag_t'(0)          : tag_partition,
               dirty:     desc_i.rw,
               default:   '0
@@ -432,7 +430,10 @@ module axi_llc_hit_miss #(
 
   // inputs to the lock box
   assign lock = '{
-    index:   desc_o.a_x_addr[(Cfg.ByteOffsetLength + Cfg.BlockOffsetLength)+:Cfg.IndexLength],
+    // index:   desc_o.a_x_addr[(Cfg.ByteOffsetLength + Cfg.BlockOffsetLength)+:Cfg.IndexLength],
+    // index:   (pat_size != 0) ? start_index + (desc_o.a_x_addr[IndexBase+:Cfg.IndexLength] % pat_size) : 
+    //           partition_share_i.StartIndex + (desc_o.a_x_addr[IndexBase+:Cfg.IndexLength] % partition_share_i.NumIndex),
+    index:   desc_o.index_partition,
     way_ind: desc_o.way_ind
   };
   // Lock it if a transfer happens on ether channel and no flush!

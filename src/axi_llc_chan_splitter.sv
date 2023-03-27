@@ -16,6 +16,7 @@ module axi_llc_chan_splitter #(
   ///
   /// Required struct definition in: `axi_llc_pkg`.
   parameter axi_llc_pkg::llc_axi_cfg_t AxiCfg = axi_llc_pkg::llc_axi_cfg_t'{default: '0},
+  parameter int unsigned MaxThread            = 0,
   /// AXI4 AX channel type. This can either be the AW or AR channel.
   parameter type chan_t = logic,
   /// This defines if the unit is on the AW or the AR channel.
@@ -25,7 +26,8 @@ module axi_llc_chan_splitter #(
   /// AXI LLC descriptor type definition.
   parameter type desc_t = logic,
   /// Address rule type definitions for the AXI slave port.
-  parameter type rule_t = axi_pkg::xbar_rule_64_t
+  parameter type rule_t = axi_pkg::xbar_rule_64_t,
+  parameter type partition_table_t = logic
 ) (
   /// Clock, positive edge triggered.
   input logic clk_i,
@@ -53,7 +55,8 @@ module axi_llc_chan_splitter #(
   /// This is used in the address decoder for finding out the exact way where the access is
   /// matching.
   /// Only `start_addr` is used.
-  input rule_t spm_rule_i
+  input rule_t spm_rule_i,
+  input  partition_table_t [MaxThread:0] partition_table_i
 );
   `include "common_cells/registers.svh"
   // Registers
@@ -136,10 +139,12 @@ module axi_llc_chan_splitter #(
   axi_llc_burst_cutter #(
     .Cfg    ( Cfg      ),
     .AxiCfg ( AxiCfg   ),
+    .MaxThread (MaxThread),
     .chan_t ( chan_t   ),
     .Write  ( Write    ),
     .desc_t ( desc_t   ),
-    .rule_t ( rule_t   )
+    .rule_t ( rule_t   ),
+    .partition_table_t (partition_table_t)
   ) i_burst_cutter (
     .clk_i,
     .rst_ni,
@@ -147,7 +152,8 @@ module axi_llc_chan_splitter #(
     .next_chan_o   ( next_chan     ),
     .desc_o        ( desc_o        ),
     .cached_rule_i ( cached_rule_i ),
-    .spm_rule_i    ( spm_rule_i    )
+    .spm_rule_i    ( spm_rule_i    ),
+    .partition_table_i ( partition_table_i )
   );
 
   // Flip Flops

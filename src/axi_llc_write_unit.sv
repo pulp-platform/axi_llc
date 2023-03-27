@@ -19,6 +19,7 @@ module axi_llc_write_unit #(
   parameter axi_llc_pkg::llc_cfg_t Cfg = axi_llc_pkg::llc_cfg_t'{default: '0},
   /// Static LLC AXI configuration parameters.
   parameter axi_llc_pkg::llc_axi_cfg_t AxiCfg = axi_llc_pkg::llc_axi_cfg_t'{default: '0},
+  parameter MaxThread = 0,
   /// LLC descriptor type definition.
   parameter type desc_t = logic,
   /// Data way request payload type definition.
@@ -28,7 +29,8 @@ module axi_llc_write_unit #(
   /// AXI slave port W channel struct definition.
   parameter type w_chan_t = logic,
   /// AXI slave port B channel struct definition.
-  parameter type b_chan_t = logic
+  parameter type b_chan_t = logic,
+  parameter type partition_table_t = logic
 ) (
   /// Clock, positive edge triggered.
   input logic clk_i,
@@ -67,8 +69,11 @@ module axi_llc_write_unit #(
   output logic w_unlock_req_o,
   /// Unlock request can be granted.
   /// NOT AXI compliant! Has to be `1'b1` so that the unit is active!
-  input logic w_unlock_gnt_i
+  input logic w_unlock_gnt_i,
+  /// Cache-Partition
+  input partition_table_t [MaxThread:0] partition_table_i
 );
+  localparam int unsigned IndexBase = Cfg.ByteOffsetLength + Cfg.BlockOffsetLength;
   `include "common_cells/registers.svh"
   typedef logic [AxiCfg.AddrWidthFull-1:0] addr_t;
   // flip flops
@@ -105,11 +110,22 @@ module axi_llc_write_unit #(
     .ready_i    ( w_ready        )
   );
 
+
+  // Cache-Partition
+  // logic [Cfg.IndexLength-1:0] pat_size, start_index, share_size, share_index;
+
+  // assign pat_size = partition_table_i[desc_q.patid].NumIndex;
+  // assign start_index = partition_table_i[desc_q.patid].StartIndex;
+  // assign share_size = partition_table_i[MaxThread].NumIndex;
+  // assign share_index = partition_table_i[MaxThread].StartIndex;
   // way_inp assignments
   assign way_inp_o = '{
     cache_unit: axi_llc_pkg::WChanUnit,
     way_ind:    desc_q.way_ind,
-    line_addr:  desc_q.a_x_addr[(Cfg.ByteOffsetLength + Cfg.BlockOffsetLength) +: Cfg.IndexLength],
+    line_addr:  desc_q.index_partition,
+    // line_addr:  (pat_size != 0) ? start_index + (desc_q.a_x_addr[IndexBase+:Cfg.IndexLength] % pat_size) : 
+    //               share_index + (desc_q.a_x_addr[IndexBase+:Cfg.IndexLength] % share_size),
+    // line_addr:  desc_q.a_x_addr[(Cfg.ByteOffsetLength + Cfg.BlockOffsetLength) +: Cfg.IndexLength],
     blk_offset: desc_q.a_x_addr[ Cfg.ByteOffsetLength +: Cfg.BlockOffsetLength],
     we:         1'b1,
     data:       w_chan.data,
@@ -118,7 +134,10 @@ module axi_llc_write_unit #(
 
   // assignment of the write unlock fields, which are not set with the control below
   assign w_unlock_o = '{
-    index:   desc_q.a_x_addr[(Cfg.ByteOffsetLength + Cfg.BlockOffsetLength) +: Cfg.IndexLength],
+    index: desc_q.index_partition,
+    // index:  (pat_size != 0) ? start_index + (desc_q.a_x_addr[IndexBase+:Cfg.IndexLength] % pat_size) : 
+    //           share_index + (desc_q.a_x_addr[IndexBase+:Cfg.IndexLength] % share_size),
+    // index:   desc_q.a_x_addr[(Cfg.ByteOffsetLength + Cfg.BlockOffsetLength) +: Cfg.IndexLength],
     way_ind: desc_q.way_ind
   };
 
