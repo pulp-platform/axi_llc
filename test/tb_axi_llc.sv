@@ -97,7 +97,8 @@ module tb_axi_llc #(
     NumBlocksLow  = 32'h38,
     NumBlocksHigh = 32'h3C,
     VersionLow    = 32'h40,
-    VersionHigh   = 32'h44
+    VersionHigh   = 32'h44,
+    BistStatus    = 32'h48
   } llc_cfg_addr_e;
 
   ////////////////////////////////
@@ -299,6 +300,13 @@ module tb_axi_llc #(
     enable_counters = 1'b1;
     enable_progress = 1'b1;
 
+    $info("Wait for BIST to complete.");
+    do begin
+      reg_conf_driver.send_read(BistStatus, cfg_data, cfg_error);
+      // $display("%x", cfg_data);
+    end while (cfg_data[0] === 1'b0);
+    $info("BIST completed.");
+
     $info("Read all Cfg registers.");
     reg_conf_driver.send_read(CfgSpmLow,      cfg_data, cfg_error);
     reg_conf_driver.send_read(CfgSpmHigh,     cfg_data, cfg_error);
@@ -309,6 +317,7 @@ module tb_axi_llc #(
     reg_conf_driver.send_read(FlushedHigh,    cfg_data, cfg_error);
     reg_conf_driver.send_read(BistOutLow,     cfg_data, cfg_error);
     reg_conf_driver.send_read(BistOutHigh,    cfg_data, cfg_error);
+    reg_conf_driver.send_read(BistStatus,     cfg_data, cfg_error);
     reg_conf_driver.send_read(SetAssoLow,     cfg_data, cfg_error);
     reg_conf_driver.send_read(SetAssoHigh,    cfg_data, cfg_error);
     reg_conf_driver.send_read(NumLinesLow,    cfg_data, cfg_error);

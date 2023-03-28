@@ -153,6 +153,14 @@
       fields: [
         {bits: "31:0", name: "high", desc: "upper 32 bit"}
       ]
+    },
+    { name: "BIST_STATUS",
+      desc: "Status register of the BIST",
+      swaccess: "ro",
+      hwaccess: "hwo",
+      fields: [
+        {bits: "0:0", name: "done", desc: "BIST successfully completed"}
+      ]
     }
   ]
 }

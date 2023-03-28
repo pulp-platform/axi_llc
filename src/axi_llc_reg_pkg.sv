@@ -126,6 +126,11 @@ package axi_llc_reg_pkg;
     logic        de;
   } axi_llc_hw2reg_version_high_reg_t;
 
+  typedef struct packed {
+    logic        d;
+    logic        de;
+  } axi_llc_hw2reg_bist_status_reg_t;
+
   // Register -> HW type
   typedef struct packed {
     axi_llc_reg2hw_cfg_spm_low_reg_t cfg_spm_low; // [192:161]
@@ -139,23 +144,24 @@ package axi_llc_reg_pkg;
 
   // HW -> register type
   typedef struct packed {
-    axi_llc_hw2reg_cfg_spm_low_reg_t cfg_spm_low; // [529:497]
-    axi_llc_hw2reg_cfg_spm_high_reg_t cfg_spm_high; // [496:464]
-    axi_llc_hw2reg_cfg_flush_low_reg_t cfg_flush_low; // [463:431]
-    axi_llc_hw2reg_cfg_flush_high_reg_t cfg_flush_high; // [430:398]
-    axi_llc_hw2reg_commit_cfg_reg_t commit_cfg; // [397:396]
-    axi_llc_hw2reg_flushed_low_reg_t flushed_low; // [395:363]
-    axi_llc_hw2reg_flushed_high_reg_t flushed_high; // [362:330]
-    axi_llc_hw2reg_bist_out_low_reg_t bist_out_low; // [329:297]
-    axi_llc_hw2reg_bist_out_high_reg_t bist_out_high; // [296:264]
-    axi_llc_hw2reg_set_asso_low_reg_t set_asso_low; // [263:231]
-    axi_llc_hw2reg_set_asso_high_reg_t set_asso_high; // [230:198]
-    axi_llc_hw2reg_num_lines_low_reg_t num_lines_low; // [197:165]
-    axi_llc_hw2reg_num_lines_high_reg_t num_lines_high; // [164:132]
-    axi_llc_hw2reg_num_blocks_low_reg_t num_blocks_low; // [131:99]
-    axi_llc_hw2reg_num_blocks_high_reg_t num_blocks_high; // [98:66]
-    axi_llc_hw2reg_version_low_reg_t version_low; // [65:33]
-    axi_llc_hw2reg_version_high_reg_t version_high; // [32:0]
+    axi_llc_hw2reg_cfg_spm_low_reg_t cfg_spm_low; // [531:499]
+    axi_llc_hw2reg_cfg_spm_high_reg_t cfg_spm_high; // [498:466]
+    axi_llc_hw2reg_cfg_flush_low_reg_t cfg_flush_low; // [465:433]
+    axi_llc_hw2reg_cfg_flush_high_reg_t cfg_flush_high; // [432:400]
+    axi_llc_hw2reg_commit_cfg_reg_t commit_cfg; // [399:398]
+    axi_llc_hw2reg_flushed_low_reg_t flushed_low; // [397:365]
+    axi_llc_hw2reg_flushed_high_reg_t flushed_high; // [364:332]
+    axi_llc_hw2reg_bist_out_low_reg_t bist_out_low; // [331:299]
+    axi_llc_hw2reg_bist_out_high_reg_t bist_out_high; // [298:266]
+    axi_llc_hw2reg_set_asso_low_reg_t set_asso_low; // [265:233]
+    axi_llc_hw2reg_set_asso_high_reg_t set_asso_high; // [232:200]
+    axi_llc_hw2reg_num_lines_low_reg_t num_lines_low; // [199:167]
+    axi_llc_hw2reg_num_lines_high_reg_t num_lines_high; // [166:134]
+    axi_llc_hw2reg_num_blocks_low_reg_t num_blocks_low; // [133:101]
+    axi_llc_hw2reg_num_blocks_high_reg_t num_blocks_high; // [100:68]
+    axi_llc_hw2reg_version_low_reg_t version_low; // [67:35]
+    axi_llc_hw2reg_version_high_reg_t version_high; // [34:2]
+    axi_llc_hw2reg_bist_status_reg_t bist_status; // [1:0]
   } axi_llc_hw2reg_t;
 
   // Register offsets
@@ -176,6 +182,7 @@ package axi_llc_reg_pkg;
   parameter logic [BlockAw-1:0] AXI_LLC_NUM_BLOCKS_HIGH_OFFSET = 7'h 3c;
   parameter logic [BlockAw-1:0] AXI_LLC_VERSION_LOW_OFFSET = 7'h 40;
   parameter logic [BlockAw-1:0] AXI_LLC_VERSION_HIGH_OFFSET = 7'h 44;
+  parameter logic [BlockAw-1:0] AXI_LLC_BIST_STATUS_OFFSET = 7'h 48;
 
   // Register index
   typedef enum int {
@@ -195,11 +202,12 @@ package axi_llc_reg_pkg;
     AXI_LLC_NUM_BLOCKS_LOW,
     AXI_LLC_NUM_BLOCKS_HIGH,
     AXI_LLC_VERSION_LOW,
-    AXI_LLC_VERSION_HIGH
+    AXI_LLC_VERSION_HIGH,
+    AXI_LLC_BIST_STATUS
   } axi_llc_id_e;
 
   // Register width information to check illegal writes
-  parameter logic [3:0] AXI_LLC_PERMIT [17] = '{
+  parameter logic [3:0] AXI_LLC_PERMIT [18] = '{
     4'b 1111, // index[ 0] AXI_LLC_CFG_SPM_LOW
     4'b 1111, // index[ 1] AXI_LLC_CFG_SPM_HIGH
     4'b 1111, // index[ 2] AXI_LLC_CFG_FLUSH_LOW
@@ -216,7 +224,8 @@ package axi_llc_reg_pkg;
     4'b 1111, // index[13] AXI_LLC_NUM_BLOCKS_LOW
     4'b 1111, // index[14] AXI_LLC_NUM_BLOCKS_HIGH
     4'b 1111, // index[15] AXI_LLC_VERSION_LOW
-    4'b 1111  // index[16] AXI_LLC_VERSION_HIGH
+    4'b 1111, // index[16] AXI_LLC_VERSION_HIGH
+    4'b 0001  // index[17] AXI_LLC_BIST_STATUS
   };
 
 endpackage

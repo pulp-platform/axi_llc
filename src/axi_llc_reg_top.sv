@@ -95,6 +95,7 @@ module axi_llc_reg_top #(
   logic [31:0] num_blocks_high_qs;
   logic [31:0] version_low_qs;
   logic [31:0] version_high_qs;
+  logic bist_status_qs;
 
   // Register instances
   // R[cfg_spm_low]: V(False)
@@ -544,9 +545,35 @@ module axi_llc_reg_top #(
   );
 
 
+  // R[bist_status]: V(False)
+
+  prim_subreg #(
+    .DW      (1),
+    .SWACCESS("RO"),
+    .RESVAL  (1'h0)
+  ) u_bist_status (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    .we     (1'b0),
+    .wd     ('0  ),
+
+    // from internal hardware
+    .de     (hw2reg.bist_status.de),
+    .d      (hw2reg.bist_status.d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (bist_status_qs)
+  );
 
 
-  logic [16:0] addr_hit;
+
+
+  logic [17:0] addr_hit;
   always_comb begin
     addr_hit = '0;
     addr_hit[ 0] = (reg_addr == AXI_LLC_CFG_SPM_LOW_OFFSET);
@@ -566,6 +593,7 @@ module axi_llc_reg_top #(
     addr_hit[14] = (reg_addr == AXI_LLC_NUM_BLOCKS_HIGH_OFFSET);
     addr_hit[15] = (reg_addr == AXI_LLC_VERSION_LOW_OFFSET);
     addr_hit[16] = (reg_addr == AXI_LLC_VERSION_HIGH_OFFSET);
+    addr_hit[17] = (reg_addr == AXI_LLC_BIST_STATUS_OFFSET);
   end
 
   assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0 ;
@@ -589,7 +617,8 @@ module axi_llc_reg_top #(
                (addr_hit[13] & (|(AXI_LLC_PERMIT[13] & ~reg_be))) |
                (addr_hit[14] & (|(AXI_LLC_PERMIT[14] & ~reg_be))) |
                (addr_hit[15] & (|(AXI_LLC_PERMIT[15] & ~reg_be))) |
-               (addr_hit[16] & (|(AXI_LLC_PERMIT[16] & ~reg_be)))));
+               (addr_hit[16] & (|(AXI_LLC_PERMIT[16] & ~reg_be))) |
+               (addr_hit[17] & (|(AXI_LLC_PERMIT[17] & ~reg_be)))));
   end
 
   assign cfg_spm_low_we = addr_hit[0] & reg_we & !reg_error;
@@ -677,6 +706,10 @@ module axi_llc_reg_top #(
 
       addr_hit[16]: begin
         reg_rdata_next[31:0] = version_high_qs;
+      end
+
+      addr_hit[17]: begin
+        reg_rdata_next[0] = bist_status_qs;
       end
 
       default: begin

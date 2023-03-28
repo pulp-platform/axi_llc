@@ -105,6 +105,16 @@
 /// | `[SetAssociativity-1]`  | `1'b0`      | BIST Error Set-X |
 ///
 ///
+/// ### BistStatus
+///
+/// Status of the BIST
+///
+/// Register Bit Map:
+/// | Bits                    | Reset Value | Function         |
+/// |:-----------------------:|:-----------:|:----------------:|
+/// | `[0]`                   | `1'b0`      | BIST Done Flag   |
+///
+///
 /// ### SetAsso
 ///
 /// Register showing the instantiated cache set-associativity.
@@ -350,18 +360,20 @@ module axi_llc_config #(
   assign load_to_flush = (to_flush_d    != to_flush_q);
 
   // Constant hardware registers
-  assign conf_regs_o.bist_out       = bist_res_i;
-  assign conf_regs_o.set_asso       = Cfg.SetAssociativity;
-  assign conf_regs_o.num_lines      = Cfg.NumBlocks;
-  assign conf_regs_o.num_blocks     = Cfg.NumBlocks;
-  assign conf_regs_o.version        = axi_llc_pkg::AxiLlcVersion;
+  assign conf_regs_o.bist_out         = bist_res_i;
+  assign conf_regs_o.set_asso         = Cfg.SetAssociativity;
+  assign conf_regs_o.num_lines        = Cfg.NumLines;
+  assign conf_regs_o.num_blocks       = Cfg.NumBlocks;
+  assign conf_regs_o.version          = axi_llc_pkg::AxiLlcVersion;
+  assign conf_regs_o.bist_status_done = bist_valid_i;
 
   // Constant register write enables
-  assign conf_regs_o.bist_out_en    = bist_valid_i;
+  assign conf_regs_o.bist_out_en    = 1'b1;
   assign conf_regs_o.set_asso_en    = 1'b1;
   assign conf_regs_o.num_lines_en   = 1'b1;
   assign conf_regs_o.num_blocks_en  = 1'b1;
   assign conf_regs_o.version_en     = 1'b1;
+  assign conf_regs_o.bist_status_en = 1'b1;
 
   always_comb begin : proc_axi_llc_cfg
     // Default assignments

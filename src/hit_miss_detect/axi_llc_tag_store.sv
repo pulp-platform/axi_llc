@@ -332,7 +332,7 @@ module axi_llc_tag_store #(
     .bist_res_o       ( bist_res_o  ),
     .eoc_o            ( gen_eoc     )
   );
-  assign bist_valid_o = (req_q.mode == axi_llc_pkg::BIST) & gen_eoc;
+  assign bist_valid_o = gen_eoc;
 
   // This shift register holds the pattern for comparison of the bist.
   shift_reg #(
