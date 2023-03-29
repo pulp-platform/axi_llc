@@ -24,7 +24,9 @@ module axi_llc_tag_store #(
   /// Type of the request payload made to the tag storage
   parameter type store_req_t = logic,
   /// Type of the response payload expected from the tag storage
-  parameter type store_res_t = logic
+  parameter type store_res_t = logic,
+  /// Whether to print SRAM configs
+  parameter bit  PrintSramCfg = 0
 ) (
   /// Clock, positive edge triggered
   input  logic       clk_i,
@@ -272,7 +274,7 @@ module axi_llc_tag_store #(
       .NumPorts    ( 32'd1                        ),
       .Latency     ( axi_llc_pkg::TagMacroLatency ),
       .SimInit     ( "none"                       ),
-      .PrintSimCfg ( 1'b1                         )
+      .PrintSimCfg ( PrintSramCfg                 )
     ) i_tag_store (
       .clk_i,
       .rst_ni,

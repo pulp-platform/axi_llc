@@ -30,7 +30,9 @@ module axi_llc_data_way #(
   ///   axi_axi_llc_pkg::cache_unit_e cache_unit;   // which unit had the access
   ///   axi_data_t                    data;         // read data from the macro
   /// } way_oup_t;
-  parameter type way_oup_t = logic
+  parameter type way_oup_t = logic,
+  /// Whether to print SRAM configs.
+  parameter bit  PrintSramCfg = 0
 ) (
   /// Clock, positive edge triggered
   input logic clk_i,
@@ -121,7 +123,7 @@ module axi_llc_data_way #(
     .NumPorts   ( 32'd1                        ),
     .Latency    ( 32'd1                        ),
     .SimInit    ( "none"                       ),
-    .PrintSimCfg( 1'b1                         )
+    .PrintSimCfg( PrintSramCfg                 )
   ) i_data_sram (
     .clk_i,
     .rst_ni,

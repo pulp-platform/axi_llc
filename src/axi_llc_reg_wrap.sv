@@ -181,6 +181,8 @@ module axi_llc_reg_wrap #(
   parameter type reg_resp_t      = logic,
   /// Full AXI4+ATOP Port address decoding rule
   parameter type rule_full_t    = axi_pkg::xbar_rule_64_t,
+  /// Whether to print SRAM configs
+  parameter bit  PrintSramCfg   = 0,
   /// Dependent parameter, do **not** overwrite!
   /// Address type of the AXI4+ATOP ports.
   /// The address fields of the rule type have to be the same.
@@ -272,7 +274,8 @@ module axi_llc_reg_wrap #(
     .slv_resp_t       ( slv_resp_t            ),
     .mst_req_t        ( mst_req_t             ),
     .mst_resp_t       ( mst_resp_t            ),
-    .rule_full_t      ( rule_full_t           )
+    .rule_full_t      ( rule_full_t           ),
+    .PrintSramCfg     ( PrintSramCfg          )
   ) i_axi_llc_top_raw (
     .clk_i,
     .rst_ni,

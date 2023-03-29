@@ -46,7 +46,9 @@ module axi_llc_hit_miss #(
   /// } cnt_t;
   parameter type                       cnt_t     = logic,
   /// Way indicator, is a onehot signal with width: `Cfg.SetAssociativity`.
-  parameter type                       way_ind_t = logic
+  parameter type                       way_ind_t = logic,
+  /// Whether to print SRAM configs
+  parameter bit                        PrintSramCfg = 0
 ) (
   /// Clock, positive edge triggered.
   input  logic     clk_i,
@@ -330,10 +332,11 @@ module axi_llc_hit_miss #(
   end
 
   axi_llc_tag_store #(
-    .Cfg         ( Cfg         ),
-    .way_ind_t   ( way_ind_t   ),
-    .store_req_t ( store_req_t ),
-    .store_res_t ( store_res_t )
+    .Cfg          ( Cfg          ),
+    .way_ind_t    ( way_ind_t    ),
+    .store_req_t  ( store_req_t  ),
+    .store_res_t  ( store_res_t  ),
+    .PrintSramCfg ( PrintSramCfg )
   ) i_tag_store (
     .clk_i,
     .rst_ni,
