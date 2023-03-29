@@ -177,6 +177,10 @@ module axi_llc_top #(
   parameter type mst_resp_t     = logic,
   /// Full AXI4+ATOP Port address decoding rule
   parameter type rule_full_t    = axi_pkg::xbar_rule_64_t,
+  /// Whether to print SRAM configs
+  parameter bit  PrintSramCfg   = 0,
+  /// Whether to print config of LLC
+  parameter bit  PrintLlcCfg    = 0,
   /// Dependent parameter, do **not** overwrite!
   /// Address type of the AXI4+ATOP ports.
   /// The address fields of the rule type have to be the same.
@@ -402,7 +406,8 @@ module axi_llc_top #(
     .desc_t         ( llc_desc_t    ),
     .rule_full_t    ( rule_full_t   ),
     .set_asso_t     ( way_ind_t     ),
-    .addr_full_t    ( axi_addr_t    )
+    .addr_full_t    ( axi_addr_t    ),
+    .PrintLlcCfg    ( PrintLlcCfg   )
   ) i_llc_config (
     .clk_i             ( clk_i                                  ),
     .rst_ni            ( rst_ni                                 ),
@@ -562,12 +567,13 @@ module axi_llc_top #(
   );
 
   axi_llc_hit_miss #(
-    .Cfg       ( Cfg        ),
-    .AxiCfg    ( AxiCfg     ),
-    .desc_t    ( llc_desc_t ),
-    .lock_t    ( lock_t     ),
-    .cnt_t     ( cnt_t      ),
-    .way_ind_t ( way_ind_t  )
+    .Cfg          ( Cfg          ),
+    .AxiCfg       ( AxiCfg       ),
+    .desc_t       ( llc_desc_t   ),
+    .lock_t       ( lock_t       ),
+    .cnt_t        ( cnt_t        ),
+    .way_ind_t    ( way_ind_t    ),
+    .PrintSramCfg ( PrintSramCfg )
   ) i_hit_miss_unit (
     .clk_i,
     .rst_ni,
@@ -744,9 +750,10 @@ module axi_llc_top #(
 
   // data storage
   axi_llc_ways #(
-    .Cfg       ( Cfg       ),
-    .way_inp_t ( way_inp_t ),
-    .way_oup_t ( way_oup_t )
+    .Cfg          ( Cfg          ),
+    .way_inp_t    ( way_inp_t    ),
+    .way_oup_t    ( way_oup_t    ),
+    .PrintSramCfg ( PrintSramCfg )
   ) i_llc_ways (
     .clk_i                ( clk_i               ),
     .rst_ni               ( rst_ni              ),

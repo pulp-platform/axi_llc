@@ -20,7 +20,9 @@ module axi_llc_ways #(
   /// Data way request payload type definition.
   parameter type way_inp_t = logic,
   /// Data way response payload type definition.
-  parameter type way_oup_t = logic
+  parameter type way_oup_t = logic,
+  /// Whether to print SRAM configs.
+  parameter bit  PrintSramCfg = 0
 ) (
   /// Clock, positive edge triggered.
   input logic clk_i,
@@ -131,9 +133,10 @@ module axi_llc_ways #(
   // once for each way
   for (genvar j = 0; unsigned'(j) < Cfg.SetAssociativity; j++) begin : gen_data_ways
     axi_llc_data_way #(
-      .Cfg       ( Cfg       ),
-      .way_inp_t ( way_inp_t ),
-      .way_oup_t ( way_oup_t )
+      .Cfg          ( Cfg          ),
+      .way_inp_t    ( way_inp_t    ),
+      .way_oup_t    ( way_oup_t    ),
+      .PrintSramCfg ( PrintSramCfg )
     ) i_data_way (
       .clk_i,
       .rst_ni,
