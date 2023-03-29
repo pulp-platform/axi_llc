@@ -332,15 +332,6 @@ module axi_llc_config #(
   assign load_index_based_flush = (index_based_flush_d != index_based_flush_q);
 
   `FFLARN(index_based_flush_q, index_based_flush_d, load_index_based_flush, '0, clk_i, rst_ni)
-
-  // partition_table_t [MaxThread:0] partition_table_d, partition_table_q;
-  // logic                             load_partition_table;
-
-  // assign load_partition_table = (partition_table_d != partition_table_q);
-
-  // `FFLARN(partition_table_q, partition_table_d, load_partition_table, '0, clk_i, rst_ni)\
-
-  // assign partition_table_o = partition_table_q;
   
   localparam int unsigned valid_reg_bit = $floor(RegWidth / Cfg.IndexLength) * Cfg.IndexLength;
 
@@ -355,9 +346,11 @@ module axi_llc_config #(
 
   logic [Cfg.IndexLength-1:0] slv_ar_addr_index, slv_aw_addr_index;
 
+  // Cache-Partition
+  // This block is used to calculate the start-index and partition size using the information from the 
+  // config registers
   always_comb begin : proc_partition_table
     conf_regs_o.commit_partition_cfg_en = 1'b0;
-    // partition_table_d         = partition_table_q;
     if (conf_regs_i.commit_partition_cfg) begin
       conf_regs_o.commit_partition_cfg      = 1'b0;   // Clear the commit configuration flag
       conf_regs_o.commit_partition_cfg_en   = 1'b1;
@@ -381,7 +374,7 @@ module axi_llc_config #(
       partition_table_o[MaxThread].StartIndex = partition_table_o[MaxThread-1].StartIndex + partition_table_o[MaxThread-1].NumIndex;
       partition_table_o[MaxThread].NumIndex = Cfg.NumLines - partition_table_o[MaxThread].StartIndex;
 
-      if ((partition_table_o[MaxThread].NumIndex < 0) || (partition_table_o[MaxThread].StartIndex >= Cfg.NumLines)) begin
+      if (partition_table_o[MaxThread].StartIndex >= Cfg.NumLines) begin
         $error("Partition Configuration Error!");
       end
 

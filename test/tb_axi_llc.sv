@@ -149,7 +149,8 @@ module tb_axi_llc #(
     .RESP_MAX_WAIT_CYCLES ( 0                  ),
     .AXI_BURST_FIXED      ( 1'b0               ),
     .AXI_BURST_INCR       ( 1'b1               ),
-    .AXI_BURST_WRAP       ( 1'b0               )
+    .AXI_BURST_WRAP       ( 1'b0               ),
+    .MAXTHREAD            ( TbMaxThread        )
   ) axi_rand_master_t;
 
   typedef axi_test::axi_rand_slave #(
@@ -208,7 +209,7 @@ module tb_axi_llc #(
   axi_llc_pkg::events_t llc_events;
   // AXI channels
   axi_slv_req_t  axi_cpu_req;
-  axi_slv_req_t  axi_cpu_req_pat;
+  // axi_slv_req_t  axi_cpu_req_pat;
   axi_slv_resp_t axi_cpu_res;
   axi_mst_req_t  axi_mem_req;
   axi_mst_resp_t axi_mem_res;
@@ -286,11 +287,11 @@ module tb_axi_llc #(
     .rst_no ( rst_n )
   );
   assign test = 1'b0;
-  always_comb begin
-    axi_cpu_req_pat = axi_cpu_req;
-    axi_cpu_req_pat.aw.user = 1'b1;
-    axi_cpu_req_pat.ar.user = 1'b1;
-  end
+  // always_comb begin
+  //   axi_cpu_req_pat = axi_cpu_req;
+  //   axi_cpu_req_pat.aw.user = 1'b1;
+  //   axi_cpu_req_pat.ar.user = 1'b1;
+  // end
 
 
   ////////////////////////////////////////
@@ -377,12 +378,94 @@ module tb_axi_llc #(
     $info("Configure set-based cache partitioning");
     cache_partition(reg_conf_driver);
 
-    $info("Random read and write");
-    axi_master.run(TbNumReads, TbNumWrites);
+    // $info("Random read and write");
+    // axi_master.run(TbNumReads, TbNumWrites);
+    // flush_all(reg_conf_driver);
+    // // flush_all_set(reg_conf_driver);
+    // compare_mems(cpu_scoreboard, mem_scoreboard);
+    // clear_spm_cpu(cpu_scoreboard);
+
+    // Randomize patid and test 0
+    $info("Run 10 random RW tests for random PatIDs");
+    $info("Random read and write 0");
+    axi_master.run(TbNumReads/10, TbNumWrites/10);
     flush_all(reg_conf_driver);
     // flush_all_set(reg_conf_driver);
     compare_mems(cpu_scoreboard, mem_scoreboard);
     clear_spm_cpu(cpu_scoreboard);
+
+    // Randomize patid and test 1
+    $info("Random read and write 1");
+    axi_master.run(TbNumReads/10, TbNumWrites/10);
+    flush_all(reg_conf_driver);
+    // flush_all_set(reg_conf_driver);
+    compare_mems(cpu_scoreboard, mem_scoreboard);
+    clear_spm_cpu(cpu_scoreboard);
+
+    // Randomize patid and test 2
+    $info("Random read and write 2");
+    axi_master.run(TbNumReads/10, TbNumWrites/10);
+    flush_all(reg_conf_driver);
+    // flush_all_set(reg_conf_driver);
+    compare_mems(cpu_scoreboard, mem_scoreboard);
+    clear_spm_cpu(cpu_scoreboard);
+
+    // Randomize patid and test 3
+    $info("Random read and write 3");
+    axi_master.run(TbNumReads/10, TbNumWrites/10);
+    flush_all(reg_conf_driver);
+    // flush_all_set(reg_conf_driver);
+    compare_mems(cpu_scoreboard, mem_scoreboard);
+    clear_spm_cpu(cpu_scoreboard);
+
+    // Randomize patid and test 4
+    $info("Random read and write 4");
+    axi_master.run(TbNumReads/10, TbNumWrites/10);
+    flush_all(reg_conf_driver);
+    // flush_all_set(reg_conf_driver);
+    compare_mems(cpu_scoreboard, mem_scoreboard);
+    clear_spm_cpu(cpu_scoreboard);
+
+    // Randomize patid and test 5
+    $info("Random read and write 5");
+    axi_master.run(TbNumReads/10, TbNumWrites/10);
+    flush_all(reg_conf_driver);
+    // flush_all_set(reg_conf_driver);
+    compare_mems(cpu_scoreboard, mem_scoreboard);
+    clear_spm_cpu(cpu_scoreboard);
+
+    // Randomize patid and test 6
+    $info("Random read and write 6");
+    axi_master.run(TbNumReads/10, TbNumWrites/10);
+    flush_all(reg_conf_driver);
+    // flush_all_set(reg_conf_driver);
+    compare_mems(cpu_scoreboard, mem_scoreboard);
+    clear_spm_cpu(cpu_scoreboard);
+
+    // Randomize patid and test 7
+    $info("Random read and write 7");
+    axi_master.run(TbNumReads/10, TbNumWrites/10);
+    flush_all(reg_conf_driver);
+    // flush_all_set(reg_conf_driver);
+    compare_mems(cpu_scoreboard, mem_scoreboard);
+    clear_spm_cpu(cpu_scoreboard);
+
+    // Randomize patid and test 8
+    $info("Random read and write 8");
+    axi_master.run(TbNumReads/10, TbNumWrites/10);
+    flush_all(reg_conf_driver);
+    // flush_all_set(reg_conf_driver);
+    compare_mems(cpu_scoreboard, mem_scoreboard);
+    clear_spm_cpu(cpu_scoreboard);
+
+    // Randomize patid and test 9
+    $info("Random read and write 9");
+    axi_master.run(TbNumReads/10, TbNumWrites/10);
+    flush_all(reg_conf_driver);
+    // flush_all_set(reg_conf_driver);
+    compare_mems(cpu_scoreboard, mem_scoreboard);
+    clear_spm_cpu(cpu_scoreboard);
+
 
     $info("Enable lower half SPM");
     cfg_addr  = CfgSpmLow;
@@ -468,8 +551,8 @@ module tb_axi_llc #(
           // $display("Pass addr: %h \n Correct_count: %d, Wrong_count: %d", compare_addr, correct_num, uncorrect_num);
         end else begin
           uncorrect_num++;
-          // $error("At addr: %h differeing memory values are encoutered! \n CPU: %h \n MEM: %h \n Correct_count: %d, Wrong_count: %d",
-          //     compare_addr, cpu_byte, mem_byte, correct_num, uncorrect_num);
+          $error("At addr: %h differeing memory values are encoutered! \n CPU: %h \n MEM: %h \n Correct_count: %d, Wrong_count: %d",
+              compare_addr, cpu_byte, mem_byte, correct_num, uncorrect_num);
         end
       end
       compare_addr++;
@@ -590,7 +673,7 @@ module tb_axi_llc #(
     .clk_i               ( clk                                    ),
     .rst_ni              ( rst_n                                  ),
     .test_i              ( test                                   ),
-    .slv_req_i           ( axi_cpu_req_pat                        ),
+    .slv_req_i           ( axi_cpu_req                            ),
     .slv_resp_o          ( axi_cpu_res                            ),
     .mst_req_o           ( axi_mem_req                            ),
     .mst_resp_i          ( axi_mem_res                            ),

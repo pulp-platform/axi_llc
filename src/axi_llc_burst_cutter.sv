@@ -95,6 +95,10 @@ module axi_llc_burst_cutter #(
   assign share_size = partition_table_i[MaxThread].NumIndex;
   assign share_index = partition_table_i[MaxThread].StartIndex;
 
+  // Cache-Partition
+  // Add two entries carried in descripter: partition id (patid) and the new calculated index 
+  // (index_partition).
+  // If a partition's size is 0, the entry will be put into the shared region
   always_comb begin : proc_cutter
     // Make sure the outputs are defined to a default.
     next_chan_o         = curr_chan_i;
@@ -125,6 +129,7 @@ module axi_llc_burst_cutter #(
     beats_on_line       = axi_pkg::len_t'((bytes_on_line - 1) >> curr_chan_i.size) + 1;
 
     // Are we making an SPM access?
+    // If so, no partitioning will be performed on this entry
     if (rule_valid) begin
       if (rule_index != '0) begin
         desc_o.spm     = 1'b1;
