@@ -10,7 +10,7 @@
 module axi_llc_reg_top #(
     parameter type reg_req_t = logic,
     parameter type reg_rsp_t = logic,
-    parameter int AW = 10
+    parameter int AW = 9
 ) (
   input clk_i,
   input rst_ni,
@@ -104,30 +104,6 @@ module axi_llc_reg_top #(
   logic [31:0] cfg_flush_set3_high_qs;
   logic [31:0] cfg_flush_set3_high_wd;
   logic cfg_flush_set3_high_we;
-  logic [31:0] cfg_flush_set4_low_qs;
-  logic [31:0] cfg_flush_set4_low_wd;
-  logic cfg_flush_set4_low_we;
-  logic [31:0] cfg_flush_set4_high_qs;
-  logic [31:0] cfg_flush_set4_high_wd;
-  logic cfg_flush_set4_high_we;
-  logic [31:0] cfg_flush_set5_low_qs;
-  logic [31:0] cfg_flush_set5_low_wd;
-  logic cfg_flush_set5_low_we;
-  logic [31:0] cfg_flush_set5_high_qs;
-  logic [31:0] cfg_flush_set5_high_wd;
-  logic cfg_flush_set5_high_we;
-  logic [31:0] cfg_flush_set6_low_qs;
-  logic [31:0] cfg_flush_set6_low_wd;
-  logic cfg_flush_set6_low_we;
-  logic [31:0] cfg_flush_set6_high_qs;
-  logic [31:0] cfg_flush_set6_high_wd;
-  logic cfg_flush_set6_high_we;
-  logic [31:0] cfg_flush_set7_low_qs;
-  logic [31:0] cfg_flush_set7_low_wd;
-  logic cfg_flush_set7_low_we;
-  logic [31:0] cfg_flush_set7_high_qs;
-  logic [31:0] cfg_flush_set7_high_wd;
-  logic cfg_flush_set7_high_we;
   logic [31:0] cfg_set_partition0_low_qs;
   logic [31:0] cfg_set_partition0_low_wd;
   logic cfg_set_partition0_low_we;
@@ -320,258 +296,6 @@ module axi_llc_reg_top #(
   logic [31:0] cfg_set_partition31_high_qs;
   logic [31:0] cfg_set_partition31_high_wd;
   logic cfg_set_partition31_high_we;
-  logic [31:0] cfg_set_partition32_low_qs;
-  logic [31:0] cfg_set_partition32_low_wd;
-  logic cfg_set_partition32_low_we;
-  logic [31:0] cfg_set_partition32_high_qs;
-  logic [31:0] cfg_set_partition32_high_wd;
-  logic cfg_set_partition32_high_we;
-  logic [31:0] cfg_set_partition33_low_qs;
-  logic [31:0] cfg_set_partition33_low_wd;
-  logic cfg_set_partition33_low_we;
-  logic [31:0] cfg_set_partition33_high_qs;
-  logic [31:0] cfg_set_partition33_high_wd;
-  logic cfg_set_partition33_high_we;
-  logic [31:0] cfg_set_partition34_low_qs;
-  logic [31:0] cfg_set_partition34_low_wd;
-  logic cfg_set_partition34_low_we;
-  logic [31:0] cfg_set_partition34_high_qs;
-  logic [31:0] cfg_set_partition34_high_wd;
-  logic cfg_set_partition34_high_we;
-  logic [31:0] cfg_set_partition35_low_qs;
-  logic [31:0] cfg_set_partition35_low_wd;
-  logic cfg_set_partition35_low_we;
-  logic [31:0] cfg_set_partition35_high_qs;
-  logic [31:0] cfg_set_partition35_high_wd;
-  logic cfg_set_partition35_high_we;
-  logic [31:0] cfg_set_partition36_low_qs;
-  logic [31:0] cfg_set_partition36_low_wd;
-  logic cfg_set_partition36_low_we;
-  logic [31:0] cfg_set_partition36_high_qs;
-  logic [31:0] cfg_set_partition36_high_wd;
-  logic cfg_set_partition36_high_we;
-  logic [31:0] cfg_set_partition37_low_qs;
-  logic [31:0] cfg_set_partition37_low_wd;
-  logic cfg_set_partition37_low_we;
-  logic [31:0] cfg_set_partition37_high_qs;
-  logic [31:0] cfg_set_partition37_high_wd;
-  logic cfg_set_partition37_high_we;
-  logic [31:0] cfg_set_partition38_low_qs;
-  logic [31:0] cfg_set_partition38_low_wd;
-  logic cfg_set_partition38_low_we;
-  logic [31:0] cfg_set_partition38_high_qs;
-  logic [31:0] cfg_set_partition38_high_wd;
-  logic cfg_set_partition38_high_we;
-  logic [31:0] cfg_set_partition39_low_qs;
-  logic [31:0] cfg_set_partition39_low_wd;
-  logic cfg_set_partition39_low_we;
-  logic [31:0] cfg_set_partition39_high_qs;
-  logic [31:0] cfg_set_partition39_high_wd;
-  logic cfg_set_partition39_high_we;
-  logic [31:0] cfg_set_partition40_low_qs;
-  logic [31:0] cfg_set_partition40_low_wd;
-  logic cfg_set_partition40_low_we;
-  logic [31:0] cfg_set_partition40_high_qs;
-  logic [31:0] cfg_set_partition40_high_wd;
-  logic cfg_set_partition40_high_we;
-  logic [31:0] cfg_set_partition41_low_qs;
-  logic [31:0] cfg_set_partition41_low_wd;
-  logic cfg_set_partition41_low_we;
-  logic [31:0] cfg_set_partition41_high_qs;
-  logic [31:0] cfg_set_partition41_high_wd;
-  logic cfg_set_partition41_high_we;
-  logic [31:0] cfg_set_partition42_low_qs;
-  logic [31:0] cfg_set_partition42_low_wd;
-  logic cfg_set_partition42_low_we;
-  logic [31:0] cfg_set_partition42_high_qs;
-  logic [31:0] cfg_set_partition42_high_wd;
-  logic cfg_set_partition42_high_we;
-  logic [31:0] cfg_set_partition43_low_qs;
-  logic [31:0] cfg_set_partition43_low_wd;
-  logic cfg_set_partition43_low_we;
-  logic [31:0] cfg_set_partition43_high_qs;
-  logic [31:0] cfg_set_partition43_high_wd;
-  logic cfg_set_partition43_high_we;
-  logic [31:0] cfg_set_partition44_low_qs;
-  logic [31:0] cfg_set_partition44_low_wd;
-  logic cfg_set_partition44_low_we;
-  logic [31:0] cfg_set_partition44_high_qs;
-  logic [31:0] cfg_set_partition44_high_wd;
-  logic cfg_set_partition44_high_we;
-  logic [31:0] cfg_set_partition45_low_qs;
-  logic [31:0] cfg_set_partition45_low_wd;
-  logic cfg_set_partition45_low_we;
-  logic [31:0] cfg_set_partition45_high_qs;
-  logic [31:0] cfg_set_partition45_high_wd;
-  logic cfg_set_partition45_high_we;
-  logic [31:0] cfg_set_partition46_low_qs;
-  logic [31:0] cfg_set_partition46_low_wd;
-  logic cfg_set_partition46_low_we;
-  logic [31:0] cfg_set_partition46_high_qs;
-  logic [31:0] cfg_set_partition46_high_wd;
-  logic cfg_set_partition46_high_we;
-  logic [31:0] cfg_set_partition47_low_qs;
-  logic [31:0] cfg_set_partition47_low_wd;
-  logic cfg_set_partition47_low_we;
-  logic [31:0] cfg_set_partition47_high_qs;
-  logic [31:0] cfg_set_partition47_high_wd;
-  logic cfg_set_partition47_high_we;
-  logic [31:0] cfg_set_partition48_low_qs;
-  logic [31:0] cfg_set_partition48_low_wd;
-  logic cfg_set_partition48_low_we;
-  logic [31:0] cfg_set_partition48_high_qs;
-  logic [31:0] cfg_set_partition48_high_wd;
-  logic cfg_set_partition48_high_we;
-  logic [31:0] cfg_set_partition49_low_qs;
-  logic [31:0] cfg_set_partition49_low_wd;
-  logic cfg_set_partition49_low_we;
-  logic [31:0] cfg_set_partition49_high_qs;
-  logic [31:0] cfg_set_partition49_high_wd;
-  logic cfg_set_partition49_high_we;
-  logic [31:0] cfg_set_partition50_low_qs;
-  logic [31:0] cfg_set_partition50_low_wd;
-  logic cfg_set_partition50_low_we;
-  logic [31:0] cfg_set_partition50_high_qs;
-  logic [31:0] cfg_set_partition50_high_wd;
-  logic cfg_set_partition50_high_we;
-  logic [31:0] cfg_set_partition51_low_qs;
-  logic [31:0] cfg_set_partition51_low_wd;
-  logic cfg_set_partition51_low_we;
-  logic [31:0] cfg_set_partition51_high_qs;
-  logic [31:0] cfg_set_partition51_high_wd;
-  logic cfg_set_partition51_high_we;
-  logic [31:0] cfg_set_partition52_low_qs;
-  logic [31:0] cfg_set_partition52_low_wd;
-  logic cfg_set_partition52_low_we;
-  logic [31:0] cfg_set_partition52_high_qs;
-  logic [31:0] cfg_set_partition52_high_wd;
-  logic cfg_set_partition52_high_we;
-  logic [31:0] cfg_set_partition53_low_qs;
-  logic [31:0] cfg_set_partition53_low_wd;
-  logic cfg_set_partition53_low_we;
-  logic [31:0] cfg_set_partition53_high_qs;
-  logic [31:0] cfg_set_partition53_high_wd;
-  logic cfg_set_partition53_high_we;
-  logic [31:0] cfg_set_partition54_low_qs;
-  logic [31:0] cfg_set_partition54_low_wd;
-  logic cfg_set_partition54_low_we;
-  logic [31:0] cfg_set_partition54_high_qs;
-  logic [31:0] cfg_set_partition54_high_wd;
-  logic cfg_set_partition54_high_we;
-  logic [31:0] cfg_set_partition55_low_qs;
-  logic [31:0] cfg_set_partition55_low_wd;
-  logic cfg_set_partition55_low_we;
-  logic [31:0] cfg_set_partition55_high_qs;
-  logic [31:0] cfg_set_partition55_high_wd;
-  logic cfg_set_partition55_high_we;
-  logic [31:0] cfg_set_partition56_low_qs;
-  logic [31:0] cfg_set_partition56_low_wd;
-  logic cfg_set_partition56_low_we;
-  logic [31:0] cfg_set_partition56_high_qs;
-  logic [31:0] cfg_set_partition56_high_wd;
-  logic cfg_set_partition56_high_we;
-  logic [31:0] cfg_set_partition57_low_qs;
-  logic [31:0] cfg_set_partition57_low_wd;
-  logic cfg_set_partition57_low_we;
-  logic [31:0] cfg_set_partition57_high_qs;
-  logic [31:0] cfg_set_partition57_high_wd;
-  logic cfg_set_partition57_high_we;
-  logic [31:0] cfg_set_partition58_low_qs;
-  logic [31:0] cfg_set_partition58_low_wd;
-  logic cfg_set_partition58_low_we;
-  logic [31:0] cfg_set_partition58_high_qs;
-  logic [31:0] cfg_set_partition58_high_wd;
-  logic cfg_set_partition58_high_we;
-  logic [31:0] cfg_set_partition59_low_qs;
-  logic [31:0] cfg_set_partition59_low_wd;
-  logic cfg_set_partition59_low_we;
-  logic [31:0] cfg_set_partition59_high_qs;
-  logic [31:0] cfg_set_partition59_high_wd;
-  logic cfg_set_partition59_high_we;
-  logic [31:0] cfg_set_partition60_low_qs;
-  logic [31:0] cfg_set_partition60_low_wd;
-  logic cfg_set_partition60_low_we;
-  logic [31:0] cfg_set_partition60_high_qs;
-  logic [31:0] cfg_set_partition60_high_wd;
-  logic cfg_set_partition60_high_we;
-  logic [31:0] cfg_set_partition61_low_qs;
-  logic [31:0] cfg_set_partition61_low_wd;
-  logic cfg_set_partition61_low_we;
-  logic [31:0] cfg_set_partition61_high_qs;
-  logic [31:0] cfg_set_partition61_high_wd;
-  logic cfg_set_partition61_high_we;
-  logic [31:0] cfg_set_partition62_low_qs;
-  logic [31:0] cfg_set_partition62_low_wd;
-  logic cfg_set_partition62_low_we;
-  logic [31:0] cfg_set_partition62_high_qs;
-  logic [31:0] cfg_set_partition62_high_wd;
-  logic cfg_set_partition62_high_we;
-  logic [31:0] cfg_set_partition63_low_qs;
-  logic [31:0] cfg_set_partition63_low_wd;
-  logic cfg_set_partition63_low_we;
-  logic [31:0] cfg_set_partition63_high_qs;
-  logic [31:0] cfg_set_partition63_high_wd;
-  logic cfg_set_partition63_high_we;
-  logic [31:0] cfg_set_partition64_low_qs;
-  logic [31:0] cfg_set_partition64_low_wd;
-  logic cfg_set_partition64_low_we;
-  logic [31:0] cfg_set_partition64_high_qs;
-  logic [31:0] cfg_set_partition64_high_wd;
-  logic cfg_set_partition64_high_we;
-  logic [31:0] cfg_set_partition65_low_qs;
-  logic [31:0] cfg_set_partition65_low_wd;
-  logic cfg_set_partition65_low_we;
-  logic [31:0] cfg_set_partition65_high_qs;
-  logic [31:0] cfg_set_partition65_high_wd;
-  logic cfg_set_partition65_high_we;
-  logic [31:0] cfg_set_partition66_low_qs;
-  logic [31:0] cfg_set_partition66_low_wd;
-  logic cfg_set_partition66_low_we;
-  logic [31:0] cfg_set_partition66_high_qs;
-  logic [31:0] cfg_set_partition66_high_wd;
-  logic cfg_set_partition66_high_we;
-  logic [31:0] cfg_set_partition67_low_qs;
-  logic [31:0] cfg_set_partition67_low_wd;
-  logic cfg_set_partition67_low_we;
-  logic [31:0] cfg_set_partition67_high_qs;
-  logic [31:0] cfg_set_partition67_high_wd;
-  logic cfg_set_partition67_high_we;
-  logic [31:0] cfg_set_partition68_low_qs;
-  logic [31:0] cfg_set_partition68_low_wd;
-  logic cfg_set_partition68_low_we;
-  logic [31:0] cfg_set_partition68_high_qs;
-  logic [31:0] cfg_set_partition68_high_wd;
-  logic cfg_set_partition68_high_we;
-  logic [31:0] cfg_set_partition69_low_qs;
-  logic [31:0] cfg_set_partition69_low_wd;
-  logic cfg_set_partition69_low_we;
-  logic [31:0] cfg_set_partition69_high_qs;
-  logic [31:0] cfg_set_partition69_high_wd;
-  logic cfg_set_partition69_high_we;
-  logic [31:0] cfg_set_partition70_low_qs;
-  logic [31:0] cfg_set_partition70_low_wd;
-  logic cfg_set_partition70_low_we;
-  logic [31:0] cfg_set_partition70_high_qs;
-  logic [31:0] cfg_set_partition70_high_wd;
-  logic cfg_set_partition70_high_we;
-  logic [31:0] cfg_set_partition71_low_qs;
-  logic [31:0] cfg_set_partition71_low_wd;
-  logic cfg_set_partition71_low_we;
-  logic [31:0] cfg_set_partition71_high_qs;
-  logic [31:0] cfg_set_partition71_high_wd;
-  logic cfg_set_partition71_high_we;
-  logic [31:0] cfg_set_partition72_low_qs;
-  logic [31:0] cfg_set_partition72_low_wd;
-  logic cfg_set_partition72_low_we;
-  logic [31:0] cfg_set_partition72_high_qs;
-  logic [31:0] cfg_set_partition72_high_wd;
-  logic cfg_set_partition72_high_we;
-  logic [31:0] cfg_set_partition73_low_qs;
-  logic [31:0] cfg_set_partition73_low_wd;
-  logic cfg_set_partition73_low_we;
-  logic [31:0] cfg_set_partition73_high_qs;
-  logic [31:0] cfg_set_partition73_high_wd;
-  logic cfg_set_partition73_high_we;
   logic commit_cfg_qs;
   logic commit_cfg_wd;
   logic commit_cfg_we;
@@ -599,14 +323,6 @@ module axi_llc_reg_top #(
   logic [31:0] flushed_set2_high_qs;
   logic [31:0] flushed_set3_low_qs;
   logic [31:0] flushed_set3_high_qs;
-  logic [31:0] flushed_set4_low_qs;
-  logic [31:0] flushed_set4_high_qs;
-  logic [31:0] flushed_set5_low_qs;
-  logic [31:0] flushed_set5_high_qs;
-  logic [31:0] flushed_set6_low_qs;
-  logic [31:0] flushed_set6_high_qs;
-  logic [31:0] flushed_set7_low_qs;
-  logic [31:0] flushed_set7_high_qs;
 
   // Register instances
   // R[cfg_spm_low]: V(False)
@@ -930,222 +646,6 @@ module axi_llc_reg_top #(
 
     // to register interface (read)
     .qs     (cfg_flush_set3_high_qs)
-  );
-
-
-  // R[cfg_flush_set4_low]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_flush_set4_low (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_flush_set4_low_we),
-    .wd     (cfg_flush_set4_low_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_flush_set4_low.de),
-    .d      (hw2reg.cfg_flush_set4_low.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_flush_set4_low.q ),
-
-    // to register interface (read)
-    .qs     (cfg_flush_set4_low_qs)
-  );
-
-
-  // R[cfg_flush_set4_high]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_flush_set4_high (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_flush_set4_high_we),
-    .wd     (cfg_flush_set4_high_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_flush_set4_high.de),
-    .d      (hw2reg.cfg_flush_set4_high.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_flush_set4_high.q ),
-
-    // to register interface (read)
-    .qs     (cfg_flush_set4_high_qs)
-  );
-
-
-  // R[cfg_flush_set5_low]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_flush_set5_low (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_flush_set5_low_we),
-    .wd     (cfg_flush_set5_low_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_flush_set5_low.de),
-    .d      (hw2reg.cfg_flush_set5_low.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_flush_set5_low.q ),
-
-    // to register interface (read)
-    .qs     (cfg_flush_set5_low_qs)
-  );
-
-
-  // R[cfg_flush_set5_high]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_flush_set5_high (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_flush_set5_high_we),
-    .wd     (cfg_flush_set5_high_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_flush_set5_high.de),
-    .d      (hw2reg.cfg_flush_set5_high.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_flush_set5_high.q ),
-
-    // to register interface (read)
-    .qs     (cfg_flush_set5_high_qs)
-  );
-
-
-  // R[cfg_flush_set6_low]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_flush_set6_low (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_flush_set6_low_we),
-    .wd     (cfg_flush_set6_low_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_flush_set6_low.de),
-    .d      (hw2reg.cfg_flush_set6_low.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_flush_set6_low.q ),
-
-    // to register interface (read)
-    .qs     (cfg_flush_set6_low_qs)
-  );
-
-
-  // R[cfg_flush_set6_high]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_flush_set6_high (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_flush_set6_high_we),
-    .wd     (cfg_flush_set6_high_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_flush_set6_high.de),
-    .d      (hw2reg.cfg_flush_set6_high.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_flush_set6_high.q ),
-
-    // to register interface (read)
-    .qs     (cfg_flush_set6_high_qs)
-  );
-
-
-  // R[cfg_flush_set7_low]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_flush_set7_low (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_flush_set7_low_we),
-    .wd     (cfg_flush_set7_low_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_flush_set7_low.de),
-    .d      (hw2reg.cfg_flush_set7_low.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_flush_set7_low.q ),
-
-    // to register interface (read)
-    .qs     (cfg_flush_set7_low_qs)
-  );
-
-
-  // R[cfg_flush_set7_high]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_flush_set7_high (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_flush_set7_high_we),
-    .wd     (cfg_flush_set7_high_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_flush_set7_high.de),
-    .d      (hw2reg.cfg_flush_set7_high.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_flush_set7_high.q ),
-
-    // to register interface (read)
-    .qs     (cfg_flush_set7_high_qs)
   );
 
 
@@ -2877,2274 +2377,6 @@ module axi_llc_reg_top #(
   );
 
 
-  // R[cfg_set_partition32_low]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition32_low (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition32_low_we),
-    .wd     (cfg_set_partition32_low_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition32_low.de),
-    .d      (hw2reg.cfg_set_partition32_low.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition32_low.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition32_low_qs)
-  );
-
-
-  // R[cfg_set_partition32_high]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition32_high (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition32_high_we),
-    .wd     (cfg_set_partition32_high_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition32_high.de),
-    .d      (hw2reg.cfg_set_partition32_high.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition32_high.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition32_high_qs)
-  );
-
-
-  // R[cfg_set_partition33_low]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition33_low (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition33_low_we),
-    .wd     (cfg_set_partition33_low_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition33_low.de),
-    .d      (hw2reg.cfg_set_partition33_low.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition33_low.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition33_low_qs)
-  );
-
-
-  // R[cfg_set_partition33_high]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition33_high (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition33_high_we),
-    .wd     (cfg_set_partition33_high_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition33_high.de),
-    .d      (hw2reg.cfg_set_partition33_high.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition33_high.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition33_high_qs)
-  );
-
-
-  // R[cfg_set_partition34_low]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition34_low (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition34_low_we),
-    .wd     (cfg_set_partition34_low_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition34_low.de),
-    .d      (hw2reg.cfg_set_partition34_low.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition34_low.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition34_low_qs)
-  );
-
-
-  // R[cfg_set_partition34_high]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition34_high (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition34_high_we),
-    .wd     (cfg_set_partition34_high_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition34_high.de),
-    .d      (hw2reg.cfg_set_partition34_high.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition34_high.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition34_high_qs)
-  );
-
-
-  // R[cfg_set_partition35_low]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition35_low (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition35_low_we),
-    .wd     (cfg_set_partition35_low_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition35_low.de),
-    .d      (hw2reg.cfg_set_partition35_low.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition35_low.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition35_low_qs)
-  );
-
-
-  // R[cfg_set_partition35_high]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition35_high (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition35_high_we),
-    .wd     (cfg_set_partition35_high_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition35_high.de),
-    .d      (hw2reg.cfg_set_partition35_high.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition35_high.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition35_high_qs)
-  );
-
-
-  // R[cfg_set_partition36_low]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition36_low (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition36_low_we),
-    .wd     (cfg_set_partition36_low_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition36_low.de),
-    .d      (hw2reg.cfg_set_partition36_low.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition36_low.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition36_low_qs)
-  );
-
-
-  // R[cfg_set_partition36_high]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition36_high (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition36_high_we),
-    .wd     (cfg_set_partition36_high_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition36_high.de),
-    .d      (hw2reg.cfg_set_partition36_high.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition36_high.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition36_high_qs)
-  );
-
-
-  // R[cfg_set_partition37_low]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition37_low (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition37_low_we),
-    .wd     (cfg_set_partition37_low_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition37_low.de),
-    .d      (hw2reg.cfg_set_partition37_low.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition37_low.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition37_low_qs)
-  );
-
-
-  // R[cfg_set_partition37_high]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition37_high (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition37_high_we),
-    .wd     (cfg_set_partition37_high_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition37_high.de),
-    .d      (hw2reg.cfg_set_partition37_high.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition37_high.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition37_high_qs)
-  );
-
-
-  // R[cfg_set_partition38_low]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition38_low (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition38_low_we),
-    .wd     (cfg_set_partition38_low_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition38_low.de),
-    .d      (hw2reg.cfg_set_partition38_low.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition38_low.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition38_low_qs)
-  );
-
-
-  // R[cfg_set_partition38_high]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition38_high (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition38_high_we),
-    .wd     (cfg_set_partition38_high_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition38_high.de),
-    .d      (hw2reg.cfg_set_partition38_high.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition38_high.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition38_high_qs)
-  );
-
-
-  // R[cfg_set_partition39_low]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition39_low (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition39_low_we),
-    .wd     (cfg_set_partition39_low_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition39_low.de),
-    .d      (hw2reg.cfg_set_partition39_low.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition39_low.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition39_low_qs)
-  );
-
-
-  // R[cfg_set_partition39_high]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition39_high (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition39_high_we),
-    .wd     (cfg_set_partition39_high_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition39_high.de),
-    .d      (hw2reg.cfg_set_partition39_high.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition39_high.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition39_high_qs)
-  );
-
-
-  // R[cfg_set_partition40_low]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition40_low (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition40_low_we),
-    .wd     (cfg_set_partition40_low_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition40_low.de),
-    .d      (hw2reg.cfg_set_partition40_low.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition40_low.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition40_low_qs)
-  );
-
-
-  // R[cfg_set_partition40_high]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition40_high (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition40_high_we),
-    .wd     (cfg_set_partition40_high_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition40_high.de),
-    .d      (hw2reg.cfg_set_partition40_high.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition40_high.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition40_high_qs)
-  );
-
-
-  // R[cfg_set_partition41_low]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition41_low (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition41_low_we),
-    .wd     (cfg_set_partition41_low_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition41_low.de),
-    .d      (hw2reg.cfg_set_partition41_low.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition41_low.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition41_low_qs)
-  );
-
-
-  // R[cfg_set_partition41_high]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition41_high (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition41_high_we),
-    .wd     (cfg_set_partition41_high_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition41_high.de),
-    .d      (hw2reg.cfg_set_partition41_high.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition41_high.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition41_high_qs)
-  );
-
-
-  // R[cfg_set_partition42_low]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition42_low (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition42_low_we),
-    .wd     (cfg_set_partition42_low_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition42_low.de),
-    .d      (hw2reg.cfg_set_partition42_low.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition42_low.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition42_low_qs)
-  );
-
-
-  // R[cfg_set_partition42_high]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition42_high (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition42_high_we),
-    .wd     (cfg_set_partition42_high_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition42_high.de),
-    .d      (hw2reg.cfg_set_partition42_high.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition42_high.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition42_high_qs)
-  );
-
-
-  // R[cfg_set_partition43_low]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition43_low (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition43_low_we),
-    .wd     (cfg_set_partition43_low_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition43_low.de),
-    .d      (hw2reg.cfg_set_partition43_low.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition43_low.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition43_low_qs)
-  );
-
-
-  // R[cfg_set_partition43_high]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition43_high (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition43_high_we),
-    .wd     (cfg_set_partition43_high_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition43_high.de),
-    .d      (hw2reg.cfg_set_partition43_high.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition43_high.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition43_high_qs)
-  );
-
-
-  // R[cfg_set_partition44_low]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition44_low (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition44_low_we),
-    .wd     (cfg_set_partition44_low_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition44_low.de),
-    .d      (hw2reg.cfg_set_partition44_low.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition44_low.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition44_low_qs)
-  );
-
-
-  // R[cfg_set_partition44_high]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition44_high (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition44_high_we),
-    .wd     (cfg_set_partition44_high_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition44_high.de),
-    .d      (hw2reg.cfg_set_partition44_high.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition44_high.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition44_high_qs)
-  );
-
-
-  // R[cfg_set_partition45_low]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition45_low (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition45_low_we),
-    .wd     (cfg_set_partition45_low_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition45_low.de),
-    .d      (hw2reg.cfg_set_partition45_low.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition45_low.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition45_low_qs)
-  );
-
-
-  // R[cfg_set_partition45_high]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition45_high (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition45_high_we),
-    .wd     (cfg_set_partition45_high_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition45_high.de),
-    .d      (hw2reg.cfg_set_partition45_high.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition45_high.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition45_high_qs)
-  );
-
-
-  // R[cfg_set_partition46_low]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition46_low (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition46_low_we),
-    .wd     (cfg_set_partition46_low_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition46_low.de),
-    .d      (hw2reg.cfg_set_partition46_low.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition46_low.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition46_low_qs)
-  );
-
-
-  // R[cfg_set_partition46_high]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition46_high (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition46_high_we),
-    .wd     (cfg_set_partition46_high_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition46_high.de),
-    .d      (hw2reg.cfg_set_partition46_high.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition46_high.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition46_high_qs)
-  );
-
-
-  // R[cfg_set_partition47_low]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition47_low (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition47_low_we),
-    .wd     (cfg_set_partition47_low_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition47_low.de),
-    .d      (hw2reg.cfg_set_partition47_low.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition47_low.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition47_low_qs)
-  );
-
-
-  // R[cfg_set_partition47_high]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition47_high (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition47_high_we),
-    .wd     (cfg_set_partition47_high_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition47_high.de),
-    .d      (hw2reg.cfg_set_partition47_high.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition47_high.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition47_high_qs)
-  );
-
-
-  // R[cfg_set_partition48_low]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition48_low (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition48_low_we),
-    .wd     (cfg_set_partition48_low_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition48_low.de),
-    .d      (hw2reg.cfg_set_partition48_low.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition48_low.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition48_low_qs)
-  );
-
-
-  // R[cfg_set_partition48_high]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition48_high (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition48_high_we),
-    .wd     (cfg_set_partition48_high_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition48_high.de),
-    .d      (hw2reg.cfg_set_partition48_high.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition48_high.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition48_high_qs)
-  );
-
-
-  // R[cfg_set_partition49_low]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition49_low (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition49_low_we),
-    .wd     (cfg_set_partition49_low_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition49_low.de),
-    .d      (hw2reg.cfg_set_partition49_low.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition49_low.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition49_low_qs)
-  );
-
-
-  // R[cfg_set_partition49_high]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition49_high (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition49_high_we),
-    .wd     (cfg_set_partition49_high_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition49_high.de),
-    .d      (hw2reg.cfg_set_partition49_high.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition49_high.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition49_high_qs)
-  );
-
-
-  // R[cfg_set_partition50_low]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition50_low (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition50_low_we),
-    .wd     (cfg_set_partition50_low_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition50_low.de),
-    .d      (hw2reg.cfg_set_partition50_low.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition50_low.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition50_low_qs)
-  );
-
-
-  // R[cfg_set_partition50_high]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition50_high (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition50_high_we),
-    .wd     (cfg_set_partition50_high_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition50_high.de),
-    .d      (hw2reg.cfg_set_partition50_high.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition50_high.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition50_high_qs)
-  );
-
-
-  // R[cfg_set_partition51_low]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition51_low (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition51_low_we),
-    .wd     (cfg_set_partition51_low_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition51_low.de),
-    .d      (hw2reg.cfg_set_partition51_low.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition51_low.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition51_low_qs)
-  );
-
-
-  // R[cfg_set_partition51_high]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition51_high (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition51_high_we),
-    .wd     (cfg_set_partition51_high_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition51_high.de),
-    .d      (hw2reg.cfg_set_partition51_high.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition51_high.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition51_high_qs)
-  );
-
-
-  // R[cfg_set_partition52_low]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition52_low (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition52_low_we),
-    .wd     (cfg_set_partition52_low_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition52_low.de),
-    .d      (hw2reg.cfg_set_partition52_low.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition52_low.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition52_low_qs)
-  );
-
-
-  // R[cfg_set_partition52_high]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition52_high (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition52_high_we),
-    .wd     (cfg_set_partition52_high_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition52_high.de),
-    .d      (hw2reg.cfg_set_partition52_high.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition52_high.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition52_high_qs)
-  );
-
-
-  // R[cfg_set_partition53_low]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition53_low (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition53_low_we),
-    .wd     (cfg_set_partition53_low_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition53_low.de),
-    .d      (hw2reg.cfg_set_partition53_low.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition53_low.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition53_low_qs)
-  );
-
-
-  // R[cfg_set_partition53_high]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition53_high (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition53_high_we),
-    .wd     (cfg_set_partition53_high_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition53_high.de),
-    .d      (hw2reg.cfg_set_partition53_high.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition53_high.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition53_high_qs)
-  );
-
-
-  // R[cfg_set_partition54_low]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition54_low (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition54_low_we),
-    .wd     (cfg_set_partition54_low_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition54_low.de),
-    .d      (hw2reg.cfg_set_partition54_low.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition54_low.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition54_low_qs)
-  );
-
-
-  // R[cfg_set_partition54_high]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition54_high (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition54_high_we),
-    .wd     (cfg_set_partition54_high_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition54_high.de),
-    .d      (hw2reg.cfg_set_partition54_high.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition54_high.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition54_high_qs)
-  );
-
-
-  // R[cfg_set_partition55_low]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition55_low (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition55_low_we),
-    .wd     (cfg_set_partition55_low_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition55_low.de),
-    .d      (hw2reg.cfg_set_partition55_low.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition55_low.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition55_low_qs)
-  );
-
-
-  // R[cfg_set_partition55_high]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition55_high (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition55_high_we),
-    .wd     (cfg_set_partition55_high_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition55_high.de),
-    .d      (hw2reg.cfg_set_partition55_high.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition55_high.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition55_high_qs)
-  );
-
-
-  // R[cfg_set_partition56_low]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition56_low (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition56_low_we),
-    .wd     (cfg_set_partition56_low_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition56_low.de),
-    .d      (hw2reg.cfg_set_partition56_low.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition56_low.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition56_low_qs)
-  );
-
-
-  // R[cfg_set_partition56_high]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition56_high (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition56_high_we),
-    .wd     (cfg_set_partition56_high_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition56_high.de),
-    .d      (hw2reg.cfg_set_partition56_high.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition56_high.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition56_high_qs)
-  );
-
-
-  // R[cfg_set_partition57_low]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition57_low (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition57_low_we),
-    .wd     (cfg_set_partition57_low_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition57_low.de),
-    .d      (hw2reg.cfg_set_partition57_low.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition57_low.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition57_low_qs)
-  );
-
-
-  // R[cfg_set_partition57_high]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition57_high (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition57_high_we),
-    .wd     (cfg_set_partition57_high_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition57_high.de),
-    .d      (hw2reg.cfg_set_partition57_high.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition57_high.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition57_high_qs)
-  );
-
-
-  // R[cfg_set_partition58_low]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition58_low (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition58_low_we),
-    .wd     (cfg_set_partition58_low_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition58_low.de),
-    .d      (hw2reg.cfg_set_partition58_low.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition58_low.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition58_low_qs)
-  );
-
-
-  // R[cfg_set_partition58_high]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition58_high (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition58_high_we),
-    .wd     (cfg_set_partition58_high_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition58_high.de),
-    .d      (hw2reg.cfg_set_partition58_high.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition58_high.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition58_high_qs)
-  );
-
-
-  // R[cfg_set_partition59_low]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition59_low (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition59_low_we),
-    .wd     (cfg_set_partition59_low_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition59_low.de),
-    .d      (hw2reg.cfg_set_partition59_low.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition59_low.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition59_low_qs)
-  );
-
-
-  // R[cfg_set_partition59_high]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition59_high (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition59_high_we),
-    .wd     (cfg_set_partition59_high_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition59_high.de),
-    .d      (hw2reg.cfg_set_partition59_high.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition59_high.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition59_high_qs)
-  );
-
-
-  // R[cfg_set_partition60_low]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition60_low (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition60_low_we),
-    .wd     (cfg_set_partition60_low_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition60_low.de),
-    .d      (hw2reg.cfg_set_partition60_low.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition60_low.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition60_low_qs)
-  );
-
-
-  // R[cfg_set_partition60_high]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition60_high (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition60_high_we),
-    .wd     (cfg_set_partition60_high_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition60_high.de),
-    .d      (hw2reg.cfg_set_partition60_high.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition60_high.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition60_high_qs)
-  );
-
-
-  // R[cfg_set_partition61_low]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition61_low (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition61_low_we),
-    .wd     (cfg_set_partition61_low_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition61_low.de),
-    .d      (hw2reg.cfg_set_partition61_low.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition61_low.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition61_low_qs)
-  );
-
-
-  // R[cfg_set_partition61_high]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition61_high (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition61_high_we),
-    .wd     (cfg_set_partition61_high_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition61_high.de),
-    .d      (hw2reg.cfg_set_partition61_high.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition61_high.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition61_high_qs)
-  );
-
-
-  // R[cfg_set_partition62_low]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition62_low (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition62_low_we),
-    .wd     (cfg_set_partition62_low_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition62_low.de),
-    .d      (hw2reg.cfg_set_partition62_low.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition62_low.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition62_low_qs)
-  );
-
-
-  // R[cfg_set_partition62_high]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition62_high (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition62_high_we),
-    .wd     (cfg_set_partition62_high_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition62_high.de),
-    .d      (hw2reg.cfg_set_partition62_high.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition62_high.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition62_high_qs)
-  );
-
-
-  // R[cfg_set_partition63_low]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition63_low (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition63_low_we),
-    .wd     (cfg_set_partition63_low_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition63_low.de),
-    .d      (hw2reg.cfg_set_partition63_low.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition63_low.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition63_low_qs)
-  );
-
-
-  // R[cfg_set_partition63_high]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition63_high (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition63_high_we),
-    .wd     (cfg_set_partition63_high_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition63_high.de),
-    .d      (hw2reg.cfg_set_partition63_high.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition63_high.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition63_high_qs)
-  );
-
-
-  // R[cfg_set_partition64_low]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition64_low (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition64_low_we),
-    .wd     (cfg_set_partition64_low_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition64_low.de),
-    .d      (hw2reg.cfg_set_partition64_low.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition64_low.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition64_low_qs)
-  );
-
-
-  // R[cfg_set_partition64_high]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition64_high (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition64_high_we),
-    .wd     (cfg_set_partition64_high_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition64_high.de),
-    .d      (hw2reg.cfg_set_partition64_high.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition64_high.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition64_high_qs)
-  );
-
-
-  // R[cfg_set_partition65_low]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition65_low (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition65_low_we),
-    .wd     (cfg_set_partition65_low_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition65_low.de),
-    .d      (hw2reg.cfg_set_partition65_low.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition65_low.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition65_low_qs)
-  );
-
-
-  // R[cfg_set_partition65_high]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition65_high (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition65_high_we),
-    .wd     (cfg_set_partition65_high_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition65_high.de),
-    .d      (hw2reg.cfg_set_partition65_high.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition65_high.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition65_high_qs)
-  );
-
-
-  // R[cfg_set_partition66_low]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition66_low (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition66_low_we),
-    .wd     (cfg_set_partition66_low_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition66_low.de),
-    .d      (hw2reg.cfg_set_partition66_low.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition66_low.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition66_low_qs)
-  );
-
-
-  // R[cfg_set_partition66_high]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition66_high (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition66_high_we),
-    .wd     (cfg_set_partition66_high_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition66_high.de),
-    .d      (hw2reg.cfg_set_partition66_high.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition66_high.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition66_high_qs)
-  );
-
-
-  // R[cfg_set_partition67_low]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition67_low (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition67_low_we),
-    .wd     (cfg_set_partition67_low_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition67_low.de),
-    .d      (hw2reg.cfg_set_partition67_low.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition67_low.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition67_low_qs)
-  );
-
-
-  // R[cfg_set_partition67_high]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition67_high (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition67_high_we),
-    .wd     (cfg_set_partition67_high_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition67_high.de),
-    .d      (hw2reg.cfg_set_partition67_high.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition67_high.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition67_high_qs)
-  );
-
-
-  // R[cfg_set_partition68_low]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition68_low (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition68_low_we),
-    .wd     (cfg_set_partition68_low_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition68_low.de),
-    .d      (hw2reg.cfg_set_partition68_low.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition68_low.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition68_low_qs)
-  );
-
-
-  // R[cfg_set_partition68_high]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition68_high (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition68_high_we),
-    .wd     (cfg_set_partition68_high_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition68_high.de),
-    .d      (hw2reg.cfg_set_partition68_high.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition68_high.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition68_high_qs)
-  );
-
-
-  // R[cfg_set_partition69_low]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition69_low (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition69_low_we),
-    .wd     (cfg_set_partition69_low_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition69_low.de),
-    .d      (hw2reg.cfg_set_partition69_low.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition69_low.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition69_low_qs)
-  );
-
-
-  // R[cfg_set_partition69_high]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition69_high (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition69_high_we),
-    .wd     (cfg_set_partition69_high_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition69_high.de),
-    .d      (hw2reg.cfg_set_partition69_high.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition69_high.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition69_high_qs)
-  );
-
-
-  // R[cfg_set_partition70_low]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition70_low (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition70_low_we),
-    .wd     (cfg_set_partition70_low_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition70_low.de),
-    .d      (hw2reg.cfg_set_partition70_low.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition70_low.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition70_low_qs)
-  );
-
-
-  // R[cfg_set_partition70_high]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition70_high (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition70_high_we),
-    .wd     (cfg_set_partition70_high_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition70_high.de),
-    .d      (hw2reg.cfg_set_partition70_high.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition70_high.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition70_high_qs)
-  );
-
-
-  // R[cfg_set_partition71_low]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition71_low (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition71_low_we),
-    .wd     (cfg_set_partition71_low_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition71_low.de),
-    .d      (hw2reg.cfg_set_partition71_low.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition71_low.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition71_low_qs)
-  );
-
-
-  // R[cfg_set_partition71_high]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition71_high (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition71_high_we),
-    .wd     (cfg_set_partition71_high_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition71_high.de),
-    .d      (hw2reg.cfg_set_partition71_high.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition71_high.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition71_high_qs)
-  );
-
-
-  // R[cfg_set_partition72_low]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition72_low (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition72_low_we),
-    .wd     (cfg_set_partition72_low_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition72_low.de),
-    .d      (hw2reg.cfg_set_partition72_low.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition72_low.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition72_low_qs)
-  );
-
-
-  // R[cfg_set_partition72_high]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition72_high (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition72_high_we),
-    .wd     (cfg_set_partition72_high_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition72_high.de),
-    .d      (hw2reg.cfg_set_partition72_high.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition72_high.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition72_high_qs)
-  );
-
-
-  // R[cfg_set_partition73_low]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition73_low (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition73_low_we),
-    .wd     (cfg_set_partition73_low_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition73_low.de),
-    .d      (hw2reg.cfg_set_partition73_low.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition73_low.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition73_low_qs)
-  );
-
-
-  // R[cfg_set_partition73_high]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_cfg_set_partition73_high (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (cfg_set_partition73_high_we),
-    .wd     (cfg_set_partition73_high_wd),
-
-    // from internal hardware
-    .de     (hw2reg.cfg_set_partition73_high.de),
-    .d      (hw2reg.cfg_set_partition73_high.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.cfg_set_partition73_high.q ),
-
-    // to register interface (read)
-    .qs     (cfg_set_partition73_high_qs)
-  );
-
-
   // R[commit_cfg]: V(False)
 
   prim_subreg #(
@@ -5745,418 +2977,110 @@ module axi_llc_reg_top #(
   );
 
 
-  // R[flushed_set4_low]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RO"),
-    .RESVAL  (32'h0)
-  ) u_flushed_set4_low (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    .we     (1'b0),
-    .wd     ('0  ),
-
-    // from internal hardware
-    .de     (hw2reg.flushed_set4_low.de),
-    .d      (hw2reg.flushed_set4_low.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.flushed_set4_low.q ),
-
-    // to register interface (read)
-    .qs     (flushed_set4_low_qs)
-  );
 
 
-  // R[flushed_set4_high]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RO"),
-    .RESVAL  (32'h0)
-  ) u_flushed_set4_high (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    .we     (1'b0),
-    .wd     ('0  ),
-
-    // from internal hardware
-    .de     (hw2reg.flushed_set4_high.de),
-    .d      (hw2reg.flushed_set4_high.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.flushed_set4_high.q ),
-
-    // to register interface (read)
-    .qs     (flushed_set4_high_qs)
-  );
-
-
-  // R[flushed_set5_low]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RO"),
-    .RESVAL  (32'h0)
-  ) u_flushed_set5_low (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    .we     (1'b0),
-    .wd     ('0  ),
-
-    // from internal hardware
-    .de     (hw2reg.flushed_set5_low.de),
-    .d      (hw2reg.flushed_set5_low.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.flushed_set5_low.q ),
-
-    // to register interface (read)
-    .qs     (flushed_set5_low_qs)
-  );
-
-
-  // R[flushed_set5_high]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RO"),
-    .RESVAL  (32'h0)
-  ) u_flushed_set5_high (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    .we     (1'b0),
-    .wd     ('0  ),
-
-    // from internal hardware
-    .de     (hw2reg.flushed_set5_high.de),
-    .d      (hw2reg.flushed_set5_high.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.flushed_set5_high.q ),
-
-    // to register interface (read)
-    .qs     (flushed_set5_high_qs)
-  );
-
-
-  // R[flushed_set6_low]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RO"),
-    .RESVAL  (32'h0)
-  ) u_flushed_set6_low (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    .we     (1'b0),
-    .wd     ('0  ),
-
-    // from internal hardware
-    .de     (hw2reg.flushed_set6_low.de),
-    .d      (hw2reg.flushed_set6_low.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.flushed_set6_low.q ),
-
-    // to register interface (read)
-    .qs     (flushed_set6_low_qs)
-  );
-
-
-  // R[flushed_set6_high]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RO"),
-    .RESVAL  (32'h0)
-  ) u_flushed_set6_high (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    .we     (1'b0),
-    .wd     ('0  ),
-
-    // from internal hardware
-    .de     (hw2reg.flushed_set6_high.de),
-    .d      (hw2reg.flushed_set6_high.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.flushed_set6_high.q ),
-
-    // to register interface (read)
-    .qs     (flushed_set6_high_qs)
-  );
-
-
-  // R[flushed_set7_low]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RO"),
-    .RESVAL  (32'h0)
-  ) u_flushed_set7_low (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    .we     (1'b0),
-    .wd     ('0  ),
-
-    // from internal hardware
-    .de     (hw2reg.flushed_set7_low.de),
-    .d      (hw2reg.flushed_set7_low.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.flushed_set7_low.q ),
-
-    // to register interface (read)
-    .qs     (flushed_set7_low_qs)
-  );
-
-
-  // R[flushed_set7_high]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RO"),
-    .RESVAL  (32'h0)
-  ) u_flushed_set7_high (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    .we     (1'b0),
-    .wd     ('0  ),
-
-    // from internal hardware
-    .de     (hw2reg.flushed_set7_high.de),
-    .d      (hw2reg.flushed_set7_high.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.flushed_set7_high.q ),
-
-    // to register interface (read)
-    .qs     (flushed_set7_high_qs)
-  );
-
-
-
-
-  logic [198:0] addr_hit;
+  logic [98:0] addr_hit;
   always_comb begin
     addr_hit = '0;
-    addr_hit[  0] = (reg_addr == AXI_LLC_CFG_SPM_LOW_OFFSET);
-    addr_hit[  1] = (reg_addr == AXI_LLC_CFG_SPM_HIGH_OFFSET);
-    addr_hit[  2] = (reg_addr == AXI_LLC_CFG_FLUSH_LOW_OFFSET);
-    addr_hit[  3] = (reg_addr == AXI_LLC_CFG_FLUSH_HIGH_OFFSET);
-    addr_hit[  4] = (reg_addr == AXI_LLC_CFG_FLUSH_SET0_LOW_OFFSET);
-    addr_hit[  5] = (reg_addr == AXI_LLC_CFG_FLUSH_SET0_HIGH_OFFSET);
-    addr_hit[  6] = (reg_addr == AXI_LLC_CFG_FLUSH_SET1_LOW_OFFSET);
-    addr_hit[  7] = (reg_addr == AXI_LLC_CFG_FLUSH_SET1_HIGH_OFFSET);
-    addr_hit[  8] = (reg_addr == AXI_LLC_CFG_FLUSH_SET2_LOW_OFFSET);
-    addr_hit[  9] = (reg_addr == AXI_LLC_CFG_FLUSH_SET2_HIGH_OFFSET);
-    addr_hit[ 10] = (reg_addr == AXI_LLC_CFG_FLUSH_SET3_LOW_OFFSET);
-    addr_hit[ 11] = (reg_addr == AXI_LLC_CFG_FLUSH_SET3_HIGH_OFFSET);
-    addr_hit[ 12] = (reg_addr == AXI_LLC_CFG_FLUSH_SET4_LOW_OFFSET);
-    addr_hit[ 13] = (reg_addr == AXI_LLC_CFG_FLUSH_SET4_HIGH_OFFSET);
-    addr_hit[ 14] = (reg_addr == AXI_LLC_CFG_FLUSH_SET5_LOW_OFFSET);
-    addr_hit[ 15] = (reg_addr == AXI_LLC_CFG_FLUSH_SET5_HIGH_OFFSET);
-    addr_hit[ 16] = (reg_addr == AXI_LLC_CFG_FLUSH_SET6_LOW_OFFSET);
-    addr_hit[ 17] = (reg_addr == AXI_LLC_CFG_FLUSH_SET6_HIGH_OFFSET);
-    addr_hit[ 18] = (reg_addr == AXI_LLC_CFG_FLUSH_SET7_LOW_OFFSET);
-    addr_hit[ 19] = (reg_addr == AXI_LLC_CFG_FLUSH_SET7_HIGH_OFFSET);
-    addr_hit[ 20] = (reg_addr == AXI_LLC_CFG_SET_PARTITION0_LOW_OFFSET);
-    addr_hit[ 21] = (reg_addr == AXI_LLC_CFG_SET_PARTITION0_HIGH_OFFSET);
-    addr_hit[ 22] = (reg_addr == AXI_LLC_CFG_SET_PARTITION1_LOW_OFFSET);
-    addr_hit[ 23] = (reg_addr == AXI_LLC_CFG_SET_PARTITION1_HIGH_OFFSET);
-    addr_hit[ 24] = (reg_addr == AXI_LLC_CFG_SET_PARTITION2_LOW_OFFSET);
-    addr_hit[ 25] = (reg_addr == AXI_LLC_CFG_SET_PARTITION2_HIGH_OFFSET);
-    addr_hit[ 26] = (reg_addr == AXI_LLC_CFG_SET_PARTITION3_LOW_OFFSET);
-    addr_hit[ 27] = (reg_addr == AXI_LLC_CFG_SET_PARTITION3_HIGH_OFFSET);
-    addr_hit[ 28] = (reg_addr == AXI_LLC_CFG_SET_PARTITION4_LOW_OFFSET);
-    addr_hit[ 29] = (reg_addr == AXI_LLC_CFG_SET_PARTITION4_HIGH_OFFSET);
-    addr_hit[ 30] = (reg_addr == AXI_LLC_CFG_SET_PARTITION5_LOW_OFFSET);
-    addr_hit[ 31] = (reg_addr == AXI_LLC_CFG_SET_PARTITION5_HIGH_OFFSET);
-    addr_hit[ 32] = (reg_addr == AXI_LLC_CFG_SET_PARTITION6_LOW_OFFSET);
-    addr_hit[ 33] = (reg_addr == AXI_LLC_CFG_SET_PARTITION6_HIGH_OFFSET);
-    addr_hit[ 34] = (reg_addr == AXI_LLC_CFG_SET_PARTITION7_LOW_OFFSET);
-    addr_hit[ 35] = (reg_addr == AXI_LLC_CFG_SET_PARTITION7_HIGH_OFFSET);
-    addr_hit[ 36] = (reg_addr == AXI_LLC_CFG_SET_PARTITION8_LOW_OFFSET);
-    addr_hit[ 37] = (reg_addr == AXI_LLC_CFG_SET_PARTITION8_HIGH_OFFSET);
-    addr_hit[ 38] = (reg_addr == AXI_LLC_CFG_SET_PARTITION9_LOW_OFFSET);
-    addr_hit[ 39] = (reg_addr == AXI_LLC_CFG_SET_PARTITION9_HIGH_OFFSET);
-    addr_hit[ 40] = (reg_addr == AXI_LLC_CFG_SET_PARTITION10_LOW_OFFSET);
-    addr_hit[ 41] = (reg_addr == AXI_LLC_CFG_SET_PARTITION10_HIGH_OFFSET);
-    addr_hit[ 42] = (reg_addr == AXI_LLC_CFG_SET_PARTITION11_LOW_OFFSET);
-    addr_hit[ 43] = (reg_addr == AXI_LLC_CFG_SET_PARTITION11_HIGH_OFFSET);
-    addr_hit[ 44] = (reg_addr == AXI_LLC_CFG_SET_PARTITION12_LOW_OFFSET);
-    addr_hit[ 45] = (reg_addr == AXI_LLC_CFG_SET_PARTITION12_HIGH_OFFSET);
-    addr_hit[ 46] = (reg_addr == AXI_LLC_CFG_SET_PARTITION13_LOW_OFFSET);
-    addr_hit[ 47] = (reg_addr == AXI_LLC_CFG_SET_PARTITION13_HIGH_OFFSET);
-    addr_hit[ 48] = (reg_addr == AXI_LLC_CFG_SET_PARTITION14_LOW_OFFSET);
-    addr_hit[ 49] = (reg_addr == AXI_LLC_CFG_SET_PARTITION14_HIGH_OFFSET);
-    addr_hit[ 50] = (reg_addr == AXI_LLC_CFG_SET_PARTITION15_LOW_OFFSET);
-    addr_hit[ 51] = (reg_addr == AXI_LLC_CFG_SET_PARTITION15_HIGH_OFFSET);
-    addr_hit[ 52] = (reg_addr == AXI_LLC_CFG_SET_PARTITION16_LOW_OFFSET);
-    addr_hit[ 53] = (reg_addr == AXI_LLC_CFG_SET_PARTITION16_HIGH_OFFSET);
-    addr_hit[ 54] = (reg_addr == AXI_LLC_CFG_SET_PARTITION17_LOW_OFFSET);
-    addr_hit[ 55] = (reg_addr == AXI_LLC_CFG_SET_PARTITION17_HIGH_OFFSET);
-    addr_hit[ 56] = (reg_addr == AXI_LLC_CFG_SET_PARTITION18_LOW_OFFSET);
-    addr_hit[ 57] = (reg_addr == AXI_LLC_CFG_SET_PARTITION18_HIGH_OFFSET);
-    addr_hit[ 58] = (reg_addr == AXI_LLC_CFG_SET_PARTITION19_LOW_OFFSET);
-    addr_hit[ 59] = (reg_addr == AXI_LLC_CFG_SET_PARTITION19_HIGH_OFFSET);
-    addr_hit[ 60] = (reg_addr == AXI_LLC_CFG_SET_PARTITION20_LOW_OFFSET);
-    addr_hit[ 61] = (reg_addr == AXI_LLC_CFG_SET_PARTITION20_HIGH_OFFSET);
-    addr_hit[ 62] = (reg_addr == AXI_LLC_CFG_SET_PARTITION21_LOW_OFFSET);
-    addr_hit[ 63] = (reg_addr == AXI_LLC_CFG_SET_PARTITION21_HIGH_OFFSET);
-    addr_hit[ 64] = (reg_addr == AXI_LLC_CFG_SET_PARTITION22_LOW_OFFSET);
-    addr_hit[ 65] = (reg_addr == AXI_LLC_CFG_SET_PARTITION22_HIGH_OFFSET);
-    addr_hit[ 66] = (reg_addr == AXI_LLC_CFG_SET_PARTITION23_LOW_OFFSET);
-    addr_hit[ 67] = (reg_addr == AXI_LLC_CFG_SET_PARTITION23_HIGH_OFFSET);
-    addr_hit[ 68] = (reg_addr == AXI_LLC_CFG_SET_PARTITION24_LOW_OFFSET);
-    addr_hit[ 69] = (reg_addr == AXI_LLC_CFG_SET_PARTITION24_HIGH_OFFSET);
-    addr_hit[ 70] = (reg_addr == AXI_LLC_CFG_SET_PARTITION25_LOW_OFFSET);
-    addr_hit[ 71] = (reg_addr == AXI_LLC_CFG_SET_PARTITION25_HIGH_OFFSET);
-    addr_hit[ 72] = (reg_addr == AXI_LLC_CFG_SET_PARTITION26_LOW_OFFSET);
-    addr_hit[ 73] = (reg_addr == AXI_LLC_CFG_SET_PARTITION26_HIGH_OFFSET);
-    addr_hit[ 74] = (reg_addr == AXI_LLC_CFG_SET_PARTITION27_LOW_OFFSET);
-    addr_hit[ 75] = (reg_addr == AXI_LLC_CFG_SET_PARTITION27_HIGH_OFFSET);
-    addr_hit[ 76] = (reg_addr == AXI_LLC_CFG_SET_PARTITION28_LOW_OFFSET);
-    addr_hit[ 77] = (reg_addr == AXI_LLC_CFG_SET_PARTITION28_HIGH_OFFSET);
-    addr_hit[ 78] = (reg_addr == AXI_LLC_CFG_SET_PARTITION29_LOW_OFFSET);
-    addr_hit[ 79] = (reg_addr == AXI_LLC_CFG_SET_PARTITION29_HIGH_OFFSET);
-    addr_hit[ 80] = (reg_addr == AXI_LLC_CFG_SET_PARTITION30_LOW_OFFSET);
-    addr_hit[ 81] = (reg_addr == AXI_LLC_CFG_SET_PARTITION30_HIGH_OFFSET);
-    addr_hit[ 82] = (reg_addr == AXI_LLC_CFG_SET_PARTITION31_LOW_OFFSET);
-    addr_hit[ 83] = (reg_addr == AXI_LLC_CFG_SET_PARTITION31_HIGH_OFFSET);
-    addr_hit[ 84] = (reg_addr == AXI_LLC_CFG_SET_PARTITION32_LOW_OFFSET);
-    addr_hit[ 85] = (reg_addr == AXI_LLC_CFG_SET_PARTITION32_HIGH_OFFSET);
-    addr_hit[ 86] = (reg_addr == AXI_LLC_CFG_SET_PARTITION33_LOW_OFFSET);
-    addr_hit[ 87] = (reg_addr == AXI_LLC_CFG_SET_PARTITION33_HIGH_OFFSET);
-    addr_hit[ 88] = (reg_addr == AXI_LLC_CFG_SET_PARTITION34_LOW_OFFSET);
-    addr_hit[ 89] = (reg_addr == AXI_LLC_CFG_SET_PARTITION34_HIGH_OFFSET);
-    addr_hit[ 90] = (reg_addr == AXI_LLC_CFG_SET_PARTITION35_LOW_OFFSET);
-    addr_hit[ 91] = (reg_addr == AXI_LLC_CFG_SET_PARTITION35_HIGH_OFFSET);
-    addr_hit[ 92] = (reg_addr == AXI_LLC_CFG_SET_PARTITION36_LOW_OFFSET);
-    addr_hit[ 93] = (reg_addr == AXI_LLC_CFG_SET_PARTITION36_HIGH_OFFSET);
-    addr_hit[ 94] = (reg_addr == AXI_LLC_CFG_SET_PARTITION37_LOW_OFFSET);
-    addr_hit[ 95] = (reg_addr == AXI_LLC_CFG_SET_PARTITION37_HIGH_OFFSET);
-    addr_hit[ 96] = (reg_addr == AXI_LLC_CFG_SET_PARTITION38_LOW_OFFSET);
-    addr_hit[ 97] = (reg_addr == AXI_LLC_CFG_SET_PARTITION38_HIGH_OFFSET);
-    addr_hit[ 98] = (reg_addr == AXI_LLC_CFG_SET_PARTITION39_LOW_OFFSET);
-    addr_hit[ 99] = (reg_addr == AXI_LLC_CFG_SET_PARTITION39_HIGH_OFFSET);
-    addr_hit[100] = (reg_addr == AXI_LLC_CFG_SET_PARTITION40_LOW_OFFSET);
-    addr_hit[101] = (reg_addr == AXI_LLC_CFG_SET_PARTITION40_HIGH_OFFSET);
-    addr_hit[102] = (reg_addr == AXI_LLC_CFG_SET_PARTITION41_LOW_OFFSET);
-    addr_hit[103] = (reg_addr == AXI_LLC_CFG_SET_PARTITION41_HIGH_OFFSET);
-    addr_hit[104] = (reg_addr == AXI_LLC_CFG_SET_PARTITION42_LOW_OFFSET);
-    addr_hit[105] = (reg_addr == AXI_LLC_CFG_SET_PARTITION42_HIGH_OFFSET);
-    addr_hit[106] = (reg_addr == AXI_LLC_CFG_SET_PARTITION43_LOW_OFFSET);
-    addr_hit[107] = (reg_addr == AXI_LLC_CFG_SET_PARTITION43_HIGH_OFFSET);
-    addr_hit[108] = (reg_addr == AXI_LLC_CFG_SET_PARTITION44_LOW_OFFSET);
-    addr_hit[109] = (reg_addr == AXI_LLC_CFG_SET_PARTITION44_HIGH_OFFSET);
-    addr_hit[110] = (reg_addr == AXI_LLC_CFG_SET_PARTITION45_LOW_OFFSET);
-    addr_hit[111] = (reg_addr == AXI_LLC_CFG_SET_PARTITION45_HIGH_OFFSET);
-    addr_hit[112] = (reg_addr == AXI_LLC_CFG_SET_PARTITION46_LOW_OFFSET);
-    addr_hit[113] = (reg_addr == AXI_LLC_CFG_SET_PARTITION46_HIGH_OFFSET);
-    addr_hit[114] = (reg_addr == AXI_LLC_CFG_SET_PARTITION47_LOW_OFFSET);
-    addr_hit[115] = (reg_addr == AXI_LLC_CFG_SET_PARTITION47_HIGH_OFFSET);
-    addr_hit[116] = (reg_addr == AXI_LLC_CFG_SET_PARTITION48_LOW_OFFSET);
-    addr_hit[117] = (reg_addr == AXI_LLC_CFG_SET_PARTITION48_HIGH_OFFSET);
-    addr_hit[118] = (reg_addr == AXI_LLC_CFG_SET_PARTITION49_LOW_OFFSET);
-    addr_hit[119] = (reg_addr == AXI_LLC_CFG_SET_PARTITION49_HIGH_OFFSET);
-    addr_hit[120] = (reg_addr == AXI_LLC_CFG_SET_PARTITION50_LOW_OFFSET);
-    addr_hit[121] = (reg_addr == AXI_LLC_CFG_SET_PARTITION50_HIGH_OFFSET);
-    addr_hit[122] = (reg_addr == AXI_LLC_CFG_SET_PARTITION51_LOW_OFFSET);
-    addr_hit[123] = (reg_addr == AXI_LLC_CFG_SET_PARTITION51_HIGH_OFFSET);
-    addr_hit[124] = (reg_addr == AXI_LLC_CFG_SET_PARTITION52_LOW_OFFSET);
-    addr_hit[125] = (reg_addr == AXI_LLC_CFG_SET_PARTITION52_HIGH_OFFSET);
-    addr_hit[126] = (reg_addr == AXI_LLC_CFG_SET_PARTITION53_LOW_OFFSET);
-    addr_hit[127] = (reg_addr == AXI_LLC_CFG_SET_PARTITION53_HIGH_OFFSET);
-    addr_hit[128] = (reg_addr == AXI_LLC_CFG_SET_PARTITION54_LOW_OFFSET);
-    addr_hit[129] = (reg_addr == AXI_LLC_CFG_SET_PARTITION54_HIGH_OFFSET);
-    addr_hit[130] = (reg_addr == AXI_LLC_CFG_SET_PARTITION55_LOW_OFFSET);
-    addr_hit[131] = (reg_addr == AXI_LLC_CFG_SET_PARTITION55_HIGH_OFFSET);
-    addr_hit[132] = (reg_addr == AXI_LLC_CFG_SET_PARTITION56_LOW_OFFSET);
-    addr_hit[133] = (reg_addr == AXI_LLC_CFG_SET_PARTITION56_HIGH_OFFSET);
-    addr_hit[134] = (reg_addr == AXI_LLC_CFG_SET_PARTITION57_LOW_OFFSET);
-    addr_hit[135] = (reg_addr == AXI_LLC_CFG_SET_PARTITION57_HIGH_OFFSET);
-    addr_hit[136] = (reg_addr == AXI_LLC_CFG_SET_PARTITION58_LOW_OFFSET);
-    addr_hit[137] = (reg_addr == AXI_LLC_CFG_SET_PARTITION58_HIGH_OFFSET);
-    addr_hit[138] = (reg_addr == AXI_LLC_CFG_SET_PARTITION59_LOW_OFFSET);
-    addr_hit[139] = (reg_addr == AXI_LLC_CFG_SET_PARTITION59_HIGH_OFFSET);
-    addr_hit[140] = (reg_addr == AXI_LLC_CFG_SET_PARTITION60_LOW_OFFSET);
-    addr_hit[141] = (reg_addr == AXI_LLC_CFG_SET_PARTITION60_HIGH_OFFSET);
-    addr_hit[142] = (reg_addr == AXI_LLC_CFG_SET_PARTITION61_LOW_OFFSET);
-    addr_hit[143] = (reg_addr == AXI_LLC_CFG_SET_PARTITION61_HIGH_OFFSET);
-    addr_hit[144] = (reg_addr == AXI_LLC_CFG_SET_PARTITION62_LOW_OFFSET);
-    addr_hit[145] = (reg_addr == AXI_LLC_CFG_SET_PARTITION62_HIGH_OFFSET);
-    addr_hit[146] = (reg_addr == AXI_LLC_CFG_SET_PARTITION63_LOW_OFFSET);
-    addr_hit[147] = (reg_addr == AXI_LLC_CFG_SET_PARTITION63_HIGH_OFFSET);
-    addr_hit[148] = (reg_addr == AXI_LLC_CFG_SET_PARTITION64_LOW_OFFSET);
-    addr_hit[149] = (reg_addr == AXI_LLC_CFG_SET_PARTITION64_HIGH_OFFSET);
-    addr_hit[150] = (reg_addr == AXI_LLC_CFG_SET_PARTITION65_LOW_OFFSET);
-    addr_hit[151] = (reg_addr == AXI_LLC_CFG_SET_PARTITION65_HIGH_OFFSET);
-    addr_hit[152] = (reg_addr == AXI_LLC_CFG_SET_PARTITION66_LOW_OFFSET);
-    addr_hit[153] = (reg_addr == AXI_LLC_CFG_SET_PARTITION66_HIGH_OFFSET);
-    addr_hit[154] = (reg_addr == AXI_LLC_CFG_SET_PARTITION67_LOW_OFFSET);
-    addr_hit[155] = (reg_addr == AXI_LLC_CFG_SET_PARTITION67_HIGH_OFFSET);
-    addr_hit[156] = (reg_addr == AXI_LLC_CFG_SET_PARTITION68_LOW_OFFSET);
-    addr_hit[157] = (reg_addr == AXI_LLC_CFG_SET_PARTITION68_HIGH_OFFSET);
-    addr_hit[158] = (reg_addr == AXI_LLC_CFG_SET_PARTITION69_LOW_OFFSET);
-    addr_hit[159] = (reg_addr == AXI_LLC_CFG_SET_PARTITION69_HIGH_OFFSET);
-    addr_hit[160] = (reg_addr == AXI_LLC_CFG_SET_PARTITION70_LOW_OFFSET);
-    addr_hit[161] = (reg_addr == AXI_LLC_CFG_SET_PARTITION70_HIGH_OFFSET);
-    addr_hit[162] = (reg_addr == AXI_LLC_CFG_SET_PARTITION71_LOW_OFFSET);
-    addr_hit[163] = (reg_addr == AXI_LLC_CFG_SET_PARTITION71_HIGH_OFFSET);
-    addr_hit[164] = (reg_addr == AXI_LLC_CFG_SET_PARTITION72_LOW_OFFSET);
-    addr_hit[165] = (reg_addr == AXI_LLC_CFG_SET_PARTITION72_HIGH_OFFSET);
-    addr_hit[166] = (reg_addr == AXI_LLC_CFG_SET_PARTITION73_LOW_OFFSET);
-    addr_hit[167] = (reg_addr == AXI_LLC_CFG_SET_PARTITION73_HIGH_OFFSET);
-    addr_hit[168] = (reg_addr == AXI_LLC_COMMIT_CFG_OFFSET);
-    addr_hit[169] = (reg_addr == AXI_LLC_COMMIT_PARTITION_CFG_OFFSET);
-    addr_hit[170] = (reg_addr == AXI_LLC_FLUSHED_LOW_OFFSET);
-    addr_hit[171] = (reg_addr == AXI_LLC_FLUSHED_HIGH_OFFSET);
-    addr_hit[172] = (reg_addr == AXI_LLC_BIST_OUT_LOW_OFFSET);
-    addr_hit[173] = (reg_addr == AXI_LLC_BIST_OUT_HIGH_OFFSET);
-    addr_hit[174] = (reg_addr == AXI_LLC_SET_ASSO_LOW_OFFSET);
-    addr_hit[175] = (reg_addr == AXI_LLC_SET_ASSO_HIGH_OFFSET);
-    addr_hit[176] = (reg_addr == AXI_LLC_NUM_LINES_LOW_OFFSET);
-    addr_hit[177] = (reg_addr == AXI_LLC_NUM_LINES_HIGH_OFFSET);
-    addr_hit[178] = (reg_addr == AXI_LLC_NUM_BLOCKS_LOW_OFFSET);
-    addr_hit[179] = (reg_addr == AXI_LLC_NUM_BLOCKS_HIGH_OFFSET);
-    addr_hit[180] = (reg_addr == AXI_LLC_VERSION_LOW_OFFSET);
-    addr_hit[181] = (reg_addr == AXI_LLC_VERSION_HIGH_OFFSET);
-    addr_hit[182] = (reg_addr == AXI_LLC_BIST_STATUS_OFFSET);
-    addr_hit[183] = (reg_addr == AXI_LLC_FLUSHED_SET0_LOW_OFFSET);
-    addr_hit[184] = (reg_addr == AXI_LLC_FLUSHED_SET0_HIGH_OFFSET);
-    addr_hit[185] = (reg_addr == AXI_LLC_FLUSHED_SET1_LOW_OFFSET);
-    addr_hit[186] = (reg_addr == AXI_LLC_FLUSHED_SET1_HIGH_OFFSET);
-    addr_hit[187] = (reg_addr == AXI_LLC_FLUSHED_SET2_LOW_OFFSET);
-    addr_hit[188] = (reg_addr == AXI_LLC_FLUSHED_SET2_HIGH_OFFSET);
-    addr_hit[189] = (reg_addr == AXI_LLC_FLUSHED_SET3_LOW_OFFSET);
-    addr_hit[190] = (reg_addr == AXI_LLC_FLUSHED_SET3_HIGH_OFFSET);
-    addr_hit[191] = (reg_addr == AXI_LLC_FLUSHED_SET4_LOW_OFFSET);
-    addr_hit[192] = (reg_addr == AXI_LLC_FLUSHED_SET4_HIGH_OFFSET);
-    addr_hit[193] = (reg_addr == AXI_LLC_FLUSHED_SET5_LOW_OFFSET);
-    addr_hit[194] = (reg_addr == AXI_LLC_FLUSHED_SET5_HIGH_OFFSET);
-    addr_hit[195] = (reg_addr == AXI_LLC_FLUSHED_SET6_LOW_OFFSET);
-    addr_hit[196] = (reg_addr == AXI_LLC_FLUSHED_SET6_HIGH_OFFSET);
-    addr_hit[197] = (reg_addr == AXI_LLC_FLUSHED_SET7_LOW_OFFSET);
-    addr_hit[198] = (reg_addr == AXI_LLC_FLUSHED_SET7_HIGH_OFFSET);
+    addr_hit[ 0] = (reg_addr == AXI_LLC_CFG_SPM_LOW_OFFSET);
+    addr_hit[ 1] = (reg_addr == AXI_LLC_CFG_SPM_HIGH_OFFSET);
+    addr_hit[ 2] = (reg_addr == AXI_LLC_CFG_FLUSH_LOW_OFFSET);
+    addr_hit[ 3] = (reg_addr == AXI_LLC_CFG_FLUSH_HIGH_OFFSET);
+    addr_hit[ 4] = (reg_addr == AXI_LLC_CFG_FLUSH_SET0_LOW_OFFSET);
+    addr_hit[ 5] = (reg_addr == AXI_LLC_CFG_FLUSH_SET0_HIGH_OFFSET);
+    addr_hit[ 6] = (reg_addr == AXI_LLC_CFG_FLUSH_SET1_LOW_OFFSET);
+    addr_hit[ 7] = (reg_addr == AXI_LLC_CFG_FLUSH_SET1_HIGH_OFFSET);
+    addr_hit[ 8] = (reg_addr == AXI_LLC_CFG_FLUSH_SET2_LOW_OFFSET);
+    addr_hit[ 9] = (reg_addr == AXI_LLC_CFG_FLUSH_SET2_HIGH_OFFSET);
+    addr_hit[10] = (reg_addr == AXI_LLC_CFG_FLUSH_SET3_LOW_OFFSET);
+    addr_hit[11] = (reg_addr == AXI_LLC_CFG_FLUSH_SET3_HIGH_OFFSET);
+    addr_hit[12] = (reg_addr == AXI_LLC_CFG_SET_PARTITION0_LOW_OFFSET);
+    addr_hit[13] = (reg_addr == AXI_LLC_CFG_SET_PARTITION0_HIGH_OFFSET);
+    addr_hit[14] = (reg_addr == AXI_LLC_CFG_SET_PARTITION1_LOW_OFFSET);
+    addr_hit[15] = (reg_addr == AXI_LLC_CFG_SET_PARTITION1_HIGH_OFFSET);
+    addr_hit[16] = (reg_addr == AXI_LLC_CFG_SET_PARTITION2_LOW_OFFSET);
+    addr_hit[17] = (reg_addr == AXI_LLC_CFG_SET_PARTITION2_HIGH_OFFSET);
+    addr_hit[18] = (reg_addr == AXI_LLC_CFG_SET_PARTITION3_LOW_OFFSET);
+    addr_hit[19] = (reg_addr == AXI_LLC_CFG_SET_PARTITION3_HIGH_OFFSET);
+    addr_hit[20] = (reg_addr == AXI_LLC_CFG_SET_PARTITION4_LOW_OFFSET);
+    addr_hit[21] = (reg_addr == AXI_LLC_CFG_SET_PARTITION4_HIGH_OFFSET);
+    addr_hit[22] = (reg_addr == AXI_LLC_CFG_SET_PARTITION5_LOW_OFFSET);
+    addr_hit[23] = (reg_addr == AXI_LLC_CFG_SET_PARTITION5_HIGH_OFFSET);
+    addr_hit[24] = (reg_addr == AXI_LLC_CFG_SET_PARTITION6_LOW_OFFSET);
+    addr_hit[25] = (reg_addr == AXI_LLC_CFG_SET_PARTITION6_HIGH_OFFSET);
+    addr_hit[26] = (reg_addr == AXI_LLC_CFG_SET_PARTITION7_LOW_OFFSET);
+    addr_hit[27] = (reg_addr == AXI_LLC_CFG_SET_PARTITION7_HIGH_OFFSET);
+    addr_hit[28] = (reg_addr == AXI_LLC_CFG_SET_PARTITION8_LOW_OFFSET);
+    addr_hit[29] = (reg_addr == AXI_LLC_CFG_SET_PARTITION8_HIGH_OFFSET);
+    addr_hit[30] = (reg_addr == AXI_LLC_CFG_SET_PARTITION9_LOW_OFFSET);
+    addr_hit[31] = (reg_addr == AXI_LLC_CFG_SET_PARTITION9_HIGH_OFFSET);
+    addr_hit[32] = (reg_addr == AXI_LLC_CFG_SET_PARTITION10_LOW_OFFSET);
+    addr_hit[33] = (reg_addr == AXI_LLC_CFG_SET_PARTITION10_HIGH_OFFSET);
+    addr_hit[34] = (reg_addr == AXI_LLC_CFG_SET_PARTITION11_LOW_OFFSET);
+    addr_hit[35] = (reg_addr == AXI_LLC_CFG_SET_PARTITION11_HIGH_OFFSET);
+    addr_hit[36] = (reg_addr == AXI_LLC_CFG_SET_PARTITION12_LOW_OFFSET);
+    addr_hit[37] = (reg_addr == AXI_LLC_CFG_SET_PARTITION12_HIGH_OFFSET);
+    addr_hit[38] = (reg_addr == AXI_LLC_CFG_SET_PARTITION13_LOW_OFFSET);
+    addr_hit[39] = (reg_addr == AXI_LLC_CFG_SET_PARTITION13_HIGH_OFFSET);
+    addr_hit[40] = (reg_addr == AXI_LLC_CFG_SET_PARTITION14_LOW_OFFSET);
+    addr_hit[41] = (reg_addr == AXI_LLC_CFG_SET_PARTITION14_HIGH_OFFSET);
+    addr_hit[42] = (reg_addr == AXI_LLC_CFG_SET_PARTITION15_LOW_OFFSET);
+    addr_hit[43] = (reg_addr == AXI_LLC_CFG_SET_PARTITION15_HIGH_OFFSET);
+    addr_hit[44] = (reg_addr == AXI_LLC_CFG_SET_PARTITION16_LOW_OFFSET);
+    addr_hit[45] = (reg_addr == AXI_LLC_CFG_SET_PARTITION16_HIGH_OFFSET);
+    addr_hit[46] = (reg_addr == AXI_LLC_CFG_SET_PARTITION17_LOW_OFFSET);
+    addr_hit[47] = (reg_addr == AXI_LLC_CFG_SET_PARTITION17_HIGH_OFFSET);
+    addr_hit[48] = (reg_addr == AXI_LLC_CFG_SET_PARTITION18_LOW_OFFSET);
+    addr_hit[49] = (reg_addr == AXI_LLC_CFG_SET_PARTITION18_HIGH_OFFSET);
+    addr_hit[50] = (reg_addr == AXI_LLC_CFG_SET_PARTITION19_LOW_OFFSET);
+    addr_hit[51] = (reg_addr == AXI_LLC_CFG_SET_PARTITION19_HIGH_OFFSET);
+    addr_hit[52] = (reg_addr == AXI_LLC_CFG_SET_PARTITION20_LOW_OFFSET);
+    addr_hit[53] = (reg_addr == AXI_LLC_CFG_SET_PARTITION20_HIGH_OFFSET);
+    addr_hit[54] = (reg_addr == AXI_LLC_CFG_SET_PARTITION21_LOW_OFFSET);
+    addr_hit[55] = (reg_addr == AXI_LLC_CFG_SET_PARTITION21_HIGH_OFFSET);
+    addr_hit[56] = (reg_addr == AXI_LLC_CFG_SET_PARTITION22_LOW_OFFSET);
+    addr_hit[57] = (reg_addr == AXI_LLC_CFG_SET_PARTITION22_HIGH_OFFSET);
+    addr_hit[58] = (reg_addr == AXI_LLC_CFG_SET_PARTITION23_LOW_OFFSET);
+    addr_hit[59] = (reg_addr == AXI_LLC_CFG_SET_PARTITION23_HIGH_OFFSET);
+    addr_hit[60] = (reg_addr == AXI_LLC_CFG_SET_PARTITION24_LOW_OFFSET);
+    addr_hit[61] = (reg_addr == AXI_LLC_CFG_SET_PARTITION24_HIGH_OFFSET);
+    addr_hit[62] = (reg_addr == AXI_LLC_CFG_SET_PARTITION25_LOW_OFFSET);
+    addr_hit[63] = (reg_addr == AXI_LLC_CFG_SET_PARTITION25_HIGH_OFFSET);
+    addr_hit[64] = (reg_addr == AXI_LLC_CFG_SET_PARTITION26_LOW_OFFSET);
+    addr_hit[65] = (reg_addr == AXI_LLC_CFG_SET_PARTITION26_HIGH_OFFSET);
+    addr_hit[66] = (reg_addr == AXI_LLC_CFG_SET_PARTITION27_LOW_OFFSET);
+    addr_hit[67] = (reg_addr == AXI_LLC_CFG_SET_PARTITION27_HIGH_OFFSET);
+    addr_hit[68] = (reg_addr == AXI_LLC_CFG_SET_PARTITION28_LOW_OFFSET);
+    addr_hit[69] = (reg_addr == AXI_LLC_CFG_SET_PARTITION28_HIGH_OFFSET);
+    addr_hit[70] = (reg_addr == AXI_LLC_CFG_SET_PARTITION29_LOW_OFFSET);
+    addr_hit[71] = (reg_addr == AXI_LLC_CFG_SET_PARTITION29_HIGH_OFFSET);
+    addr_hit[72] = (reg_addr == AXI_LLC_CFG_SET_PARTITION30_LOW_OFFSET);
+    addr_hit[73] = (reg_addr == AXI_LLC_CFG_SET_PARTITION30_HIGH_OFFSET);
+    addr_hit[74] = (reg_addr == AXI_LLC_CFG_SET_PARTITION31_LOW_OFFSET);
+    addr_hit[75] = (reg_addr == AXI_LLC_CFG_SET_PARTITION31_HIGH_OFFSET);
+    addr_hit[76] = (reg_addr == AXI_LLC_COMMIT_CFG_OFFSET);
+    addr_hit[77] = (reg_addr == AXI_LLC_COMMIT_PARTITION_CFG_OFFSET);
+    addr_hit[78] = (reg_addr == AXI_LLC_FLUSHED_LOW_OFFSET);
+    addr_hit[79] = (reg_addr == AXI_LLC_FLUSHED_HIGH_OFFSET);
+    addr_hit[80] = (reg_addr == AXI_LLC_BIST_OUT_LOW_OFFSET);
+    addr_hit[81] = (reg_addr == AXI_LLC_BIST_OUT_HIGH_OFFSET);
+    addr_hit[82] = (reg_addr == AXI_LLC_SET_ASSO_LOW_OFFSET);
+    addr_hit[83] = (reg_addr == AXI_LLC_SET_ASSO_HIGH_OFFSET);
+    addr_hit[84] = (reg_addr == AXI_LLC_NUM_LINES_LOW_OFFSET);
+    addr_hit[85] = (reg_addr == AXI_LLC_NUM_LINES_HIGH_OFFSET);
+    addr_hit[86] = (reg_addr == AXI_LLC_NUM_BLOCKS_LOW_OFFSET);
+    addr_hit[87] = (reg_addr == AXI_LLC_NUM_BLOCKS_HIGH_OFFSET);
+    addr_hit[88] = (reg_addr == AXI_LLC_VERSION_LOW_OFFSET);
+    addr_hit[89] = (reg_addr == AXI_LLC_VERSION_HIGH_OFFSET);
+    addr_hit[90] = (reg_addr == AXI_LLC_BIST_STATUS_OFFSET);
+    addr_hit[91] = (reg_addr == AXI_LLC_FLUSHED_SET0_LOW_OFFSET);
+    addr_hit[92] = (reg_addr == AXI_LLC_FLUSHED_SET0_HIGH_OFFSET);
+    addr_hit[93] = (reg_addr == AXI_LLC_FLUSHED_SET1_LOW_OFFSET);
+    addr_hit[94] = (reg_addr == AXI_LLC_FLUSHED_SET1_HIGH_OFFSET);
+    addr_hit[95] = (reg_addr == AXI_LLC_FLUSHED_SET2_LOW_OFFSET);
+    addr_hit[96] = (reg_addr == AXI_LLC_FLUSHED_SET2_HIGH_OFFSET);
+    addr_hit[97] = (reg_addr == AXI_LLC_FLUSHED_SET3_LOW_OFFSET);
+    addr_hit[98] = (reg_addr == AXI_LLC_FLUSHED_SET3_HIGH_OFFSET);
   end
 
   assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0 ;
@@ -6164,205 +3088,105 @@ module axi_llc_reg_top #(
   // Check sub-word write is permitted
   always_comb begin
     wr_err = (reg_we &
-              ((addr_hit[  0] & (|(AXI_LLC_PERMIT[  0] & ~reg_be))) |
-               (addr_hit[  1] & (|(AXI_LLC_PERMIT[  1] & ~reg_be))) |
-               (addr_hit[  2] & (|(AXI_LLC_PERMIT[  2] & ~reg_be))) |
-               (addr_hit[  3] & (|(AXI_LLC_PERMIT[  3] & ~reg_be))) |
-               (addr_hit[  4] & (|(AXI_LLC_PERMIT[  4] & ~reg_be))) |
-               (addr_hit[  5] & (|(AXI_LLC_PERMIT[  5] & ~reg_be))) |
-               (addr_hit[  6] & (|(AXI_LLC_PERMIT[  6] & ~reg_be))) |
-               (addr_hit[  7] & (|(AXI_LLC_PERMIT[  7] & ~reg_be))) |
-               (addr_hit[  8] & (|(AXI_LLC_PERMIT[  8] & ~reg_be))) |
-               (addr_hit[  9] & (|(AXI_LLC_PERMIT[  9] & ~reg_be))) |
-               (addr_hit[ 10] & (|(AXI_LLC_PERMIT[ 10] & ~reg_be))) |
-               (addr_hit[ 11] & (|(AXI_LLC_PERMIT[ 11] & ~reg_be))) |
-               (addr_hit[ 12] & (|(AXI_LLC_PERMIT[ 12] & ~reg_be))) |
-               (addr_hit[ 13] & (|(AXI_LLC_PERMIT[ 13] & ~reg_be))) |
-               (addr_hit[ 14] & (|(AXI_LLC_PERMIT[ 14] & ~reg_be))) |
-               (addr_hit[ 15] & (|(AXI_LLC_PERMIT[ 15] & ~reg_be))) |
-               (addr_hit[ 16] & (|(AXI_LLC_PERMIT[ 16] & ~reg_be))) |
-               (addr_hit[ 17] & (|(AXI_LLC_PERMIT[ 17] & ~reg_be))) |
-               (addr_hit[ 18] & (|(AXI_LLC_PERMIT[ 18] & ~reg_be))) |
-               (addr_hit[ 19] & (|(AXI_LLC_PERMIT[ 19] & ~reg_be))) |
-               (addr_hit[ 20] & (|(AXI_LLC_PERMIT[ 20] & ~reg_be))) |
-               (addr_hit[ 21] & (|(AXI_LLC_PERMIT[ 21] & ~reg_be))) |
-               (addr_hit[ 22] & (|(AXI_LLC_PERMIT[ 22] & ~reg_be))) |
-               (addr_hit[ 23] & (|(AXI_LLC_PERMIT[ 23] & ~reg_be))) |
-               (addr_hit[ 24] & (|(AXI_LLC_PERMIT[ 24] & ~reg_be))) |
-               (addr_hit[ 25] & (|(AXI_LLC_PERMIT[ 25] & ~reg_be))) |
-               (addr_hit[ 26] & (|(AXI_LLC_PERMIT[ 26] & ~reg_be))) |
-               (addr_hit[ 27] & (|(AXI_LLC_PERMIT[ 27] & ~reg_be))) |
-               (addr_hit[ 28] & (|(AXI_LLC_PERMIT[ 28] & ~reg_be))) |
-               (addr_hit[ 29] & (|(AXI_LLC_PERMIT[ 29] & ~reg_be))) |
-               (addr_hit[ 30] & (|(AXI_LLC_PERMIT[ 30] & ~reg_be))) |
-               (addr_hit[ 31] & (|(AXI_LLC_PERMIT[ 31] & ~reg_be))) |
-               (addr_hit[ 32] & (|(AXI_LLC_PERMIT[ 32] & ~reg_be))) |
-               (addr_hit[ 33] & (|(AXI_LLC_PERMIT[ 33] & ~reg_be))) |
-               (addr_hit[ 34] & (|(AXI_LLC_PERMIT[ 34] & ~reg_be))) |
-               (addr_hit[ 35] & (|(AXI_LLC_PERMIT[ 35] & ~reg_be))) |
-               (addr_hit[ 36] & (|(AXI_LLC_PERMIT[ 36] & ~reg_be))) |
-               (addr_hit[ 37] & (|(AXI_LLC_PERMIT[ 37] & ~reg_be))) |
-               (addr_hit[ 38] & (|(AXI_LLC_PERMIT[ 38] & ~reg_be))) |
-               (addr_hit[ 39] & (|(AXI_LLC_PERMIT[ 39] & ~reg_be))) |
-               (addr_hit[ 40] & (|(AXI_LLC_PERMIT[ 40] & ~reg_be))) |
-               (addr_hit[ 41] & (|(AXI_LLC_PERMIT[ 41] & ~reg_be))) |
-               (addr_hit[ 42] & (|(AXI_LLC_PERMIT[ 42] & ~reg_be))) |
-               (addr_hit[ 43] & (|(AXI_LLC_PERMIT[ 43] & ~reg_be))) |
-               (addr_hit[ 44] & (|(AXI_LLC_PERMIT[ 44] & ~reg_be))) |
-               (addr_hit[ 45] & (|(AXI_LLC_PERMIT[ 45] & ~reg_be))) |
-               (addr_hit[ 46] & (|(AXI_LLC_PERMIT[ 46] & ~reg_be))) |
-               (addr_hit[ 47] & (|(AXI_LLC_PERMIT[ 47] & ~reg_be))) |
-               (addr_hit[ 48] & (|(AXI_LLC_PERMIT[ 48] & ~reg_be))) |
-               (addr_hit[ 49] & (|(AXI_LLC_PERMIT[ 49] & ~reg_be))) |
-               (addr_hit[ 50] & (|(AXI_LLC_PERMIT[ 50] & ~reg_be))) |
-               (addr_hit[ 51] & (|(AXI_LLC_PERMIT[ 51] & ~reg_be))) |
-               (addr_hit[ 52] & (|(AXI_LLC_PERMIT[ 52] & ~reg_be))) |
-               (addr_hit[ 53] & (|(AXI_LLC_PERMIT[ 53] & ~reg_be))) |
-               (addr_hit[ 54] & (|(AXI_LLC_PERMIT[ 54] & ~reg_be))) |
-               (addr_hit[ 55] & (|(AXI_LLC_PERMIT[ 55] & ~reg_be))) |
-               (addr_hit[ 56] & (|(AXI_LLC_PERMIT[ 56] & ~reg_be))) |
-               (addr_hit[ 57] & (|(AXI_LLC_PERMIT[ 57] & ~reg_be))) |
-               (addr_hit[ 58] & (|(AXI_LLC_PERMIT[ 58] & ~reg_be))) |
-               (addr_hit[ 59] & (|(AXI_LLC_PERMIT[ 59] & ~reg_be))) |
-               (addr_hit[ 60] & (|(AXI_LLC_PERMIT[ 60] & ~reg_be))) |
-               (addr_hit[ 61] & (|(AXI_LLC_PERMIT[ 61] & ~reg_be))) |
-               (addr_hit[ 62] & (|(AXI_LLC_PERMIT[ 62] & ~reg_be))) |
-               (addr_hit[ 63] & (|(AXI_LLC_PERMIT[ 63] & ~reg_be))) |
-               (addr_hit[ 64] & (|(AXI_LLC_PERMIT[ 64] & ~reg_be))) |
-               (addr_hit[ 65] & (|(AXI_LLC_PERMIT[ 65] & ~reg_be))) |
-               (addr_hit[ 66] & (|(AXI_LLC_PERMIT[ 66] & ~reg_be))) |
-               (addr_hit[ 67] & (|(AXI_LLC_PERMIT[ 67] & ~reg_be))) |
-               (addr_hit[ 68] & (|(AXI_LLC_PERMIT[ 68] & ~reg_be))) |
-               (addr_hit[ 69] & (|(AXI_LLC_PERMIT[ 69] & ~reg_be))) |
-               (addr_hit[ 70] & (|(AXI_LLC_PERMIT[ 70] & ~reg_be))) |
-               (addr_hit[ 71] & (|(AXI_LLC_PERMIT[ 71] & ~reg_be))) |
-               (addr_hit[ 72] & (|(AXI_LLC_PERMIT[ 72] & ~reg_be))) |
-               (addr_hit[ 73] & (|(AXI_LLC_PERMIT[ 73] & ~reg_be))) |
-               (addr_hit[ 74] & (|(AXI_LLC_PERMIT[ 74] & ~reg_be))) |
-               (addr_hit[ 75] & (|(AXI_LLC_PERMIT[ 75] & ~reg_be))) |
-               (addr_hit[ 76] & (|(AXI_LLC_PERMIT[ 76] & ~reg_be))) |
-               (addr_hit[ 77] & (|(AXI_LLC_PERMIT[ 77] & ~reg_be))) |
-               (addr_hit[ 78] & (|(AXI_LLC_PERMIT[ 78] & ~reg_be))) |
-               (addr_hit[ 79] & (|(AXI_LLC_PERMIT[ 79] & ~reg_be))) |
-               (addr_hit[ 80] & (|(AXI_LLC_PERMIT[ 80] & ~reg_be))) |
-               (addr_hit[ 81] & (|(AXI_LLC_PERMIT[ 81] & ~reg_be))) |
-               (addr_hit[ 82] & (|(AXI_LLC_PERMIT[ 82] & ~reg_be))) |
-               (addr_hit[ 83] & (|(AXI_LLC_PERMIT[ 83] & ~reg_be))) |
-               (addr_hit[ 84] & (|(AXI_LLC_PERMIT[ 84] & ~reg_be))) |
-               (addr_hit[ 85] & (|(AXI_LLC_PERMIT[ 85] & ~reg_be))) |
-               (addr_hit[ 86] & (|(AXI_LLC_PERMIT[ 86] & ~reg_be))) |
-               (addr_hit[ 87] & (|(AXI_LLC_PERMIT[ 87] & ~reg_be))) |
-               (addr_hit[ 88] & (|(AXI_LLC_PERMIT[ 88] & ~reg_be))) |
-               (addr_hit[ 89] & (|(AXI_LLC_PERMIT[ 89] & ~reg_be))) |
-               (addr_hit[ 90] & (|(AXI_LLC_PERMIT[ 90] & ~reg_be))) |
-               (addr_hit[ 91] & (|(AXI_LLC_PERMIT[ 91] & ~reg_be))) |
-               (addr_hit[ 92] & (|(AXI_LLC_PERMIT[ 92] & ~reg_be))) |
-               (addr_hit[ 93] & (|(AXI_LLC_PERMIT[ 93] & ~reg_be))) |
-               (addr_hit[ 94] & (|(AXI_LLC_PERMIT[ 94] & ~reg_be))) |
-               (addr_hit[ 95] & (|(AXI_LLC_PERMIT[ 95] & ~reg_be))) |
-               (addr_hit[ 96] & (|(AXI_LLC_PERMIT[ 96] & ~reg_be))) |
-               (addr_hit[ 97] & (|(AXI_LLC_PERMIT[ 97] & ~reg_be))) |
-               (addr_hit[ 98] & (|(AXI_LLC_PERMIT[ 98] & ~reg_be))) |
-               (addr_hit[ 99] & (|(AXI_LLC_PERMIT[ 99] & ~reg_be))) |
-               (addr_hit[100] & (|(AXI_LLC_PERMIT[100] & ~reg_be))) |
-               (addr_hit[101] & (|(AXI_LLC_PERMIT[101] & ~reg_be))) |
-               (addr_hit[102] & (|(AXI_LLC_PERMIT[102] & ~reg_be))) |
-               (addr_hit[103] & (|(AXI_LLC_PERMIT[103] & ~reg_be))) |
-               (addr_hit[104] & (|(AXI_LLC_PERMIT[104] & ~reg_be))) |
-               (addr_hit[105] & (|(AXI_LLC_PERMIT[105] & ~reg_be))) |
-               (addr_hit[106] & (|(AXI_LLC_PERMIT[106] & ~reg_be))) |
-               (addr_hit[107] & (|(AXI_LLC_PERMIT[107] & ~reg_be))) |
-               (addr_hit[108] & (|(AXI_LLC_PERMIT[108] & ~reg_be))) |
-               (addr_hit[109] & (|(AXI_LLC_PERMIT[109] & ~reg_be))) |
-               (addr_hit[110] & (|(AXI_LLC_PERMIT[110] & ~reg_be))) |
-               (addr_hit[111] & (|(AXI_LLC_PERMIT[111] & ~reg_be))) |
-               (addr_hit[112] & (|(AXI_LLC_PERMIT[112] & ~reg_be))) |
-               (addr_hit[113] & (|(AXI_LLC_PERMIT[113] & ~reg_be))) |
-               (addr_hit[114] & (|(AXI_LLC_PERMIT[114] & ~reg_be))) |
-               (addr_hit[115] & (|(AXI_LLC_PERMIT[115] & ~reg_be))) |
-               (addr_hit[116] & (|(AXI_LLC_PERMIT[116] & ~reg_be))) |
-               (addr_hit[117] & (|(AXI_LLC_PERMIT[117] & ~reg_be))) |
-               (addr_hit[118] & (|(AXI_LLC_PERMIT[118] & ~reg_be))) |
-               (addr_hit[119] & (|(AXI_LLC_PERMIT[119] & ~reg_be))) |
-               (addr_hit[120] & (|(AXI_LLC_PERMIT[120] & ~reg_be))) |
-               (addr_hit[121] & (|(AXI_LLC_PERMIT[121] & ~reg_be))) |
-               (addr_hit[122] & (|(AXI_LLC_PERMIT[122] & ~reg_be))) |
-               (addr_hit[123] & (|(AXI_LLC_PERMIT[123] & ~reg_be))) |
-               (addr_hit[124] & (|(AXI_LLC_PERMIT[124] & ~reg_be))) |
-               (addr_hit[125] & (|(AXI_LLC_PERMIT[125] & ~reg_be))) |
-               (addr_hit[126] & (|(AXI_LLC_PERMIT[126] & ~reg_be))) |
-               (addr_hit[127] & (|(AXI_LLC_PERMIT[127] & ~reg_be))) |
-               (addr_hit[128] & (|(AXI_LLC_PERMIT[128] & ~reg_be))) |
-               (addr_hit[129] & (|(AXI_LLC_PERMIT[129] & ~reg_be))) |
-               (addr_hit[130] & (|(AXI_LLC_PERMIT[130] & ~reg_be))) |
-               (addr_hit[131] & (|(AXI_LLC_PERMIT[131] & ~reg_be))) |
-               (addr_hit[132] & (|(AXI_LLC_PERMIT[132] & ~reg_be))) |
-               (addr_hit[133] & (|(AXI_LLC_PERMIT[133] & ~reg_be))) |
-               (addr_hit[134] & (|(AXI_LLC_PERMIT[134] & ~reg_be))) |
-               (addr_hit[135] & (|(AXI_LLC_PERMIT[135] & ~reg_be))) |
-               (addr_hit[136] & (|(AXI_LLC_PERMIT[136] & ~reg_be))) |
-               (addr_hit[137] & (|(AXI_LLC_PERMIT[137] & ~reg_be))) |
-               (addr_hit[138] & (|(AXI_LLC_PERMIT[138] & ~reg_be))) |
-               (addr_hit[139] & (|(AXI_LLC_PERMIT[139] & ~reg_be))) |
-               (addr_hit[140] & (|(AXI_LLC_PERMIT[140] & ~reg_be))) |
-               (addr_hit[141] & (|(AXI_LLC_PERMIT[141] & ~reg_be))) |
-               (addr_hit[142] & (|(AXI_LLC_PERMIT[142] & ~reg_be))) |
-               (addr_hit[143] & (|(AXI_LLC_PERMIT[143] & ~reg_be))) |
-               (addr_hit[144] & (|(AXI_LLC_PERMIT[144] & ~reg_be))) |
-               (addr_hit[145] & (|(AXI_LLC_PERMIT[145] & ~reg_be))) |
-               (addr_hit[146] & (|(AXI_LLC_PERMIT[146] & ~reg_be))) |
-               (addr_hit[147] & (|(AXI_LLC_PERMIT[147] & ~reg_be))) |
-               (addr_hit[148] & (|(AXI_LLC_PERMIT[148] & ~reg_be))) |
-               (addr_hit[149] & (|(AXI_LLC_PERMIT[149] & ~reg_be))) |
-               (addr_hit[150] & (|(AXI_LLC_PERMIT[150] & ~reg_be))) |
-               (addr_hit[151] & (|(AXI_LLC_PERMIT[151] & ~reg_be))) |
-               (addr_hit[152] & (|(AXI_LLC_PERMIT[152] & ~reg_be))) |
-               (addr_hit[153] & (|(AXI_LLC_PERMIT[153] & ~reg_be))) |
-               (addr_hit[154] & (|(AXI_LLC_PERMIT[154] & ~reg_be))) |
-               (addr_hit[155] & (|(AXI_LLC_PERMIT[155] & ~reg_be))) |
-               (addr_hit[156] & (|(AXI_LLC_PERMIT[156] & ~reg_be))) |
-               (addr_hit[157] & (|(AXI_LLC_PERMIT[157] & ~reg_be))) |
-               (addr_hit[158] & (|(AXI_LLC_PERMIT[158] & ~reg_be))) |
-               (addr_hit[159] & (|(AXI_LLC_PERMIT[159] & ~reg_be))) |
-               (addr_hit[160] & (|(AXI_LLC_PERMIT[160] & ~reg_be))) |
-               (addr_hit[161] & (|(AXI_LLC_PERMIT[161] & ~reg_be))) |
-               (addr_hit[162] & (|(AXI_LLC_PERMIT[162] & ~reg_be))) |
-               (addr_hit[163] & (|(AXI_LLC_PERMIT[163] & ~reg_be))) |
-               (addr_hit[164] & (|(AXI_LLC_PERMIT[164] & ~reg_be))) |
-               (addr_hit[165] & (|(AXI_LLC_PERMIT[165] & ~reg_be))) |
-               (addr_hit[166] & (|(AXI_LLC_PERMIT[166] & ~reg_be))) |
-               (addr_hit[167] & (|(AXI_LLC_PERMIT[167] & ~reg_be))) |
-               (addr_hit[168] & (|(AXI_LLC_PERMIT[168] & ~reg_be))) |
-               (addr_hit[169] & (|(AXI_LLC_PERMIT[169] & ~reg_be))) |
-               (addr_hit[170] & (|(AXI_LLC_PERMIT[170] & ~reg_be))) |
-               (addr_hit[171] & (|(AXI_LLC_PERMIT[171] & ~reg_be))) |
-               (addr_hit[172] & (|(AXI_LLC_PERMIT[172] & ~reg_be))) |
-               (addr_hit[173] & (|(AXI_LLC_PERMIT[173] & ~reg_be))) |
-               (addr_hit[174] & (|(AXI_LLC_PERMIT[174] & ~reg_be))) |
-               (addr_hit[175] & (|(AXI_LLC_PERMIT[175] & ~reg_be))) |
-               (addr_hit[176] & (|(AXI_LLC_PERMIT[176] & ~reg_be))) |
-               (addr_hit[177] & (|(AXI_LLC_PERMIT[177] & ~reg_be))) |
-               (addr_hit[178] & (|(AXI_LLC_PERMIT[178] & ~reg_be))) |
-               (addr_hit[179] & (|(AXI_LLC_PERMIT[179] & ~reg_be))) |
-               (addr_hit[180] & (|(AXI_LLC_PERMIT[180] & ~reg_be))) |
-               (addr_hit[181] & (|(AXI_LLC_PERMIT[181] & ~reg_be))) |
-               (addr_hit[182] & (|(AXI_LLC_PERMIT[182] & ~reg_be))) |
-               (addr_hit[183] & (|(AXI_LLC_PERMIT[183] & ~reg_be))) |
-               (addr_hit[184] & (|(AXI_LLC_PERMIT[184] & ~reg_be))) |
-               (addr_hit[185] & (|(AXI_LLC_PERMIT[185] & ~reg_be))) |
-               (addr_hit[186] & (|(AXI_LLC_PERMIT[186] & ~reg_be))) |
-               (addr_hit[187] & (|(AXI_LLC_PERMIT[187] & ~reg_be))) |
-               (addr_hit[188] & (|(AXI_LLC_PERMIT[188] & ~reg_be))) |
-               (addr_hit[189] & (|(AXI_LLC_PERMIT[189] & ~reg_be))) |
-               (addr_hit[190] & (|(AXI_LLC_PERMIT[190] & ~reg_be))) |
-               (addr_hit[191] & (|(AXI_LLC_PERMIT[191] & ~reg_be))) |
-               (addr_hit[192] & (|(AXI_LLC_PERMIT[192] & ~reg_be))) |
-               (addr_hit[193] & (|(AXI_LLC_PERMIT[193] & ~reg_be))) |
-               (addr_hit[194] & (|(AXI_LLC_PERMIT[194] & ~reg_be))) |
-               (addr_hit[195] & (|(AXI_LLC_PERMIT[195] & ~reg_be))) |
-               (addr_hit[196] & (|(AXI_LLC_PERMIT[196] & ~reg_be))) |
-               (addr_hit[197] & (|(AXI_LLC_PERMIT[197] & ~reg_be))) |
-               (addr_hit[198] & (|(AXI_LLC_PERMIT[198] & ~reg_be)))));
+              ((addr_hit[ 0] & (|(AXI_LLC_PERMIT[ 0] & ~reg_be))) |
+               (addr_hit[ 1] & (|(AXI_LLC_PERMIT[ 1] & ~reg_be))) |
+               (addr_hit[ 2] & (|(AXI_LLC_PERMIT[ 2] & ~reg_be))) |
+               (addr_hit[ 3] & (|(AXI_LLC_PERMIT[ 3] & ~reg_be))) |
+               (addr_hit[ 4] & (|(AXI_LLC_PERMIT[ 4] & ~reg_be))) |
+               (addr_hit[ 5] & (|(AXI_LLC_PERMIT[ 5] & ~reg_be))) |
+               (addr_hit[ 6] & (|(AXI_LLC_PERMIT[ 6] & ~reg_be))) |
+               (addr_hit[ 7] & (|(AXI_LLC_PERMIT[ 7] & ~reg_be))) |
+               (addr_hit[ 8] & (|(AXI_LLC_PERMIT[ 8] & ~reg_be))) |
+               (addr_hit[ 9] & (|(AXI_LLC_PERMIT[ 9] & ~reg_be))) |
+               (addr_hit[10] & (|(AXI_LLC_PERMIT[10] & ~reg_be))) |
+               (addr_hit[11] & (|(AXI_LLC_PERMIT[11] & ~reg_be))) |
+               (addr_hit[12] & (|(AXI_LLC_PERMIT[12] & ~reg_be))) |
+               (addr_hit[13] & (|(AXI_LLC_PERMIT[13] & ~reg_be))) |
+               (addr_hit[14] & (|(AXI_LLC_PERMIT[14] & ~reg_be))) |
+               (addr_hit[15] & (|(AXI_LLC_PERMIT[15] & ~reg_be))) |
+               (addr_hit[16] & (|(AXI_LLC_PERMIT[16] & ~reg_be))) |
+               (addr_hit[17] & (|(AXI_LLC_PERMIT[17] & ~reg_be))) |
+               (addr_hit[18] & (|(AXI_LLC_PERMIT[18] & ~reg_be))) |
+               (addr_hit[19] & (|(AXI_LLC_PERMIT[19] & ~reg_be))) |
+               (addr_hit[20] & (|(AXI_LLC_PERMIT[20] & ~reg_be))) |
+               (addr_hit[21] & (|(AXI_LLC_PERMIT[21] & ~reg_be))) |
+               (addr_hit[22] & (|(AXI_LLC_PERMIT[22] & ~reg_be))) |
+               (addr_hit[23] & (|(AXI_LLC_PERMIT[23] & ~reg_be))) |
+               (addr_hit[24] & (|(AXI_LLC_PERMIT[24] & ~reg_be))) |
+               (addr_hit[25] & (|(AXI_LLC_PERMIT[25] & ~reg_be))) |
+               (addr_hit[26] & (|(AXI_LLC_PERMIT[26] & ~reg_be))) |
+               (addr_hit[27] & (|(AXI_LLC_PERMIT[27] & ~reg_be))) |
+               (addr_hit[28] & (|(AXI_LLC_PERMIT[28] & ~reg_be))) |
+               (addr_hit[29] & (|(AXI_LLC_PERMIT[29] & ~reg_be))) |
+               (addr_hit[30] & (|(AXI_LLC_PERMIT[30] & ~reg_be))) |
+               (addr_hit[31] & (|(AXI_LLC_PERMIT[31] & ~reg_be))) |
+               (addr_hit[32] & (|(AXI_LLC_PERMIT[32] & ~reg_be))) |
+               (addr_hit[33] & (|(AXI_LLC_PERMIT[33] & ~reg_be))) |
+               (addr_hit[34] & (|(AXI_LLC_PERMIT[34] & ~reg_be))) |
+               (addr_hit[35] & (|(AXI_LLC_PERMIT[35] & ~reg_be))) |
+               (addr_hit[36] & (|(AXI_LLC_PERMIT[36] & ~reg_be))) |
+               (addr_hit[37] & (|(AXI_LLC_PERMIT[37] & ~reg_be))) |
+               (addr_hit[38] & (|(AXI_LLC_PERMIT[38] & ~reg_be))) |
+               (addr_hit[39] & (|(AXI_LLC_PERMIT[39] & ~reg_be))) |
+               (addr_hit[40] & (|(AXI_LLC_PERMIT[40] & ~reg_be))) |
+               (addr_hit[41] & (|(AXI_LLC_PERMIT[41] & ~reg_be))) |
+               (addr_hit[42] & (|(AXI_LLC_PERMIT[42] & ~reg_be))) |
+               (addr_hit[43] & (|(AXI_LLC_PERMIT[43] & ~reg_be))) |
+               (addr_hit[44] & (|(AXI_LLC_PERMIT[44] & ~reg_be))) |
+               (addr_hit[45] & (|(AXI_LLC_PERMIT[45] & ~reg_be))) |
+               (addr_hit[46] & (|(AXI_LLC_PERMIT[46] & ~reg_be))) |
+               (addr_hit[47] & (|(AXI_LLC_PERMIT[47] & ~reg_be))) |
+               (addr_hit[48] & (|(AXI_LLC_PERMIT[48] & ~reg_be))) |
+               (addr_hit[49] & (|(AXI_LLC_PERMIT[49] & ~reg_be))) |
+               (addr_hit[50] & (|(AXI_LLC_PERMIT[50] & ~reg_be))) |
+               (addr_hit[51] & (|(AXI_LLC_PERMIT[51] & ~reg_be))) |
+               (addr_hit[52] & (|(AXI_LLC_PERMIT[52] & ~reg_be))) |
+               (addr_hit[53] & (|(AXI_LLC_PERMIT[53] & ~reg_be))) |
+               (addr_hit[54] & (|(AXI_LLC_PERMIT[54] & ~reg_be))) |
+               (addr_hit[55] & (|(AXI_LLC_PERMIT[55] & ~reg_be))) |
+               (addr_hit[56] & (|(AXI_LLC_PERMIT[56] & ~reg_be))) |
+               (addr_hit[57] & (|(AXI_LLC_PERMIT[57] & ~reg_be))) |
+               (addr_hit[58] & (|(AXI_LLC_PERMIT[58] & ~reg_be))) |
+               (addr_hit[59] & (|(AXI_LLC_PERMIT[59] & ~reg_be))) |
+               (addr_hit[60] & (|(AXI_LLC_PERMIT[60] & ~reg_be))) |
+               (addr_hit[61] & (|(AXI_LLC_PERMIT[61] & ~reg_be))) |
+               (addr_hit[62] & (|(AXI_LLC_PERMIT[62] & ~reg_be))) |
+               (addr_hit[63] & (|(AXI_LLC_PERMIT[63] & ~reg_be))) |
+               (addr_hit[64] & (|(AXI_LLC_PERMIT[64] & ~reg_be))) |
+               (addr_hit[65] & (|(AXI_LLC_PERMIT[65] & ~reg_be))) |
+               (addr_hit[66] & (|(AXI_LLC_PERMIT[66] & ~reg_be))) |
+               (addr_hit[67] & (|(AXI_LLC_PERMIT[67] & ~reg_be))) |
+               (addr_hit[68] & (|(AXI_LLC_PERMIT[68] & ~reg_be))) |
+               (addr_hit[69] & (|(AXI_LLC_PERMIT[69] & ~reg_be))) |
+               (addr_hit[70] & (|(AXI_LLC_PERMIT[70] & ~reg_be))) |
+               (addr_hit[71] & (|(AXI_LLC_PERMIT[71] & ~reg_be))) |
+               (addr_hit[72] & (|(AXI_LLC_PERMIT[72] & ~reg_be))) |
+               (addr_hit[73] & (|(AXI_LLC_PERMIT[73] & ~reg_be))) |
+               (addr_hit[74] & (|(AXI_LLC_PERMIT[74] & ~reg_be))) |
+               (addr_hit[75] & (|(AXI_LLC_PERMIT[75] & ~reg_be))) |
+               (addr_hit[76] & (|(AXI_LLC_PERMIT[76] & ~reg_be))) |
+               (addr_hit[77] & (|(AXI_LLC_PERMIT[77] & ~reg_be))) |
+               (addr_hit[78] & (|(AXI_LLC_PERMIT[78] & ~reg_be))) |
+               (addr_hit[79] & (|(AXI_LLC_PERMIT[79] & ~reg_be))) |
+               (addr_hit[80] & (|(AXI_LLC_PERMIT[80] & ~reg_be))) |
+               (addr_hit[81] & (|(AXI_LLC_PERMIT[81] & ~reg_be))) |
+               (addr_hit[82] & (|(AXI_LLC_PERMIT[82] & ~reg_be))) |
+               (addr_hit[83] & (|(AXI_LLC_PERMIT[83] & ~reg_be))) |
+               (addr_hit[84] & (|(AXI_LLC_PERMIT[84] & ~reg_be))) |
+               (addr_hit[85] & (|(AXI_LLC_PERMIT[85] & ~reg_be))) |
+               (addr_hit[86] & (|(AXI_LLC_PERMIT[86] & ~reg_be))) |
+               (addr_hit[87] & (|(AXI_LLC_PERMIT[87] & ~reg_be))) |
+               (addr_hit[88] & (|(AXI_LLC_PERMIT[88] & ~reg_be))) |
+               (addr_hit[89] & (|(AXI_LLC_PERMIT[89] & ~reg_be))) |
+               (addr_hit[90] & (|(AXI_LLC_PERMIT[90] & ~reg_be))) |
+               (addr_hit[91] & (|(AXI_LLC_PERMIT[91] & ~reg_be))) |
+               (addr_hit[92] & (|(AXI_LLC_PERMIT[92] & ~reg_be))) |
+               (addr_hit[93] & (|(AXI_LLC_PERMIT[93] & ~reg_be))) |
+               (addr_hit[94] & (|(AXI_LLC_PERMIT[94] & ~reg_be))) |
+               (addr_hit[95] & (|(AXI_LLC_PERMIT[95] & ~reg_be))) |
+               (addr_hit[96] & (|(AXI_LLC_PERMIT[96] & ~reg_be))) |
+               (addr_hit[97] & (|(AXI_LLC_PERMIT[97] & ~reg_be))) |
+               (addr_hit[98] & (|(AXI_LLC_PERMIT[98] & ~reg_be)))));
   end
 
   assign cfg_spm_low_we = addr_hit[0] & reg_we & !reg_error;
@@ -6401,478 +3225,202 @@ module axi_llc_reg_top #(
   assign cfg_flush_set3_high_we = addr_hit[11] & reg_we & !reg_error;
   assign cfg_flush_set3_high_wd = reg_wdata[31:0];
 
-  assign cfg_flush_set4_low_we = addr_hit[12] & reg_we & !reg_error;
-  assign cfg_flush_set4_low_wd = reg_wdata[31:0];
-
-  assign cfg_flush_set4_high_we = addr_hit[13] & reg_we & !reg_error;
-  assign cfg_flush_set4_high_wd = reg_wdata[31:0];
-
-  assign cfg_flush_set5_low_we = addr_hit[14] & reg_we & !reg_error;
-  assign cfg_flush_set5_low_wd = reg_wdata[31:0];
-
-  assign cfg_flush_set5_high_we = addr_hit[15] & reg_we & !reg_error;
-  assign cfg_flush_set5_high_wd = reg_wdata[31:0];
-
-  assign cfg_flush_set6_low_we = addr_hit[16] & reg_we & !reg_error;
-  assign cfg_flush_set6_low_wd = reg_wdata[31:0];
-
-  assign cfg_flush_set6_high_we = addr_hit[17] & reg_we & !reg_error;
-  assign cfg_flush_set6_high_wd = reg_wdata[31:0];
-
-  assign cfg_flush_set7_low_we = addr_hit[18] & reg_we & !reg_error;
-  assign cfg_flush_set7_low_wd = reg_wdata[31:0];
-
-  assign cfg_flush_set7_high_we = addr_hit[19] & reg_we & !reg_error;
-  assign cfg_flush_set7_high_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition0_low_we = addr_hit[20] & reg_we & !reg_error;
+  assign cfg_set_partition0_low_we = addr_hit[12] & reg_we & !reg_error;
   assign cfg_set_partition0_low_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition0_high_we = addr_hit[21] & reg_we & !reg_error;
+  assign cfg_set_partition0_high_we = addr_hit[13] & reg_we & !reg_error;
   assign cfg_set_partition0_high_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition1_low_we = addr_hit[22] & reg_we & !reg_error;
+  assign cfg_set_partition1_low_we = addr_hit[14] & reg_we & !reg_error;
   assign cfg_set_partition1_low_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition1_high_we = addr_hit[23] & reg_we & !reg_error;
+  assign cfg_set_partition1_high_we = addr_hit[15] & reg_we & !reg_error;
   assign cfg_set_partition1_high_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition2_low_we = addr_hit[24] & reg_we & !reg_error;
+  assign cfg_set_partition2_low_we = addr_hit[16] & reg_we & !reg_error;
   assign cfg_set_partition2_low_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition2_high_we = addr_hit[25] & reg_we & !reg_error;
+  assign cfg_set_partition2_high_we = addr_hit[17] & reg_we & !reg_error;
   assign cfg_set_partition2_high_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition3_low_we = addr_hit[26] & reg_we & !reg_error;
+  assign cfg_set_partition3_low_we = addr_hit[18] & reg_we & !reg_error;
   assign cfg_set_partition3_low_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition3_high_we = addr_hit[27] & reg_we & !reg_error;
+  assign cfg_set_partition3_high_we = addr_hit[19] & reg_we & !reg_error;
   assign cfg_set_partition3_high_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition4_low_we = addr_hit[28] & reg_we & !reg_error;
+  assign cfg_set_partition4_low_we = addr_hit[20] & reg_we & !reg_error;
   assign cfg_set_partition4_low_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition4_high_we = addr_hit[29] & reg_we & !reg_error;
+  assign cfg_set_partition4_high_we = addr_hit[21] & reg_we & !reg_error;
   assign cfg_set_partition4_high_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition5_low_we = addr_hit[30] & reg_we & !reg_error;
+  assign cfg_set_partition5_low_we = addr_hit[22] & reg_we & !reg_error;
   assign cfg_set_partition5_low_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition5_high_we = addr_hit[31] & reg_we & !reg_error;
+  assign cfg_set_partition5_high_we = addr_hit[23] & reg_we & !reg_error;
   assign cfg_set_partition5_high_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition6_low_we = addr_hit[32] & reg_we & !reg_error;
+  assign cfg_set_partition6_low_we = addr_hit[24] & reg_we & !reg_error;
   assign cfg_set_partition6_low_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition6_high_we = addr_hit[33] & reg_we & !reg_error;
+  assign cfg_set_partition6_high_we = addr_hit[25] & reg_we & !reg_error;
   assign cfg_set_partition6_high_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition7_low_we = addr_hit[34] & reg_we & !reg_error;
+  assign cfg_set_partition7_low_we = addr_hit[26] & reg_we & !reg_error;
   assign cfg_set_partition7_low_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition7_high_we = addr_hit[35] & reg_we & !reg_error;
+  assign cfg_set_partition7_high_we = addr_hit[27] & reg_we & !reg_error;
   assign cfg_set_partition7_high_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition8_low_we = addr_hit[36] & reg_we & !reg_error;
+  assign cfg_set_partition8_low_we = addr_hit[28] & reg_we & !reg_error;
   assign cfg_set_partition8_low_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition8_high_we = addr_hit[37] & reg_we & !reg_error;
+  assign cfg_set_partition8_high_we = addr_hit[29] & reg_we & !reg_error;
   assign cfg_set_partition8_high_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition9_low_we = addr_hit[38] & reg_we & !reg_error;
+  assign cfg_set_partition9_low_we = addr_hit[30] & reg_we & !reg_error;
   assign cfg_set_partition9_low_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition9_high_we = addr_hit[39] & reg_we & !reg_error;
+  assign cfg_set_partition9_high_we = addr_hit[31] & reg_we & !reg_error;
   assign cfg_set_partition9_high_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition10_low_we = addr_hit[40] & reg_we & !reg_error;
+  assign cfg_set_partition10_low_we = addr_hit[32] & reg_we & !reg_error;
   assign cfg_set_partition10_low_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition10_high_we = addr_hit[41] & reg_we & !reg_error;
+  assign cfg_set_partition10_high_we = addr_hit[33] & reg_we & !reg_error;
   assign cfg_set_partition10_high_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition11_low_we = addr_hit[42] & reg_we & !reg_error;
+  assign cfg_set_partition11_low_we = addr_hit[34] & reg_we & !reg_error;
   assign cfg_set_partition11_low_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition11_high_we = addr_hit[43] & reg_we & !reg_error;
+  assign cfg_set_partition11_high_we = addr_hit[35] & reg_we & !reg_error;
   assign cfg_set_partition11_high_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition12_low_we = addr_hit[44] & reg_we & !reg_error;
+  assign cfg_set_partition12_low_we = addr_hit[36] & reg_we & !reg_error;
   assign cfg_set_partition12_low_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition12_high_we = addr_hit[45] & reg_we & !reg_error;
+  assign cfg_set_partition12_high_we = addr_hit[37] & reg_we & !reg_error;
   assign cfg_set_partition12_high_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition13_low_we = addr_hit[46] & reg_we & !reg_error;
+  assign cfg_set_partition13_low_we = addr_hit[38] & reg_we & !reg_error;
   assign cfg_set_partition13_low_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition13_high_we = addr_hit[47] & reg_we & !reg_error;
+  assign cfg_set_partition13_high_we = addr_hit[39] & reg_we & !reg_error;
   assign cfg_set_partition13_high_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition14_low_we = addr_hit[48] & reg_we & !reg_error;
+  assign cfg_set_partition14_low_we = addr_hit[40] & reg_we & !reg_error;
   assign cfg_set_partition14_low_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition14_high_we = addr_hit[49] & reg_we & !reg_error;
+  assign cfg_set_partition14_high_we = addr_hit[41] & reg_we & !reg_error;
   assign cfg_set_partition14_high_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition15_low_we = addr_hit[50] & reg_we & !reg_error;
+  assign cfg_set_partition15_low_we = addr_hit[42] & reg_we & !reg_error;
   assign cfg_set_partition15_low_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition15_high_we = addr_hit[51] & reg_we & !reg_error;
+  assign cfg_set_partition15_high_we = addr_hit[43] & reg_we & !reg_error;
   assign cfg_set_partition15_high_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition16_low_we = addr_hit[52] & reg_we & !reg_error;
+  assign cfg_set_partition16_low_we = addr_hit[44] & reg_we & !reg_error;
   assign cfg_set_partition16_low_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition16_high_we = addr_hit[53] & reg_we & !reg_error;
+  assign cfg_set_partition16_high_we = addr_hit[45] & reg_we & !reg_error;
   assign cfg_set_partition16_high_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition17_low_we = addr_hit[54] & reg_we & !reg_error;
+  assign cfg_set_partition17_low_we = addr_hit[46] & reg_we & !reg_error;
   assign cfg_set_partition17_low_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition17_high_we = addr_hit[55] & reg_we & !reg_error;
+  assign cfg_set_partition17_high_we = addr_hit[47] & reg_we & !reg_error;
   assign cfg_set_partition17_high_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition18_low_we = addr_hit[56] & reg_we & !reg_error;
+  assign cfg_set_partition18_low_we = addr_hit[48] & reg_we & !reg_error;
   assign cfg_set_partition18_low_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition18_high_we = addr_hit[57] & reg_we & !reg_error;
+  assign cfg_set_partition18_high_we = addr_hit[49] & reg_we & !reg_error;
   assign cfg_set_partition18_high_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition19_low_we = addr_hit[58] & reg_we & !reg_error;
+  assign cfg_set_partition19_low_we = addr_hit[50] & reg_we & !reg_error;
   assign cfg_set_partition19_low_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition19_high_we = addr_hit[59] & reg_we & !reg_error;
+  assign cfg_set_partition19_high_we = addr_hit[51] & reg_we & !reg_error;
   assign cfg_set_partition19_high_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition20_low_we = addr_hit[60] & reg_we & !reg_error;
+  assign cfg_set_partition20_low_we = addr_hit[52] & reg_we & !reg_error;
   assign cfg_set_partition20_low_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition20_high_we = addr_hit[61] & reg_we & !reg_error;
+  assign cfg_set_partition20_high_we = addr_hit[53] & reg_we & !reg_error;
   assign cfg_set_partition20_high_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition21_low_we = addr_hit[62] & reg_we & !reg_error;
+  assign cfg_set_partition21_low_we = addr_hit[54] & reg_we & !reg_error;
   assign cfg_set_partition21_low_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition21_high_we = addr_hit[63] & reg_we & !reg_error;
+  assign cfg_set_partition21_high_we = addr_hit[55] & reg_we & !reg_error;
   assign cfg_set_partition21_high_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition22_low_we = addr_hit[64] & reg_we & !reg_error;
+  assign cfg_set_partition22_low_we = addr_hit[56] & reg_we & !reg_error;
   assign cfg_set_partition22_low_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition22_high_we = addr_hit[65] & reg_we & !reg_error;
+  assign cfg_set_partition22_high_we = addr_hit[57] & reg_we & !reg_error;
   assign cfg_set_partition22_high_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition23_low_we = addr_hit[66] & reg_we & !reg_error;
+  assign cfg_set_partition23_low_we = addr_hit[58] & reg_we & !reg_error;
   assign cfg_set_partition23_low_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition23_high_we = addr_hit[67] & reg_we & !reg_error;
+  assign cfg_set_partition23_high_we = addr_hit[59] & reg_we & !reg_error;
   assign cfg_set_partition23_high_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition24_low_we = addr_hit[68] & reg_we & !reg_error;
+  assign cfg_set_partition24_low_we = addr_hit[60] & reg_we & !reg_error;
   assign cfg_set_partition24_low_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition24_high_we = addr_hit[69] & reg_we & !reg_error;
+  assign cfg_set_partition24_high_we = addr_hit[61] & reg_we & !reg_error;
   assign cfg_set_partition24_high_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition25_low_we = addr_hit[70] & reg_we & !reg_error;
+  assign cfg_set_partition25_low_we = addr_hit[62] & reg_we & !reg_error;
   assign cfg_set_partition25_low_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition25_high_we = addr_hit[71] & reg_we & !reg_error;
+  assign cfg_set_partition25_high_we = addr_hit[63] & reg_we & !reg_error;
   assign cfg_set_partition25_high_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition26_low_we = addr_hit[72] & reg_we & !reg_error;
+  assign cfg_set_partition26_low_we = addr_hit[64] & reg_we & !reg_error;
   assign cfg_set_partition26_low_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition26_high_we = addr_hit[73] & reg_we & !reg_error;
+  assign cfg_set_partition26_high_we = addr_hit[65] & reg_we & !reg_error;
   assign cfg_set_partition26_high_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition27_low_we = addr_hit[74] & reg_we & !reg_error;
+  assign cfg_set_partition27_low_we = addr_hit[66] & reg_we & !reg_error;
   assign cfg_set_partition27_low_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition27_high_we = addr_hit[75] & reg_we & !reg_error;
+  assign cfg_set_partition27_high_we = addr_hit[67] & reg_we & !reg_error;
   assign cfg_set_partition27_high_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition28_low_we = addr_hit[76] & reg_we & !reg_error;
+  assign cfg_set_partition28_low_we = addr_hit[68] & reg_we & !reg_error;
   assign cfg_set_partition28_low_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition28_high_we = addr_hit[77] & reg_we & !reg_error;
+  assign cfg_set_partition28_high_we = addr_hit[69] & reg_we & !reg_error;
   assign cfg_set_partition28_high_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition29_low_we = addr_hit[78] & reg_we & !reg_error;
+  assign cfg_set_partition29_low_we = addr_hit[70] & reg_we & !reg_error;
   assign cfg_set_partition29_low_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition29_high_we = addr_hit[79] & reg_we & !reg_error;
+  assign cfg_set_partition29_high_we = addr_hit[71] & reg_we & !reg_error;
   assign cfg_set_partition29_high_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition30_low_we = addr_hit[80] & reg_we & !reg_error;
+  assign cfg_set_partition30_low_we = addr_hit[72] & reg_we & !reg_error;
   assign cfg_set_partition30_low_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition30_high_we = addr_hit[81] & reg_we & !reg_error;
+  assign cfg_set_partition30_high_we = addr_hit[73] & reg_we & !reg_error;
   assign cfg_set_partition30_high_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition31_low_we = addr_hit[82] & reg_we & !reg_error;
+  assign cfg_set_partition31_low_we = addr_hit[74] & reg_we & !reg_error;
   assign cfg_set_partition31_low_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition31_high_we = addr_hit[83] & reg_we & !reg_error;
+  assign cfg_set_partition31_high_we = addr_hit[75] & reg_we & !reg_error;
   assign cfg_set_partition31_high_wd = reg_wdata[31:0];
 
-  assign cfg_set_partition32_low_we = addr_hit[84] & reg_we & !reg_error;
-  assign cfg_set_partition32_low_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition32_high_we = addr_hit[85] & reg_we & !reg_error;
-  assign cfg_set_partition32_high_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition33_low_we = addr_hit[86] & reg_we & !reg_error;
-  assign cfg_set_partition33_low_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition33_high_we = addr_hit[87] & reg_we & !reg_error;
-  assign cfg_set_partition33_high_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition34_low_we = addr_hit[88] & reg_we & !reg_error;
-  assign cfg_set_partition34_low_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition34_high_we = addr_hit[89] & reg_we & !reg_error;
-  assign cfg_set_partition34_high_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition35_low_we = addr_hit[90] & reg_we & !reg_error;
-  assign cfg_set_partition35_low_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition35_high_we = addr_hit[91] & reg_we & !reg_error;
-  assign cfg_set_partition35_high_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition36_low_we = addr_hit[92] & reg_we & !reg_error;
-  assign cfg_set_partition36_low_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition36_high_we = addr_hit[93] & reg_we & !reg_error;
-  assign cfg_set_partition36_high_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition37_low_we = addr_hit[94] & reg_we & !reg_error;
-  assign cfg_set_partition37_low_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition37_high_we = addr_hit[95] & reg_we & !reg_error;
-  assign cfg_set_partition37_high_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition38_low_we = addr_hit[96] & reg_we & !reg_error;
-  assign cfg_set_partition38_low_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition38_high_we = addr_hit[97] & reg_we & !reg_error;
-  assign cfg_set_partition38_high_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition39_low_we = addr_hit[98] & reg_we & !reg_error;
-  assign cfg_set_partition39_low_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition39_high_we = addr_hit[99] & reg_we & !reg_error;
-  assign cfg_set_partition39_high_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition40_low_we = addr_hit[100] & reg_we & !reg_error;
-  assign cfg_set_partition40_low_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition40_high_we = addr_hit[101] & reg_we & !reg_error;
-  assign cfg_set_partition40_high_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition41_low_we = addr_hit[102] & reg_we & !reg_error;
-  assign cfg_set_partition41_low_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition41_high_we = addr_hit[103] & reg_we & !reg_error;
-  assign cfg_set_partition41_high_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition42_low_we = addr_hit[104] & reg_we & !reg_error;
-  assign cfg_set_partition42_low_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition42_high_we = addr_hit[105] & reg_we & !reg_error;
-  assign cfg_set_partition42_high_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition43_low_we = addr_hit[106] & reg_we & !reg_error;
-  assign cfg_set_partition43_low_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition43_high_we = addr_hit[107] & reg_we & !reg_error;
-  assign cfg_set_partition43_high_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition44_low_we = addr_hit[108] & reg_we & !reg_error;
-  assign cfg_set_partition44_low_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition44_high_we = addr_hit[109] & reg_we & !reg_error;
-  assign cfg_set_partition44_high_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition45_low_we = addr_hit[110] & reg_we & !reg_error;
-  assign cfg_set_partition45_low_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition45_high_we = addr_hit[111] & reg_we & !reg_error;
-  assign cfg_set_partition45_high_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition46_low_we = addr_hit[112] & reg_we & !reg_error;
-  assign cfg_set_partition46_low_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition46_high_we = addr_hit[113] & reg_we & !reg_error;
-  assign cfg_set_partition46_high_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition47_low_we = addr_hit[114] & reg_we & !reg_error;
-  assign cfg_set_partition47_low_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition47_high_we = addr_hit[115] & reg_we & !reg_error;
-  assign cfg_set_partition47_high_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition48_low_we = addr_hit[116] & reg_we & !reg_error;
-  assign cfg_set_partition48_low_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition48_high_we = addr_hit[117] & reg_we & !reg_error;
-  assign cfg_set_partition48_high_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition49_low_we = addr_hit[118] & reg_we & !reg_error;
-  assign cfg_set_partition49_low_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition49_high_we = addr_hit[119] & reg_we & !reg_error;
-  assign cfg_set_partition49_high_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition50_low_we = addr_hit[120] & reg_we & !reg_error;
-  assign cfg_set_partition50_low_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition50_high_we = addr_hit[121] & reg_we & !reg_error;
-  assign cfg_set_partition50_high_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition51_low_we = addr_hit[122] & reg_we & !reg_error;
-  assign cfg_set_partition51_low_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition51_high_we = addr_hit[123] & reg_we & !reg_error;
-  assign cfg_set_partition51_high_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition52_low_we = addr_hit[124] & reg_we & !reg_error;
-  assign cfg_set_partition52_low_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition52_high_we = addr_hit[125] & reg_we & !reg_error;
-  assign cfg_set_partition52_high_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition53_low_we = addr_hit[126] & reg_we & !reg_error;
-  assign cfg_set_partition53_low_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition53_high_we = addr_hit[127] & reg_we & !reg_error;
-  assign cfg_set_partition53_high_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition54_low_we = addr_hit[128] & reg_we & !reg_error;
-  assign cfg_set_partition54_low_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition54_high_we = addr_hit[129] & reg_we & !reg_error;
-  assign cfg_set_partition54_high_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition55_low_we = addr_hit[130] & reg_we & !reg_error;
-  assign cfg_set_partition55_low_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition55_high_we = addr_hit[131] & reg_we & !reg_error;
-  assign cfg_set_partition55_high_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition56_low_we = addr_hit[132] & reg_we & !reg_error;
-  assign cfg_set_partition56_low_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition56_high_we = addr_hit[133] & reg_we & !reg_error;
-  assign cfg_set_partition56_high_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition57_low_we = addr_hit[134] & reg_we & !reg_error;
-  assign cfg_set_partition57_low_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition57_high_we = addr_hit[135] & reg_we & !reg_error;
-  assign cfg_set_partition57_high_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition58_low_we = addr_hit[136] & reg_we & !reg_error;
-  assign cfg_set_partition58_low_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition58_high_we = addr_hit[137] & reg_we & !reg_error;
-  assign cfg_set_partition58_high_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition59_low_we = addr_hit[138] & reg_we & !reg_error;
-  assign cfg_set_partition59_low_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition59_high_we = addr_hit[139] & reg_we & !reg_error;
-  assign cfg_set_partition59_high_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition60_low_we = addr_hit[140] & reg_we & !reg_error;
-  assign cfg_set_partition60_low_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition60_high_we = addr_hit[141] & reg_we & !reg_error;
-  assign cfg_set_partition60_high_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition61_low_we = addr_hit[142] & reg_we & !reg_error;
-  assign cfg_set_partition61_low_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition61_high_we = addr_hit[143] & reg_we & !reg_error;
-  assign cfg_set_partition61_high_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition62_low_we = addr_hit[144] & reg_we & !reg_error;
-  assign cfg_set_partition62_low_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition62_high_we = addr_hit[145] & reg_we & !reg_error;
-  assign cfg_set_partition62_high_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition63_low_we = addr_hit[146] & reg_we & !reg_error;
-  assign cfg_set_partition63_low_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition63_high_we = addr_hit[147] & reg_we & !reg_error;
-  assign cfg_set_partition63_high_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition64_low_we = addr_hit[148] & reg_we & !reg_error;
-  assign cfg_set_partition64_low_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition64_high_we = addr_hit[149] & reg_we & !reg_error;
-  assign cfg_set_partition64_high_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition65_low_we = addr_hit[150] & reg_we & !reg_error;
-  assign cfg_set_partition65_low_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition65_high_we = addr_hit[151] & reg_we & !reg_error;
-  assign cfg_set_partition65_high_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition66_low_we = addr_hit[152] & reg_we & !reg_error;
-  assign cfg_set_partition66_low_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition66_high_we = addr_hit[153] & reg_we & !reg_error;
-  assign cfg_set_partition66_high_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition67_low_we = addr_hit[154] & reg_we & !reg_error;
-  assign cfg_set_partition67_low_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition67_high_we = addr_hit[155] & reg_we & !reg_error;
-  assign cfg_set_partition67_high_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition68_low_we = addr_hit[156] & reg_we & !reg_error;
-  assign cfg_set_partition68_low_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition68_high_we = addr_hit[157] & reg_we & !reg_error;
-  assign cfg_set_partition68_high_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition69_low_we = addr_hit[158] & reg_we & !reg_error;
-  assign cfg_set_partition69_low_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition69_high_we = addr_hit[159] & reg_we & !reg_error;
-  assign cfg_set_partition69_high_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition70_low_we = addr_hit[160] & reg_we & !reg_error;
-  assign cfg_set_partition70_low_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition70_high_we = addr_hit[161] & reg_we & !reg_error;
-  assign cfg_set_partition70_high_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition71_low_we = addr_hit[162] & reg_we & !reg_error;
-  assign cfg_set_partition71_low_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition71_high_we = addr_hit[163] & reg_we & !reg_error;
-  assign cfg_set_partition71_high_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition72_low_we = addr_hit[164] & reg_we & !reg_error;
-  assign cfg_set_partition72_low_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition72_high_we = addr_hit[165] & reg_we & !reg_error;
-  assign cfg_set_partition72_high_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition73_low_we = addr_hit[166] & reg_we & !reg_error;
-  assign cfg_set_partition73_low_wd = reg_wdata[31:0];
-
-  assign cfg_set_partition73_high_we = addr_hit[167] & reg_we & !reg_error;
-  assign cfg_set_partition73_high_wd = reg_wdata[31:0];
-
-  assign commit_cfg_we = addr_hit[168] & reg_we & !reg_error;
+  assign commit_cfg_we = addr_hit[76] & reg_we & !reg_error;
   assign commit_cfg_wd = reg_wdata[0];
 
-  assign commit_partition_cfg_we = addr_hit[169] & reg_we & !reg_error;
+  assign commit_partition_cfg_we = addr_hit[77] & reg_we & !reg_error;
   assign commit_partition_cfg_wd = reg_wdata[0];
 
   // Read data return
@@ -6928,751 +3476,351 @@ module axi_llc_reg_top #(
       end
 
       addr_hit[12]: begin
-        reg_rdata_next[31:0] = cfg_flush_set4_low_qs;
-      end
-
-      addr_hit[13]: begin
-        reg_rdata_next[31:0] = cfg_flush_set4_high_qs;
-      end
-
-      addr_hit[14]: begin
-        reg_rdata_next[31:0] = cfg_flush_set5_low_qs;
-      end
-
-      addr_hit[15]: begin
-        reg_rdata_next[31:0] = cfg_flush_set5_high_qs;
-      end
-
-      addr_hit[16]: begin
-        reg_rdata_next[31:0] = cfg_flush_set6_low_qs;
-      end
-
-      addr_hit[17]: begin
-        reg_rdata_next[31:0] = cfg_flush_set6_high_qs;
-      end
-
-      addr_hit[18]: begin
-        reg_rdata_next[31:0] = cfg_flush_set7_low_qs;
-      end
-
-      addr_hit[19]: begin
-        reg_rdata_next[31:0] = cfg_flush_set7_high_qs;
-      end
-
-      addr_hit[20]: begin
         reg_rdata_next[31:0] = cfg_set_partition0_low_qs;
       end
 
-      addr_hit[21]: begin
+      addr_hit[13]: begin
         reg_rdata_next[31:0] = cfg_set_partition0_high_qs;
       end
 
-      addr_hit[22]: begin
+      addr_hit[14]: begin
         reg_rdata_next[31:0] = cfg_set_partition1_low_qs;
       end
 
-      addr_hit[23]: begin
+      addr_hit[15]: begin
         reg_rdata_next[31:0] = cfg_set_partition1_high_qs;
       end
 
-      addr_hit[24]: begin
+      addr_hit[16]: begin
         reg_rdata_next[31:0] = cfg_set_partition2_low_qs;
       end
 
-      addr_hit[25]: begin
+      addr_hit[17]: begin
         reg_rdata_next[31:0] = cfg_set_partition2_high_qs;
       end
 
-      addr_hit[26]: begin
+      addr_hit[18]: begin
         reg_rdata_next[31:0] = cfg_set_partition3_low_qs;
       end
 
-      addr_hit[27]: begin
+      addr_hit[19]: begin
         reg_rdata_next[31:0] = cfg_set_partition3_high_qs;
       end
 
-      addr_hit[28]: begin
+      addr_hit[20]: begin
         reg_rdata_next[31:0] = cfg_set_partition4_low_qs;
       end
 
-      addr_hit[29]: begin
+      addr_hit[21]: begin
         reg_rdata_next[31:0] = cfg_set_partition4_high_qs;
       end
 
-      addr_hit[30]: begin
+      addr_hit[22]: begin
         reg_rdata_next[31:0] = cfg_set_partition5_low_qs;
       end
 
-      addr_hit[31]: begin
+      addr_hit[23]: begin
         reg_rdata_next[31:0] = cfg_set_partition5_high_qs;
       end
 
-      addr_hit[32]: begin
+      addr_hit[24]: begin
         reg_rdata_next[31:0] = cfg_set_partition6_low_qs;
       end
 
-      addr_hit[33]: begin
+      addr_hit[25]: begin
         reg_rdata_next[31:0] = cfg_set_partition6_high_qs;
       end
 
-      addr_hit[34]: begin
+      addr_hit[26]: begin
         reg_rdata_next[31:0] = cfg_set_partition7_low_qs;
       end
 
-      addr_hit[35]: begin
+      addr_hit[27]: begin
         reg_rdata_next[31:0] = cfg_set_partition7_high_qs;
       end
 
-      addr_hit[36]: begin
+      addr_hit[28]: begin
         reg_rdata_next[31:0] = cfg_set_partition8_low_qs;
       end
 
-      addr_hit[37]: begin
+      addr_hit[29]: begin
         reg_rdata_next[31:0] = cfg_set_partition8_high_qs;
       end
 
-      addr_hit[38]: begin
+      addr_hit[30]: begin
         reg_rdata_next[31:0] = cfg_set_partition9_low_qs;
       end
 
-      addr_hit[39]: begin
+      addr_hit[31]: begin
         reg_rdata_next[31:0] = cfg_set_partition9_high_qs;
       end
 
-      addr_hit[40]: begin
+      addr_hit[32]: begin
         reg_rdata_next[31:0] = cfg_set_partition10_low_qs;
       end
 
-      addr_hit[41]: begin
+      addr_hit[33]: begin
         reg_rdata_next[31:0] = cfg_set_partition10_high_qs;
       end
 
-      addr_hit[42]: begin
+      addr_hit[34]: begin
         reg_rdata_next[31:0] = cfg_set_partition11_low_qs;
       end
 
-      addr_hit[43]: begin
+      addr_hit[35]: begin
         reg_rdata_next[31:0] = cfg_set_partition11_high_qs;
       end
 
-      addr_hit[44]: begin
+      addr_hit[36]: begin
         reg_rdata_next[31:0] = cfg_set_partition12_low_qs;
       end
 
-      addr_hit[45]: begin
+      addr_hit[37]: begin
         reg_rdata_next[31:0] = cfg_set_partition12_high_qs;
       end
 
-      addr_hit[46]: begin
+      addr_hit[38]: begin
         reg_rdata_next[31:0] = cfg_set_partition13_low_qs;
       end
 
-      addr_hit[47]: begin
+      addr_hit[39]: begin
         reg_rdata_next[31:0] = cfg_set_partition13_high_qs;
       end
 
-      addr_hit[48]: begin
+      addr_hit[40]: begin
         reg_rdata_next[31:0] = cfg_set_partition14_low_qs;
       end
 
-      addr_hit[49]: begin
+      addr_hit[41]: begin
         reg_rdata_next[31:0] = cfg_set_partition14_high_qs;
       end
 
-      addr_hit[50]: begin
+      addr_hit[42]: begin
         reg_rdata_next[31:0] = cfg_set_partition15_low_qs;
       end
 
-      addr_hit[51]: begin
+      addr_hit[43]: begin
         reg_rdata_next[31:0] = cfg_set_partition15_high_qs;
       end
 
-      addr_hit[52]: begin
+      addr_hit[44]: begin
         reg_rdata_next[31:0] = cfg_set_partition16_low_qs;
       end
 
-      addr_hit[53]: begin
+      addr_hit[45]: begin
         reg_rdata_next[31:0] = cfg_set_partition16_high_qs;
       end
 
-      addr_hit[54]: begin
+      addr_hit[46]: begin
         reg_rdata_next[31:0] = cfg_set_partition17_low_qs;
       end
 
-      addr_hit[55]: begin
+      addr_hit[47]: begin
         reg_rdata_next[31:0] = cfg_set_partition17_high_qs;
       end
 
-      addr_hit[56]: begin
+      addr_hit[48]: begin
         reg_rdata_next[31:0] = cfg_set_partition18_low_qs;
       end
 
-      addr_hit[57]: begin
+      addr_hit[49]: begin
         reg_rdata_next[31:0] = cfg_set_partition18_high_qs;
       end
 
-      addr_hit[58]: begin
+      addr_hit[50]: begin
         reg_rdata_next[31:0] = cfg_set_partition19_low_qs;
       end
 
-      addr_hit[59]: begin
+      addr_hit[51]: begin
         reg_rdata_next[31:0] = cfg_set_partition19_high_qs;
       end
 
-      addr_hit[60]: begin
+      addr_hit[52]: begin
         reg_rdata_next[31:0] = cfg_set_partition20_low_qs;
       end
 
-      addr_hit[61]: begin
+      addr_hit[53]: begin
         reg_rdata_next[31:0] = cfg_set_partition20_high_qs;
       end
 
-      addr_hit[62]: begin
+      addr_hit[54]: begin
         reg_rdata_next[31:0] = cfg_set_partition21_low_qs;
       end
 
-      addr_hit[63]: begin
+      addr_hit[55]: begin
         reg_rdata_next[31:0] = cfg_set_partition21_high_qs;
       end
 
-      addr_hit[64]: begin
+      addr_hit[56]: begin
         reg_rdata_next[31:0] = cfg_set_partition22_low_qs;
       end
 
-      addr_hit[65]: begin
+      addr_hit[57]: begin
         reg_rdata_next[31:0] = cfg_set_partition22_high_qs;
       end
 
-      addr_hit[66]: begin
+      addr_hit[58]: begin
         reg_rdata_next[31:0] = cfg_set_partition23_low_qs;
       end
 
-      addr_hit[67]: begin
+      addr_hit[59]: begin
         reg_rdata_next[31:0] = cfg_set_partition23_high_qs;
       end
 
-      addr_hit[68]: begin
+      addr_hit[60]: begin
         reg_rdata_next[31:0] = cfg_set_partition24_low_qs;
       end
 
-      addr_hit[69]: begin
+      addr_hit[61]: begin
         reg_rdata_next[31:0] = cfg_set_partition24_high_qs;
       end
 
-      addr_hit[70]: begin
+      addr_hit[62]: begin
         reg_rdata_next[31:0] = cfg_set_partition25_low_qs;
       end
 
-      addr_hit[71]: begin
+      addr_hit[63]: begin
         reg_rdata_next[31:0] = cfg_set_partition25_high_qs;
       end
 
-      addr_hit[72]: begin
+      addr_hit[64]: begin
         reg_rdata_next[31:0] = cfg_set_partition26_low_qs;
       end
 
-      addr_hit[73]: begin
+      addr_hit[65]: begin
         reg_rdata_next[31:0] = cfg_set_partition26_high_qs;
       end
 
-      addr_hit[74]: begin
+      addr_hit[66]: begin
         reg_rdata_next[31:0] = cfg_set_partition27_low_qs;
       end
 
-      addr_hit[75]: begin
+      addr_hit[67]: begin
         reg_rdata_next[31:0] = cfg_set_partition27_high_qs;
       end
 
-      addr_hit[76]: begin
+      addr_hit[68]: begin
         reg_rdata_next[31:0] = cfg_set_partition28_low_qs;
       end
 
-      addr_hit[77]: begin
+      addr_hit[69]: begin
         reg_rdata_next[31:0] = cfg_set_partition28_high_qs;
       end
 
-      addr_hit[78]: begin
+      addr_hit[70]: begin
         reg_rdata_next[31:0] = cfg_set_partition29_low_qs;
       end
 
-      addr_hit[79]: begin
+      addr_hit[71]: begin
         reg_rdata_next[31:0] = cfg_set_partition29_high_qs;
       end
 
-      addr_hit[80]: begin
+      addr_hit[72]: begin
         reg_rdata_next[31:0] = cfg_set_partition30_low_qs;
       end
 
-      addr_hit[81]: begin
+      addr_hit[73]: begin
         reg_rdata_next[31:0] = cfg_set_partition30_high_qs;
       end
 
-      addr_hit[82]: begin
+      addr_hit[74]: begin
         reg_rdata_next[31:0] = cfg_set_partition31_low_qs;
       end
 
-      addr_hit[83]: begin
+      addr_hit[75]: begin
         reg_rdata_next[31:0] = cfg_set_partition31_high_qs;
       end
 
-      addr_hit[84]: begin
-        reg_rdata_next[31:0] = cfg_set_partition32_low_qs;
-      end
-
-      addr_hit[85]: begin
-        reg_rdata_next[31:0] = cfg_set_partition32_high_qs;
-      end
-
-      addr_hit[86]: begin
-        reg_rdata_next[31:0] = cfg_set_partition33_low_qs;
-      end
-
-      addr_hit[87]: begin
-        reg_rdata_next[31:0] = cfg_set_partition33_high_qs;
-      end
-
-      addr_hit[88]: begin
-        reg_rdata_next[31:0] = cfg_set_partition34_low_qs;
-      end
-
-      addr_hit[89]: begin
-        reg_rdata_next[31:0] = cfg_set_partition34_high_qs;
-      end
-
-      addr_hit[90]: begin
-        reg_rdata_next[31:0] = cfg_set_partition35_low_qs;
-      end
-
-      addr_hit[91]: begin
-        reg_rdata_next[31:0] = cfg_set_partition35_high_qs;
-      end
-
-      addr_hit[92]: begin
-        reg_rdata_next[31:0] = cfg_set_partition36_low_qs;
-      end
-
-      addr_hit[93]: begin
-        reg_rdata_next[31:0] = cfg_set_partition36_high_qs;
-      end
-
-      addr_hit[94]: begin
-        reg_rdata_next[31:0] = cfg_set_partition37_low_qs;
-      end
-
-      addr_hit[95]: begin
-        reg_rdata_next[31:0] = cfg_set_partition37_high_qs;
-      end
-
-      addr_hit[96]: begin
-        reg_rdata_next[31:0] = cfg_set_partition38_low_qs;
-      end
-
-      addr_hit[97]: begin
-        reg_rdata_next[31:0] = cfg_set_partition38_high_qs;
-      end
-
-      addr_hit[98]: begin
-        reg_rdata_next[31:0] = cfg_set_partition39_low_qs;
-      end
-
-      addr_hit[99]: begin
-        reg_rdata_next[31:0] = cfg_set_partition39_high_qs;
-      end
-
-      addr_hit[100]: begin
-        reg_rdata_next[31:0] = cfg_set_partition40_low_qs;
-      end
-
-      addr_hit[101]: begin
-        reg_rdata_next[31:0] = cfg_set_partition40_high_qs;
-      end
-
-      addr_hit[102]: begin
-        reg_rdata_next[31:0] = cfg_set_partition41_low_qs;
-      end
-
-      addr_hit[103]: begin
-        reg_rdata_next[31:0] = cfg_set_partition41_high_qs;
-      end
-
-      addr_hit[104]: begin
-        reg_rdata_next[31:0] = cfg_set_partition42_low_qs;
-      end
-
-      addr_hit[105]: begin
-        reg_rdata_next[31:0] = cfg_set_partition42_high_qs;
-      end
-
-      addr_hit[106]: begin
-        reg_rdata_next[31:0] = cfg_set_partition43_low_qs;
-      end
-
-      addr_hit[107]: begin
-        reg_rdata_next[31:0] = cfg_set_partition43_high_qs;
-      end
-
-      addr_hit[108]: begin
-        reg_rdata_next[31:0] = cfg_set_partition44_low_qs;
-      end
-
-      addr_hit[109]: begin
-        reg_rdata_next[31:0] = cfg_set_partition44_high_qs;
-      end
-
-      addr_hit[110]: begin
-        reg_rdata_next[31:0] = cfg_set_partition45_low_qs;
-      end
-
-      addr_hit[111]: begin
-        reg_rdata_next[31:0] = cfg_set_partition45_high_qs;
-      end
-
-      addr_hit[112]: begin
-        reg_rdata_next[31:0] = cfg_set_partition46_low_qs;
-      end
-
-      addr_hit[113]: begin
-        reg_rdata_next[31:0] = cfg_set_partition46_high_qs;
-      end
-
-      addr_hit[114]: begin
-        reg_rdata_next[31:0] = cfg_set_partition47_low_qs;
-      end
-
-      addr_hit[115]: begin
-        reg_rdata_next[31:0] = cfg_set_partition47_high_qs;
-      end
-
-      addr_hit[116]: begin
-        reg_rdata_next[31:0] = cfg_set_partition48_low_qs;
-      end
-
-      addr_hit[117]: begin
-        reg_rdata_next[31:0] = cfg_set_partition48_high_qs;
-      end
-
-      addr_hit[118]: begin
-        reg_rdata_next[31:0] = cfg_set_partition49_low_qs;
-      end
-
-      addr_hit[119]: begin
-        reg_rdata_next[31:0] = cfg_set_partition49_high_qs;
-      end
-
-      addr_hit[120]: begin
-        reg_rdata_next[31:0] = cfg_set_partition50_low_qs;
-      end
-
-      addr_hit[121]: begin
-        reg_rdata_next[31:0] = cfg_set_partition50_high_qs;
-      end
-
-      addr_hit[122]: begin
-        reg_rdata_next[31:0] = cfg_set_partition51_low_qs;
-      end
-
-      addr_hit[123]: begin
-        reg_rdata_next[31:0] = cfg_set_partition51_high_qs;
-      end
-
-      addr_hit[124]: begin
-        reg_rdata_next[31:0] = cfg_set_partition52_low_qs;
-      end
-
-      addr_hit[125]: begin
-        reg_rdata_next[31:0] = cfg_set_partition52_high_qs;
-      end
-
-      addr_hit[126]: begin
-        reg_rdata_next[31:0] = cfg_set_partition53_low_qs;
-      end
-
-      addr_hit[127]: begin
-        reg_rdata_next[31:0] = cfg_set_partition53_high_qs;
-      end
-
-      addr_hit[128]: begin
-        reg_rdata_next[31:0] = cfg_set_partition54_low_qs;
-      end
-
-      addr_hit[129]: begin
-        reg_rdata_next[31:0] = cfg_set_partition54_high_qs;
-      end
-
-      addr_hit[130]: begin
-        reg_rdata_next[31:0] = cfg_set_partition55_low_qs;
-      end
-
-      addr_hit[131]: begin
-        reg_rdata_next[31:0] = cfg_set_partition55_high_qs;
-      end
-
-      addr_hit[132]: begin
-        reg_rdata_next[31:0] = cfg_set_partition56_low_qs;
-      end
-
-      addr_hit[133]: begin
-        reg_rdata_next[31:0] = cfg_set_partition56_high_qs;
-      end
-
-      addr_hit[134]: begin
-        reg_rdata_next[31:0] = cfg_set_partition57_low_qs;
-      end
-
-      addr_hit[135]: begin
-        reg_rdata_next[31:0] = cfg_set_partition57_high_qs;
-      end
-
-      addr_hit[136]: begin
-        reg_rdata_next[31:0] = cfg_set_partition58_low_qs;
-      end
-
-      addr_hit[137]: begin
-        reg_rdata_next[31:0] = cfg_set_partition58_high_qs;
-      end
-
-      addr_hit[138]: begin
-        reg_rdata_next[31:0] = cfg_set_partition59_low_qs;
-      end
-
-      addr_hit[139]: begin
-        reg_rdata_next[31:0] = cfg_set_partition59_high_qs;
-      end
-
-      addr_hit[140]: begin
-        reg_rdata_next[31:0] = cfg_set_partition60_low_qs;
-      end
-
-      addr_hit[141]: begin
-        reg_rdata_next[31:0] = cfg_set_partition60_high_qs;
-      end
-
-      addr_hit[142]: begin
-        reg_rdata_next[31:0] = cfg_set_partition61_low_qs;
-      end
-
-      addr_hit[143]: begin
-        reg_rdata_next[31:0] = cfg_set_partition61_high_qs;
-      end
-
-      addr_hit[144]: begin
-        reg_rdata_next[31:0] = cfg_set_partition62_low_qs;
-      end
-
-      addr_hit[145]: begin
-        reg_rdata_next[31:0] = cfg_set_partition62_high_qs;
-      end
-
-      addr_hit[146]: begin
-        reg_rdata_next[31:0] = cfg_set_partition63_low_qs;
-      end
-
-      addr_hit[147]: begin
-        reg_rdata_next[31:0] = cfg_set_partition63_high_qs;
-      end
-
-      addr_hit[148]: begin
-        reg_rdata_next[31:0] = cfg_set_partition64_low_qs;
-      end
-
-      addr_hit[149]: begin
-        reg_rdata_next[31:0] = cfg_set_partition64_high_qs;
-      end
-
-      addr_hit[150]: begin
-        reg_rdata_next[31:0] = cfg_set_partition65_low_qs;
-      end
-
-      addr_hit[151]: begin
-        reg_rdata_next[31:0] = cfg_set_partition65_high_qs;
-      end
-
-      addr_hit[152]: begin
-        reg_rdata_next[31:0] = cfg_set_partition66_low_qs;
-      end
-
-      addr_hit[153]: begin
-        reg_rdata_next[31:0] = cfg_set_partition66_high_qs;
-      end
-
-      addr_hit[154]: begin
-        reg_rdata_next[31:0] = cfg_set_partition67_low_qs;
-      end
-
-      addr_hit[155]: begin
-        reg_rdata_next[31:0] = cfg_set_partition67_high_qs;
-      end
-
-      addr_hit[156]: begin
-        reg_rdata_next[31:0] = cfg_set_partition68_low_qs;
-      end
-
-      addr_hit[157]: begin
-        reg_rdata_next[31:0] = cfg_set_partition68_high_qs;
-      end
-
-      addr_hit[158]: begin
-        reg_rdata_next[31:0] = cfg_set_partition69_low_qs;
-      end
-
-      addr_hit[159]: begin
-        reg_rdata_next[31:0] = cfg_set_partition69_high_qs;
-      end
-
-      addr_hit[160]: begin
-        reg_rdata_next[31:0] = cfg_set_partition70_low_qs;
-      end
-
-      addr_hit[161]: begin
-        reg_rdata_next[31:0] = cfg_set_partition70_high_qs;
-      end
-
-      addr_hit[162]: begin
-        reg_rdata_next[31:0] = cfg_set_partition71_low_qs;
-      end
-
-      addr_hit[163]: begin
-        reg_rdata_next[31:0] = cfg_set_partition71_high_qs;
-      end
-
-      addr_hit[164]: begin
-        reg_rdata_next[31:0] = cfg_set_partition72_low_qs;
-      end
-
-      addr_hit[165]: begin
-        reg_rdata_next[31:0] = cfg_set_partition72_high_qs;
-      end
-
-      addr_hit[166]: begin
-        reg_rdata_next[31:0] = cfg_set_partition73_low_qs;
-      end
-
-      addr_hit[167]: begin
-        reg_rdata_next[31:0] = cfg_set_partition73_high_qs;
-      end
-
-      addr_hit[168]: begin
+      addr_hit[76]: begin
         reg_rdata_next[0] = commit_cfg_qs;
       end
 
-      addr_hit[169]: begin
+      addr_hit[77]: begin
         reg_rdata_next[0] = commit_partition_cfg_qs;
       end
 
-      addr_hit[170]: begin
+      addr_hit[78]: begin
         reg_rdata_next[31:0] = flushed_low_qs;
       end
 
-      addr_hit[171]: begin
+      addr_hit[79]: begin
         reg_rdata_next[31:0] = flushed_high_qs;
       end
 
-      addr_hit[172]: begin
+      addr_hit[80]: begin
         reg_rdata_next[31:0] = bist_out_low_qs;
       end
 
-      addr_hit[173]: begin
+      addr_hit[81]: begin
         reg_rdata_next[31:0] = bist_out_high_qs;
       end
 
-      addr_hit[174]: begin
+      addr_hit[82]: begin
         reg_rdata_next[31:0] = set_asso_low_qs;
       end
 
-      addr_hit[175]: begin
+      addr_hit[83]: begin
         reg_rdata_next[31:0] = set_asso_high_qs;
       end
 
-      addr_hit[176]: begin
+      addr_hit[84]: begin
         reg_rdata_next[31:0] = num_lines_low_qs;
       end
 
-      addr_hit[177]: begin
+      addr_hit[85]: begin
         reg_rdata_next[31:0] = num_lines_high_qs;
       end
 
-      addr_hit[178]: begin
+      addr_hit[86]: begin
         reg_rdata_next[31:0] = num_blocks_low_qs;
       end
 
-      addr_hit[179]: begin
+      addr_hit[87]: begin
         reg_rdata_next[31:0] = num_blocks_high_qs;
       end
 
-      addr_hit[180]: begin
+      addr_hit[88]: begin
         reg_rdata_next[31:0] = version_low_qs;
       end
 
-      addr_hit[181]: begin
+      addr_hit[89]: begin
         reg_rdata_next[31:0] = version_high_qs;
       end
 
-      addr_hit[182]: begin
+      addr_hit[90]: begin
         reg_rdata_next[0] = bist_status_qs;
       end
 
-      addr_hit[183]: begin
+      addr_hit[91]: begin
         reg_rdata_next[31:0] = flushed_set0_low_qs;
       end
 
-      addr_hit[184]: begin
+      addr_hit[92]: begin
         reg_rdata_next[31:0] = flushed_set0_high_qs;
       end
 
-      addr_hit[185]: begin
+      addr_hit[93]: begin
         reg_rdata_next[31:0] = flushed_set1_low_qs;
       end
 
-      addr_hit[186]: begin
+      addr_hit[94]: begin
         reg_rdata_next[31:0] = flushed_set1_high_qs;
       end
 
-      addr_hit[187]: begin
+      addr_hit[95]: begin
         reg_rdata_next[31:0] = flushed_set2_low_qs;
       end
 
-      addr_hit[188]: begin
+      addr_hit[96]: begin
         reg_rdata_next[31:0] = flushed_set2_high_qs;
       end
 
-      addr_hit[189]: begin
+      addr_hit[97]: begin
         reg_rdata_next[31:0] = flushed_set3_low_qs;
       end
 
-      addr_hit[190]: begin
+      addr_hit[98]: begin
         reg_rdata_next[31:0] = flushed_set3_high_qs;
-      end
-
-      addr_hit[191]: begin
-        reg_rdata_next[31:0] = flushed_set4_low_qs;
-      end
-
-      addr_hit[192]: begin
-        reg_rdata_next[31:0] = flushed_set4_high_qs;
-      end
-
-      addr_hit[193]: begin
-        reg_rdata_next[31:0] = flushed_set5_low_qs;
-      end
-
-      addr_hit[194]: begin
-        reg_rdata_next[31:0] = flushed_set5_high_qs;
-      end
-
-      addr_hit[195]: begin
-        reg_rdata_next[31:0] = flushed_set6_low_qs;
-      end
-
-      addr_hit[196]: begin
-        reg_rdata_next[31:0] = flushed_set6_high_qs;
-      end
-
-      addr_hit[197]: begin
-        reg_rdata_next[31:0] = flushed_set7_low_qs;
-      end
-
-      addr_hit[198]: begin
-        reg_rdata_next[31:0] = flushed_set7_high_qs;
       end
 
       default: begin

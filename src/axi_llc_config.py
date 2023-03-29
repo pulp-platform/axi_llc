@@ -14,7 +14,7 @@ valid_reg_bit = math.floor(RegWidth / IndexLength) * IndexLength
 print(f'Each configration register can hold {math.floor(RegWidth / IndexLength)} partition sizes')
 print(f'Number of valid bits in set partition configuration register is : {valid_reg_bit}')
 
-with open('axi_llc_config.sv', 'w') as f:
+with open('src/axi_llc_config.sv', 'w') as f:
     f.write(f'''// Copyright 2022 ETH Zurich and University of Bologna.
 // Solderpad Hardware License, Version 0.51, see LICENSE for details.
 // SPDX-License-Identifier: SHL-0.51
@@ -327,7 +327,7 @@ module axi_llc_config #(
   ////////////////////////
   // local address maps for bypass 1:Bypass 0:LLC
   rule_full_t [1:0] axi_addr_map_ar, axi_addr_map_aw;
-  localparam int unsigned num_set_flush_reg = $ceil(Cfg.NumLines / RegWidth);
+  localparam int unsigned num_set_flush_reg = ((Cfg.NumLines/RegWidth)==0) ? 1 : $ceil(Cfg.NumLines / RegWidth);
   localparam int unsigned flushed_set_length = num_set_flush_reg * RegWidth;
   logic       [flushed_set_length-1:0] conf_regs_i_flushed_set;
   logic       [flushed_set_length-1:0] conf_regs_i_cfg_flush_set;
@@ -354,8 +354,7 @@ module axi_llc_config #(
 
     f.write(f'''// If the user set the flush bit position of conf_regs_i.flushed_set* which is beyond the number of cache lines, those bits are ignored
   always_comb begin
-    mask_flush_set = 0;
-    mask_flush_set |= {{Cfg.NumLines{{1'b1}}}};
+    mask_flush_set = {{Cfg.NumLines{{1'b1}}}};
   end
   assign conf_regs_i_flushed_set = raw_flushed_set & mask_flush_set;
   assign conf_regs_i_cfg_flush_set = raw_cfg_flush_set & mask_flush_set;
@@ -532,7 +531,7 @@ module axi_llc_config #(
   assign conf_regs_o.num_blocks_en  = 1'b1;
   assign conf_regs_o.version_en     = 1'b1;
 
-  set_t conf_regs_o_flushed_set;
+  logic [flushed_set_length-1:0] conf_regs_o_flushed_set;
 
   always_comb begin : proc_axi_llc_cfg
     // Default assignments

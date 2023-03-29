@@ -12,17 +12,17 @@ module tb_axi_llc #(
   /// Set Associativity of the LLC
   parameter int unsigned TbSetAssociativity = 32'd8,
   /// Number of cache lines of the LLC
-  parameter int unsigned TbNumLines         = 32'd256, // must be 256 currently
+  parameter int unsigned TbNumLines         = 32'd512, // must be 256 currently
   /// Number of Blocks per cache line
   parameter int unsigned TbNumBlocks        = 32'd8,
   /// Max. number of threads supported for partitioning
-  parameter int unsigned TbMaxThread        = 32'd256,
+  parameter int unsigned TbMaxThread        = 32'd512,
   /// ID width of the Full AXI slave port, master port has ID `AxiIdWidthFull + 32'd1`
   parameter int unsigned TbAxiIdWidthFull   = 32'd6,
   /// Address width of the full AXI bus
-  parameter int unsigned TbAxiAddrWidthFull = 32'd48,
+  parameter int unsigned TbAxiAddrWidthFull = 32'd32,
   /// Data width of the full AXI bus
-  parameter int unsigned TbAxiDataWidthFull = 32'd64,
+  parameter int unsigned TbAxiDataWidthFull = 32'd128,
   /// Width of the Registers
   parameter int unsigned TbRegWidth         = 32'd64,
   /// Number of random write transactions in a testblock.
@@ -145,95 +145,194 @@ module tb_axi_llc #(
     CfgFlushSet2High = 32'h24,
     CfgFlushSet3Low  = 32'h28,
     CfgFlushSet3High = 32'h2c,
-    CfgSetPartition0Low = 32'h30,
-    CfgSetPartition0High = 32'h34,
-    CfgSetPartition1Low = 32'h38,
-    CfgSetPartition1High = 32'h3c,
-    CfgSetPartition2Low = 32'h40,
-    CfgSetPartition2High = 32'h44,
-    CfgSetPartition3Low = 32'h48,
-    CfgSetPartition3High = 32'h4c,
-    CfgSetPartition4Low = 32'h50,
-    CfgSetPartition4High = 32'h54,
-    CfgSetPartition5Low = 32'h58,
-    CfgSetPartition5High = 32'h5c,
-    CfgSetPartition6Low = 32'h60,
-    CfgSetPartition6High = 32'h64,
-    CfgSetPartition7Low = 32'h68,
-    CfgSetPartition7High = 32'h6c,
-    CfgSetPartition8Low = 32'h70,
-    CfgSetPartition8High = 32'h74,
-    CfgSetPartition9Low = 32'h78,
-    CfgSetPartition9High = 32'h7c,
-    CfgSetPartition10Low = 32'h80,
-    CfgSetPartition10High = 32'h84,
-    CfgSetPartition11Low = 32'h88,
-    CfgSetPartition11High = 32'h8c,
-    CfgSetPartition12Low = 32'h90,
-    CfgSetPartition12High = 32'h94,
-    CfgSetPartition13Low = 32'h98,
-    CfgSetPartition13High = 32'h9c,
-    CfgSetPartition14Low = 32'ha0,
-    CfgSetPartition14High = 32'ha4,
-    CfgSetPartition15Low = 32'ha8,
-    CfgSetPartition15High = 32'hac,
-    CfgSetPartition16Low = 32'hb0,
-    CfgSetPartition16High = 32'hb4,
-    CfgSetPartition17Low = 32'hb8,
-    CfgSetPartition17High = 32'hbc,
-    CfgSetPartition18Low = 32'hc0,
-    CfgSetPartition18High = 32'hc4,
-    CfgSetPartition19Low = 32'hc8,
-    CfgSetPartition19High = 32'hcc,
-    CfgSetPartition20Low = 32'hd0,
-    CfgSetPartition20High = 32'hd4,
-    CfgSetPartition21Low = 32'hd8,
-    CfgSetPartition21High = 32'hdc,
-    CfgSetPartition22Low = 32'he0,
-    CfgSetPartition22High = 32'he4,
-    CfgSetPartition23Low = 32'he8,
-    CfgSetPartition23High = 32'hec,
-    CfgSetPartition24Low = 32'hf0,
-    CfgSetPartition24High = 32'hf4,
-    CfgSetPartition25Low = 32'hf8,
-    CfgSetPartition25High = 32'hfc,
-    CfgSetPartition26Low = 32'h100,
-    CfgSetPartition26High = 32'h104,
-    CfgSetPartition27Low = 32'h108,
-    CfgSetPartition27High = 32'h10c,
-    CfgSetPartition28Low = 32'h110,
-    CfgSetPartition28High = 32'h114,
-    CfgSetPartition29Low = 32'h118,
-    CfgSetPartition29High = 32'h11c,
-    CfgSetPartition30Low = 32'h120,
-    CfgSetPartition30High = 32'h124,
-    CfgSetPartition31Low = 32'h128,
-    CfgSetPartition31High = 32'h12c,
-    CommitCfg     = 32'h130,
-    CommitPadding = 32'h134,
-    CommitPartitionCfg     = 32'h138,
-    CommitPartitionPadding = 32'h13c,
-    FlushedLow    = 32'h140,
-    FlushedHigh   = 32'h144,
-    BistOutLow    = 32'h148,
-    BistOutHigh   = 32'h14c,
-    SetAssoLow    = 32'h150,
-    SetAssoHigh   = 32'h154,
-    NumLinesLow   = 32'h158,
-    NumLinesHigh  = 32'h15c,
-    NumBlocksLow  = 32'h160,
-    NumBlocksHigh = 32'h164,
-    VersionLow    = 32'h168,
-    VersionHigh   = 32'h16c,
-    BistStatus    = 32'h170,
-    FlushedSet0Low  = 32'h174,
-    FlushedSet0High  = 32'h178,
-    FlushedSet1Low  = 32'h17c,
-    FlushedSet1High  = 32'h180,
-    FlushedSet2Low  = 32'h184,
-    FlushedSet2High  = 32'h188,
-    FlushedSet3Low  = 32'h18c,
-    FlushedSet3High  = 32'h190
+    CfgFlushSet4Low  = 32'h30,
+    CfgFlushSet4High = 32'h34,
+    CfgFlushSet5Low  = 32'h38,
+    CfgFlushSet5High = 32'h3c,
+    CfgFlushSet6Low  = 32'h40,
+    CfgFlushSet6High = 32'h44,
+    CfgFlushSet7Low  = 32'h48,
+    CfgFlushSet7High = 32'h4c,
+    CfgSetPartition0Low = 32'h50,
+    CfgSetPartition0High = 32'h54,
+    CfgSetPartition1Low = 32'h58,
+    CfgSetPartition1High = 32'h5c,
+    CfgSetPartition2Low = 32'h60,
+    CfgSetPartition2High = 32'h64,
+    CfgSetPartition3Low = 32'h68,
+    CfgSetPartition3High = 32'h6c,
+    CfgSetPartition4Low = 32'h70,
+    CfgSetPartition4High = 32'h74,
+    CfgSetPartition5Low = 32'h78,
+    CfgSetPartition5High = 32'h7c,
+    CfgSetPartition6Low = 32'h80,
+    CfgSetPartition6High = 32'h84,
+    CfgSetPartition7Low = 32'h88,
+    CfgSetPartition7High = 32'h8c,
+    CfgSetPartition8Low = 32'h90,
+    CfgSetPartition8High = 32'h94,
+    CfgSetPartition9Low = 32'h98,
+    CfgSetPartition9High = 32'h9c,
+    CfgSetPartition10Low = 32'ha0,
+    CfgSetPartition10High = 32'ha4,
+    CfgSetPartition11Low = 32'ha8,
+    CfgSetPartition11High = 32'hac,
+    CfgSetPartition12Low = 32'hb0,
+    CfgSetPartition12High = 32'hb4,
+    CfgSetPartition13Low = 32'hb8,
+    CfgSetPartition13High = 32'hbc,
+    CfgSetPartition14Low = 32'hc0,
+    CfgSetPartition14High = 32'hc4,
+    CfgSetPartition15Low = 32'hc8,
+    CfgSetPartition15High = 32'hcc,
+    CfgSetPartition16Low = 32'hd0,
+    CfgSetPartition16High = 32'hd4,
+    CfgSetPartition17Low = 32'hd8,
+    CfgSetPartition17High = 32'hdc,
+    CfgSetPartition18Low = 32'he0,
+    CfgSetPartition18High = 32'he4,
+    CfgSetPartition19Low = 32'he8,
+    CfgSetPartition19High = 32'hec,
+    CfgSetPartition20Low = 32'hf0,
+    CfgSetPartition20High = 32'hf4,
+    CfgSetPartition21Low = 32'hf8,
+    CfgSetPartition21High = 32'hfc,
+    CfgSetPartition22Low = 32'h100,
+    CfgSetPartition22High = 32'h104,
+    CfgSetPartition23Low = 32'h108,
+    CfgSetPartition23High = 32'h10c,
+    CfgSetPartition24Low = 32'h110,
+    CfgSetPartition24High = 32'h114,
+    CfgSetPartition25Low = 32'h118,
+    CfgSetPartition25High = 32'h11c,
+    CfgSetPartition26Low = 32'h120,
+    CfgSetPartition26High = 32'h124,
+    CfgSetPartition27Low = 32'h128,
+    CfgSetPartition27High = 32'h12c,
+    CfgSetPartition28Low = 32'h130,
+    CfgSetPartition28High = 32'h134,
+    CfgSetPartition29Low = 32'h138,
+    CfgSetPartition29High = 32'h13c,
+    CfgSetPartition30Low = 32'h140,
+    CfgSetPartition30High = 32'h144,
+    CfgSetPartition31Low = 32'h148,
+    CfgSetPartition31High = 32'h14c,
+    CfgSetPartition32Low = 32'h150,
+    CfgSetPartition32High = 32'h154,
+    CfgSetPartition33Low = 32'h158,
+    CfgSetPartition33High = 32'h15c,
+    CfgSetPartition34Low = 32'h160,
+    CfgSetPartition34High = 32'h164,
+    CfgSetPartition35Low = 32'h168,
+    CfgSetPartition35High = 32'h16c,
+    CfgSetPartition36Low = 32'h170,
+    CfgSetPartition36High = 32'h174,
+    CfgSetPartition37Low = 32'h178,
+    CfgSetPartition37High = 32'h17c,
+    CfgSetPartition38Low = 32'h180,
+    CfgSetPartition38High = 32'h184,
+    CfgSetPartition39Low = 32'h188,
+    CfgSetPartition39High = 32'h18c,
+    CfgSetPartition40Low = 32'h190,
+    CfgSetPartition40High = 32'h194,
+    CfgSetPartition41Low = 32'h198,
+    CfgSetPartition41High = 32'h19c,
+    CfgSetPartition42Low = 32'h1a0,
+    CfgSetPartition42High = 32'h1a4,
+    CfgSetPartition43Low = 32'h1a8,
+    CfgSetPartition43High = 32'h1ac,
+    CfgSetPartition44Low = 32'h1b0,
+    CfgSetPartition44High = 32'h1b4,
+    CfgSetPartition45Low = 32'h1b8,
+    CfgSetPartition45High = 32'h1bc,
+    CfgSetPartition46Low = 32'h1c0,
+    CfgSetPartition46High = 32'h1c4,
+    CfgSetPartition47Low = 32'h1c8,
+    CfgSetPartition47High = 32'h1cc,
+    CfgSetPartition48Low = 32'h1d0,
+    CfgSetPartition48High = 32'h1d4,
+    CfgSetPartition49Low = 32'h1d8,
+    CfgSetPartition49High = 32'h1dc,
+    CfgSetPartition50Low = 32'h1e0,
+    CfgSetPartition50High = 32'h1e4,
+    CfgSetPartition51Low = 32'h1e8,
+    CfgSetPartition51High = 32'h1ec,
+    CfgSetPartition52Low = 32'h1f0,
+    CfgSetPartition52High = 32'h1f4,
+    CfgSetPartition53Low = 32'h1f8,
+    CfgSetPartition53High = 32'h1fc,
+    CfgSetPartition54Low = 32'h200,
+    CfgSetPartition54High = 32'h204,
+    CfgSetPartition55Low = 32'h208,
+    CfgSetPartition55High = 32'h20c,
+    CfgSetPartition56Low = 32'h210,
+    CfgSetPartition56High = 32'h214,
+    CfgSetPartition57Low = 32'h218,
+    CfgSetPartition57High = 32'h21c,
+    CfgSetPartition58Low = 32'h220,
+    CfgSetPartition58High = 32'h224,
+    CfgSetPartition59Low = 32'h228,
+    CfgSetPartition59High = 32'h22c,
+    CfgSetPartition60Low = 32'h230,
+    CfgSetPartition60High = 32'h234,
+    CfgSetPartition61Low = 32'h238,
+    CfgSetPartition61High = 32'h23c,
+    CfgSetPartition62Low = 32'h240,
+    CfgSetPartition62High = 32'h244,
+    CfgSetPartition63Low = 32'h248,
+    CfgSetPartition63High = 32'h24c,
+    CfgSetPartition64Low = 32'h250,
+    CfgSetPartition64High = 32'h254,
+    CfgSetPartition65Low = 32'h258,
+    CfgSetPartition65High = 32'h25c,
+    CfgSetPartition66Low = 32'h260,
+    CfgSetPartition66High = 32'h264,
+    CfgSetPartition67Low = 32'h268,
+    CfgSetPartition67High = 32'h26c,
+    CfgSetPartition68Low = 32'h270,
+    CfgSetPartition68High = 32'h274,
+    CfgSetPartition69Low = 32'h278,
+    CfgSetPartition69High = 32'h27c,
+    CfgSetPartition70Low = 32'h280,
+    CfgSetPartition70High = 32'h284,
+    CfgSetPartition71Low = 32'h288,
+    CfgSetPartition71High = 32'h28c,
+    CfgSetPartition72Low = 32'h290,
+    CfgSetPartition72High = 32'h294,
+    CfgSetPartition73Low = 32'h298,
+    CfgSetPartition73High = 32'h29c,
+    CommitCfg     = 32'h2a0,
+    CommitPadding = 32'h2a4,
+    CommitPartitionCfg     = 32'h2a8,
+    CommitPartitionPadding = 32'h2ac,
+    FlushedLow    = 32'h2b0,
+    FlushedHigh   = 32'h2b4,
+    BistOutLow    = 32'h2b8,
+    BistOutHigh   = 32'h2bc,
+    SetAssoLow    = 32'h2c0,
+    SetAssoHigh   = 32'h2c4,
+    NumLinesLow   = 32'h2c8,
+    NumLinesHigh  = 32'h2cc,
+    NumBlocksLow  = 32'h2d0,
+    NumBlocksHigh = 32'h2d4,
+    VersionLow    = 32'h2d8,
+    VersionHigh   = 32'h2dc,
+    FlushedSet0Low  = 32'h2e0,
+    FlushedSet0High  = 32'h2e4,
+    FlushedSet1Low  = 32'h2e8,
+    FlushedSet1High  = 32'h2ec,
+    FlushedSet2Low  = 32'h2f0,
+    FlushedSet2High  = 32'h2f4,
+    FlushedSet3Low  = 32'h2f8,
+    FlushedSet3High  = 32'h2fc,
+    FlushedSet4Low  = 32'h300,
+    FlushedSet4High  = 32'h304,
+    FlushedSet5Low  = 32'h308,
+    FlushedSet5High  = 32'h30c,
+    FlushedSet6Low  = 32'h310,
+    FlushedSet6High  = 32'h314,
+    FlushedSet7Low  = 32'h318,
+    FlushedSet7High  = 32'h31c
   } llc_cfg_addr_e;
 
   ////////////////////////////////
@@ -436,14 +535,12 @@ module tb_axi_llc #(
     enable_counters = 1'b1;
     enable_progress = 1'b1;
 
-    $info("Wait for BIST to complete.");
-    do begin
-      reg_conf_driver.send_read(BistStatus, cfg_data, cfg_error);
-      // $display("%x", cfg_data);
-    end while (cfg_data[0] === 1'b0);
-    $info("BIST completed.");
+    if ( TbNumLines != 32'd256) begin
+      $error("!!! Number of cache lines must be 256 currently !!!");
+    end
 
     $info("Read all Cfg registers.");
+/********************************************     SET BASED CACHE PARTITIONING     ********************************************/
     reg_conf_driver.send_read(CfgSpmLow,      cfg_data, cfg_error);
     reg_conf_driver.send_read(CfgSpmHigh,     cfg_data, cfg_error);
     reg_conf_driver.send_read(CfgFlushLow,    cfg_data, cfg_error);
@@ -461,7 +558,6 @@ module tb_axi_llc #(
     reg_conf_driver.send_read(FlushedHigh,    cfg_data, cfg_error);
     reg_conf_driver.send_read(BistOutLow,     cfg_data, cfg_error);
     reg_conf_driver.send_read(BistOutHigh,    cfg_data, cfg_error);
-    reg_conf_driver.send_read(BistStatus,     cfg_data, cfg_error);
     reg_conf_driver.send_read(SetAssoLow,     cfg_data, cfg_error);
     reg_conf_driver.send_read(SetAssoHigh,    cfg_data, cfg_error);
     reg_conf_driver.send_read(NumLinesLow,    cfg_data, cfg_error);
@@ -478,6 +574,7 @@ module tb_axi_llc #(
     reg_conf_driver.send_read(FlushedSet2High,    cfg_data, cfg_error);
     reg_conf_driver.send_read(FlushedSet3Low,     cfg_data, cfg_error);
     reg_conf_driver.send_read(FlushedSet3High,    cfg_data, cfg_error);
+/******************************************************************************************************************************/
 
     $info("Configure set-based cache partitioning");
     cache_partition(reg_conf_driver);
@@ -623,8 +720,8 @@ module tb_axi_llc #(
 
     print_perf_couters();
 
-    flush_all(reg_conf_driver);
-    // flush_all_set(reg_conf_driver);
+    // flush_all(reg_conf_driver);
+    flush_all_set(reg_conf_driver);
     compare_mems(cpu_scoreboard, mem_scoreboard);
     clear_spm_cpu(cpu_scoreboard);
 
@@ -708,6 +805,14 @@ module tb_axi_llc #(
     reg_conf_driver.send_write(CfgFlushSet2High, data[63:32], 4'hF, cfg_error);
     reg_conf_driver.send_write(CfgFlushSet3Low, data[31:0], 4'hF, cfg_error);
     reg_conf_driver.send_write(CfgFlushSet3High, data[63:32], 4'hF, cfg_error);
+    reg_conf_driver.send_write(CfgFlushSet4Low, data[31:0], 4'hF, cfg_error);
+    reg_conf_driver.send_write(CfgFlushSet4High, data[63:32], 4'hF, cfg_error);
+    reg_conf_driver.send_write(CfgFlushSet5Low, data[31:0], 4'hF, cfg_error);
+    reg_conf_driver.send_write(CfgFlushSet5High, data[63:32], 4'hF, cfg_error);
+    reg_conf_driver.send_write(CfgFlushSet6Low, data[31:0], 4'hF, cfg_error);
+    reg_conf_driver.send_write(CfgFlushSet6High, data[63:32], 4'hF, cfg_error);
+    reg_conf_driver.send_write(CfgFlushSet7Low, data[31:0], 4'hF, cfg_error);
+    reg_conf_driver.send_write(CfgFlushSet7High, data[63:32], 4'hF, cfg_error);
 /******************************************************************************************************************************/
 
     data  = 64'd1;
@@ -724,7 +829,16 @@ module tb_axi_llc #(
       reg_conf_driver.send_read(CfgFlushSet2High, rdata2_high, cfg_error);
       reg_conf_driver.send_read(CfgFlushSet3Low, rdata3_low, cfg_error);
       reg_conf_driver.send_read(CfgFlushSet3High, rdata3_high, cfg_error);
-      data_set = {rdata3_high, rdata3_low, rdata2_high, rdata2_low, rdata1_high, rdata1_low, rdata0_high, rdata0_low};
+      reg_conf_driver.send_read(CfgFlushSet4Low, rdata4_low, cfg_error);
+      reg_conf_driver.send_read(CfgFlushSet4High, rdata4_high, cfg_error);
+      reg_conf_driver.send_read(CfgFlushSet5Low, rdata5_low, cfg_error);
+      reg_conf_driver.send_read(CfgFlushSet5High, rdata5_high, cfg_error);
+      reg_conf_driver.send_read(CfgFlushSet6Low, rdata6_low, cfg_error);
+      reg_conf_driver.send_read(CfgFlushSet6High, rdata6_high, cfg_error);
+      reg_conf_driver.send_read(CfgFlushSet7Low, rdata7_low, cfg_error);
+      reg_conf_driver.send_read(CfgFlushSet7High, rdata7_high, cfg_error);
+      data_set = {rdata7_high, rdata7_low, rdata6_high, rdata6_low, rdata5_high, rdata5_low, rdata4_high, rdata4_low, 
+                  rdata3_high, rdata3_low, rdata2_high, rdata2_low, rdata1_high, rdata1_low, rdata0_high, rdata0_low};
 /******************************************************************************************************************************/
       repeat (5000) @(posedge clk);
     end
@@ -733,18 +847,19 @@ module tb_axi_llc #(
 
   task cache_partition(regbus_conf_driver_t reg_conf_driver);
     automatic logic       cfg_error;
-    automatic logic[61:0] data0 = {62{1'b0}};
-    automatic logic[1:0]  data1 = {2{1'b1}};
-    automatic logic[63:0] data = {data0,data1};
+    automatic logic[51:0] data0 = {52{1'b0}};
+    automatic logic[3:0]  data1 = {4{1'b1}};
+    automatic logic[63:0] data = {4'b0,data1,data0,data1};
     automatic logic[63:0] zeros = 64'b0;
     // automatic logic[31:0] rdata0_low, rdata1_low, rdata2_low, rdata3_low;
     // automatic logic[31:0] rdata0_high, rdata1_high, rdata2_high, rdata3_high;
     // automatic logic[255:0] data_set = {256{1'b1}};
     $info("Configuring set-based cache partitioning!");
+/********************************************     SET BASED CACHE PARTITIONING     ********************************************/
     reg_conf_driver.send_write(CfgSetPartition0Low, data[31:0], 4'hF, cfg_error);
     reg_conf_driver.send_write(CfgSetPartition0High, data[63:32], 4'hF, cfg_error);
-    reg_conf_driver.send_write(CfgSetPartition1Low, data[31:0], 4'hF, cfg_error);
-    reg_conf_driver.send_write(CfgSetPartition1High, data[63:32], 4'hF, cfg_error);
+    reg_conf_driver.send_write(CfgSetPartition1Low, zeros[31:0], 4'hF, cfg_error);
+    reg_conf_driver.send_write(CfgSetPartition1High, zeros[63:32], 4'hF, cfg_error);
     reg_conf_driver.send_write(CfgSetPartition2Low, zeros[31:0], 4'hF, cfg_error);
     reg_conf_driver.send_write(CfgSetPartition2High, zeros[63:32], 4'hF, cfg_error);
     reg_conf_driver.send_write(CfgSetPartition3Low, zeros[31:0], 4'hF, cfg_error);
@@ -765,8 +880,8 @@ module tb_axi_llc #(
     reg_conf_driver.send_write(CfgSetPartition10High, zeros[63:32], 4'hF, cfg_error);
     reg_conf_driver.send_write(CfgSetPartition11Low, zeros[31:0], 4'hF, cfg_error);
     reg_conf_driver.send_write(CfgSetPartition11High, zeros[63:32], 4'hF, cfg_error);
-    reg_conf_driver.send_write(CfgSetPartition12Low, zeros[31:0], 4'hF, cfg_error);
-    reg_conf_driver.send_write(CfgSetPartition12High, zeros[63:32], 4'hF, cfg_error);
+    reg_conf_driver.send_write(CfgSetPartition12Low, data[31:0], 4'hF, cfg_error);
+    reg_conf_driver.send_write(CfgSetPartition12High, data[63:32], 4'hF, cfg_error);
     reg_conf_driver.send_write(CfgSetPartition13Low, zeros[31:0], 4'hF, cfg_error);
     reg_conf_driver.send_write(CfgSetPartition13High, zeros[63:32], 4'hF, cfg_error);
     reg_conf_driver.send_write(CfgSetPartition14Low, zeros[31:0], 4'hF, cfg_error);
@@ -791,20 +906,23 @@ module tb_axi_llc #(
     reg_conf_driver.send_write(CfgSetPartition23High, zeros[63:32], 4'hF, cfg_error);
     reg_conf_driver.send_write(CfgSetPartition24Low, zeros[31:0], 4'hF, cfg_error);
     reg_conf_driver.send_write(CfgSetPartition24High, zeros[63:32], 4'hF, cfg_error);
-    reg_conf_driver.send_write(CfgSetPartition25Low, 32'b00000010_00001010_00000011_00000010, 4'hF, cfg_error);
-    reg_conf_driver.send_write(CfgSetPartition25High, 32'b00000010_00001010_00000011_00000010, 4'hF, cfg_error);
-    reg_conf_driver.send_write(CfgSetPartition26Low, 32'b00000010_00001010_00000011_00000010, 4'hF, cfg_error);
-    reg_conf_driver.send_write(CfgSetPartition26High, 32'b00000010_00001010_00000011_00000010, 4'hF, cfg_error);
+    reg_conf_driver.send_write(CfgSetPartition25Low, zeros[31:0], 4'hF, cfg_error);
+    reg_conf_driver.send_write(CfgSetPartition25High, zeros[63:32], 4'hF, cfg_error);
+    reg_conf_driver.send_write(CfgSetPartition26Low, zeros[31:0], 4'hF, cfg_error);
+    reg_conf_driver.send_write(CfgSetPartition26High, zeros[63:32], 4'hF, cfg_error);
     reg_conf_driver.send_write(CfgSetPartition27Low, zeros[31:0], 4'hF, cfg_error);
     reg_conf_driver.send_write(CfgSetPartition27High, zeros[63:32], 4'hF, cfg_error);
-    reg_conf_driver.send_write(CfgSetPartition28Low, zeros[31:0], 4'hF, cfg_error);
-    reg_conf_driver.send_write(CfgSetPartition28High, zeros[63:32], 4'hF, cfg_error);
-    reg_conf_driver.send_write(CfgSetPartition29Low, zeros[31:0], 4'hF, cfg_error);
-    reg_conf_driver.send_write(CfgSetPartition29High, zeros[63:32], 4'hF, cfg_error);
-    reg_conf_driver.send_write(CfgSetPartition30Low, zeros[31:0], 4'hF, cfg_error);
-    reg_conf_driver.send_write(CfgSetPartition30High, zeros[63:32], 4'hF, cfg_error);
+    reg_conf_driver.send_write(CfgSetPartition28Low, data[31:0], 4'hF, cfg_error);
+    reg_conf_driver.send_write(CfgSetPartition28High, data[63:32], 4'hF, cfg_error);
+    reg_conf_driver.send_write(CfgSetPartition29Low, data[31:0], 4'hF, cfg_error);
+    reg_conf_driver.send_write(CfgSetPartition29High, data[63:32], 4'hF, cfg_error);
+    reg_conf_driver.send_write(CfgSetPartition30Low, data[31:0], 4'hF, cfg_error);
+    reg_conf_driver.send_write(CfgSetPartition30High, data[63:32], 4'hF, cfg_error);
     reg_conf_driver.send_write(CfgSetPartition31Low, data[31:0], 4'hF, cfg_error);
     reg_conf_driver.send_write(CfgSetPartition31High, data[63:32], 4'hF, cfg_error);
+    reg_conf_driver.send_write(CfgSetPartition73Low, zeros[31:0], 4'hF, cfg_error);
+    reg_conf_driver.send_write(CfgSetPartition73High, data[63:32], 4'hF, cfg_error);
+/******************************************************************************************************************************/
     data  = 64'd1;
     reg_conf_driver.send_write(CommitPartitionCfg, data[31:0], 4'hF, cfg_error);
     $info("Finished partition configuration!");

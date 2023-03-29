@@ -6,8 +6,10 @@
 // - Wolfgang Roenninger <wroennin@iis.ee.ethz.ch>
 // - Nicole Narr <narrn@ethz.ch>
 // - Christopher Reinwardt <creinwar@ethz.ch>
+// - Hong Pang <hongpang@ethz.ch>
+// - Diyou Shen <dishen@ethz.ch>
 // Date:   17.06.2019
-// Last changed: 17.11.2022
+// Last changed: 03.04.2023
 
 /// # Configuration of `axi_llc`
 ///
@@ -105,16 +107,6 @@
 /// | `[SetAssociativity-1]`  | `1'b0`      | BIST Error Set-X |
 ///
 ///
-/// ### BistStatus
-///
-/// Status of the BIST
-///
-/// Register Bit Map:
-/// | Bits                    | Reset Value | Function         |
-/// |:-----------------------:|:-----------:|:----------------:|
-/// | `[0]`                   | `1'b0`      | BIST Done Flag   |
-///
-///
 /// ### SetAsso
 ///
 /// Register showing the instantiated cache set-associativity.
@@ -197,9 +189,7 @@ module axi_llc_config #(
   parameter type addr_full_t = logic,
   parameter type thread_id_t = logic,
   /// Type for partition table
-  parameter type partition_table_t = logic,
-  /// Whether to print config of LLC
-  parameter bit  PrintLlcCfg = 0
+  parameter type partition_table_t = logic
 ) (
   /// Rising-edge clock
   input logic clk_i,
@@ -320,7 +310,7 @@ module axi_llc_config #(
   ////////////////////////
   // local address maps for bypass 1:Bypass 0:LLC
   rule_full_t [1:0] axi_addr_map_ar, axi_addr_map_aw;
-  localparam int unsigned num_set_flush_reg = $ceil(Cfg.NumLines / RegWidth);
+  localparam int unsigned num_set_flush_reg = ((Cfg.NumLines/RegWidth)==0) ? 1 : $ceil(Cfg.NumLines / RegWidth);
   localparam int unsigned flushed_set_length = num_set_flush_reg * RegWidth;
   logic       [flushed_set_length-1:0] conf_regs_i_flushed_set;
   logic       [flushed_set_length-1:0] conf_regs_i_cfg_flush_set;
@@ -328,27 +318,18 @@ module axi_llc_config #(
   assign num_unvalid_bit_flush_set = flushed_set_length - Cfg.NumLines;
   logic       [flushed_set_length-1:0] raw_cfg_flush_set, raw_flushed_set, mask_flush_set;
 /********************************************     SET BASED CACHE PARTITIONING     ********************************************/
-  assign raw_flushed_set = {conf_regs_i.flushed_set7,
-                            conf_regs_i.flushed_set6,
-                            conf_regs_i.flushed_set5,
-                            conf_regs_i.flushed_set4,
-                            conf_regs_i.flushed_set3,
+  assign raw_flushed_set = {conf_regs_i.flushed_set3,
                             conf_regs_i.flushed_set2,
                             conf_regs_i.flushed_set1,
                             conf_regs_i.flushed_set0};
-  assign raw_cfg_flush_set = {conf_regs_i.cfg_flush_set7,
-                              conf_regs_i.cfg_flush_set6,
-                              conf_regs_i.cfg_flush_set5,
-                              conf_regs_i.cfg_flush_set4,
-                              conf_regs_i.cfg_flush_set3,
+  assign raw_cfg_flush_set = {conf_regs_i.cfg_flush_set3,
                               conf_regs_i.cfg_flush_set2,
                               conf_regs_i.cfg_flush_set1,
                               conf_regs_i.cfg_flush_set0};
 /******************************************************************************************************************************/
 // If the user set the flush bit position of conf_regs_i.flushed_set* which is beyond the number of cache lines, those bits are ignored
   always_comb begin
-    mask_flush_set = 0;
-    mask_flush_set |= {Cfg.NumLines{1'b1}};
+    mask_flush_set = {Cfg.NumLines{1'b1}};
   end
   assign conf_regs_i_flushed_set = raw_flushed_set & mask_flush_set;
   assign conf_regs_i_cfg_flush_set = raw_cfg_flush_set & mask_flush_set;
@@ -368,49 +349,7 @@ module axi_llc_config #(
   logic [MaxThread * Cfg.IndexLength - 1 : 0] conf_regs_i_cfg_set_partition;
 
 /********************************************     SET BASED CACHE PARTITIONING     ********************************************/
-  assign conf_regs_i_cfg_set_partition = {conf_regs_i.cfg_set_partition73[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition72[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition71[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition70[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition69[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition68[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition67[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition66[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition65[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition64[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition63[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition62[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition61[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition60[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition59[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition58[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition57[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition56[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition55[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition54[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition53[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition52[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition51[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition50[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition49[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition48[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition47[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition46[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition45[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition44[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition43[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition42[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition41[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition40[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition39[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition38[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition37[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition36[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition35[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition34[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition33[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition32[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition31[valid_reg_bit-1:0], 
+  assign conf_regs_i_cfg_set_partition = {conf_regs_i.cfg_set_partition31[valid_reg_bit-1:0], 
                                           conf_regs_i.cfg_set_partition30[valid_reg_bit-1:0], 
                                           conf_regs_i.cfg_set_partition29[valid_reg_bit-1:0], 
                                           conf_regs_i.cfg_set_partition28[valid_reg_bit-1:0], 
@@ -573,22 +512,20 @@ module axi_llc_config #(
   assign load_to_flush_set = (to_flush_set_d != to_flush_set_q);
 
   // Constant hardware registers
-  assign conf_regs_o.bist_out         = bist_res_i;
-  assign conf_regs_o.set_asso         = Cfg.SetAssociativity;
-  assign conf_regs_o.num_lines        = Cfg.NumLines;
-  assign conf_regs_o.num_blocks       = Cfg.NumBlocks;
-  assign conf_regs_o.version          = axi_llc_pkg::AxiLlcVersion;
-  assign conf_regs_o.bist_status_done = bist_valid_i;
+  assign conf_regs_o.bist_out       = bist_res_i;
+  assign conf_regs_o.set_asso       = Cfg.SetAssociativity;
+  assign conf_regs_o.num_lines      = Cfg.NumBlocks;
+  assign conf_regs_o.num_blocks     = Cfg.NumBlocks;
+  assign conf_regs_o.version        = axi_llc_pkg::AxiLlcVersion;
 
   // Constant register write enables
-  assign conf_regs_o.bist_out_en    = 1'b1;
+  assign conf_regs_o.bist_out_en    = bist_valid_i;
   assign conf_regs_o.set_asso_en    = 1'b1;
   assign conf_regs_o.num_lines_en   = 1'b1;
   assign conf_regs_o.num_blocks_en  = 1'b1;
   assign conf_regs_o.version_en     = 1'b1;
-  assign conf_regs_o.bist_status_en = 1'b1;
 
-  set_t conf_regs_o_flushed_set;
+  logic [flushed_set_length-1:0] conf_regs_o_flushed_set;
 
   always_comb begin : proc_axi_llc_cfg
     // Default assignments
@@ -600,20 +537,12 @@ module axi_llc_config #(
     conf_regs_o.cfg_flush_set1 = conf_regs_i.cfg_flush_set1;
     conf_regs_o.cfg_flush_set2 = conf_regs_i.cfg_flush_set2;
     conf_regs_o.cfg_flush_set3 = conf_regs_i.cfg_flush_set3;
-    conf_regs_o.cfg_flush_set4 = conf_regs_i.cfg_flush_set4;
-    conf_regs_o.cfg_flush_set5 = conf_regs_i.cfg_flush_set5;
-    conf_regs_o.cfg_flush_set6 = conf_regs_i.cfg_flush_set6;
-    conf_regs_o.cfg_flush_set7 = conf_regs_i.cfg_flush_set7;
     conf_regs_o.commit_cfg    = conf_regs_i.commit_cfg;
     conf_regs_o.flushed       = conf_regs_i.flushed;
     conf_regs_o.flushed_set0   = conf_regs_i.flushed_set0;
     conf_regs_o.flushed_set1   = conf_regs_i.flushed_set1;
     conf_regs_o.flushed_set2   = conf_regs_i.flushed_set2;
     conf_regs_o.flushed_set3   = conf_regs_i.flushed_set3;
-    conf_regs_o.flushed_set4   = conf_regs_i.flushed_set4;
-    conf_regs_o.flushed_set5   = conf_regs_i.flushed_set5;
-    conf_regs_o.flushed_set6   = conf_regs_i.flushed_set6;
-    conf_regs_o.flushed_set7   = conf_regs_i.flushed_set7;
     // Register enables
     conf_regs_o.cfg_spm_en    = 1'b1;   // default one
     conf_regs_o.cfg_flush_en  = 1'b1;   // default one
@@ -621,20 +550,12 @@ module axi_llc_config #(
     conf_regs_o.cfg_flush_set1_en = 1'b1;
     conf_regs_o.cfg_flush_set2_en = 1'b1;
     conf_regs_o.cfg_flush_set3_en = 1'b1;
-    conf_regs_o.cfg_flush_set4_en = 1'b1;
-    conf_regs_o.cfg_flush_set5_en = 1'b1;
-    conf_regs_o.cfg_flush_set6_en = 1'b1;
-    conf_regs_o.cfg_flush_set7_en = 1'b1;
     conf_regs_o.commit_cfg_en = 1'b0;   // default disabled
     conf_regs_o.flushed_en    = 1'b0;   // default disabled
     conf_regs_o.flushed_set0_en  = 1'b0;
     conf_regs_o.flushed_set1_en  = 1'b0;
     conf_regs_o.flushed_set2_en  = 1'b0;
     conf_regs_o.flushed_set3_en  = 1'b0;
-    conf_regs_o.flushed_set4_en  = 1'b0;
-    conf_regs_o.flushed_set5_en  = 1'b0;
-    conf_regs_o.flushed_set6_en  = 1'b0;
-    conf_regs_o.flushed_set7_en  = 1'b0;
 /******************************************************************************************************************************/
 
     // Flush state machine
@@ -669,10 +590,6 @@ module axi_llc_config #(
         conf_regs_o.cfg_flush_set1_en = 1'b0;
         conf_regs_o.cfg_flush_set2_en = 1'b0;
         conf_regs_o.cfg_flush_set3_en = 1'b0;
-        conf_regs_o.cfg_flush_set4_en = 1'b0;
-        conf_regs_o.cfg_flush_set5_en = 1'b0;
-        conf_regs_o.cfg_flush_set6_en = 1'b0;
-        conf_regs_o.cfg_flush_set7_en = 1'b0;
 /******************************************************************************************************************************/
         llc_isolate_o             = 1'b0;
         // Change state, if there is a flush request, i.e. CommitCfg was set
@@ -709,10 +626,6 @@ module axi_llc_config #(
             conf_regs_o.cfg_flush_set1 = 64'b0;
             conf_regs_o.cfg_flush_set2 = 64'b0;
             conf_regs_o.cfg_flush_set3 = 64'b0;
-            conf_regs_o.cfg_flush_set4 = 64'b0;
-            conf_regs_o.cfg_flush_set5 = 64'b0;
-            conf_regs_o.cfg_flush_set6 = 64'b0;
-            conf_regs_o.cfg_flush_set7 = 64'b0;
 /******************************************************************************************************************************/
           end else begin
             flush_state_d = FsmSendFlush;
@@ -814,28 +727,16 @@ module axi_llc_config #(
             conf_regs_o.flushed_set1    = 64'b0; /**************** temperarily not used since SPM is way-based ****************/ 
             conf_regs_o.flushed_set2    = 64'b0; /**************** temperarily not used since SPM is way-based ****************/ 
             conf_regs_o.flushed_set3    = 64'b0; /**************** temperarily not used since SPM is way-based ****************/ 
-            conf_regs_o.flushed_set4    = 64'b0; /**************** temperarily not used since SPM is way-based ****************/ 
-            conf_regs_o.flushed_set5    = 64'b0; /**************** temperarily not used since SPM is way-based ****************/ 
-            conf_regs_o.flushed_set6    = 64'b0; /**************** temperarily not used since SPM is way-based ****************/ 
-            conf_regs_o.flushed_set7    = 64'b0; /**************** temperarily not used since SPM is way-based ****************/ 
             conf_regs_o.flushed_set0_en = 1'b1; 
             conf_regs_o.flushed_set1_en = 1'b1; 
             conf_regs_o.flushed_set2_en = 1'b1; 
             conf_regs_o.flushed_set3_en = 1'b1; 
-            conf_regs_o.flushed_set4_en = 1'b1; 
-            conf_regs_o.flushed_set5_en = 1'b1; 
-            conf_regs_o.flushed_set6_en = 1'b1; 
-            conf_regs_o.flushed_set7_en = 1'b1; 
             to_flush_set_d              = set_t'(1'b0);
             // Clear the `CfgFlushSet` register, load enable is default '1
             conf_regs_o.cfg_flush_set0  = 64'b0;
             conf_regs_o.cfg_flush_set1  = 64'b0;
             conf_regs_o.cfg_flush_set2  = 64'b0;
             conf_regs_o.cfg_flush_set3  = 64'b0;
-            conf_regs_o.cfg_flush_set4  = 64'b0;
-            conf_regs_o.cfg_flush_set5  = 64'b0;
-            conf_regs_o.cfg_flush_set6  = 64'b0;
-            conf_regs_o.cfg_flush_set7  = 64'b0;
           end else begin
             // there are still cache lines to flush
             flush_state_d = FsmInitFlush;
@@ -844,18 +745,10 @@ module axi_llc_config #(
             conf_regs_o.flushed_set1 = conf_regs_o_flushed_set[2*RegWidth-1:1*RegWidth];
             conf_regs_o.flushed_set2 = conf_regs_o_flushed_set[3*RegWidth-1:2*RegWidth];
             conf_regs_o.flushed_set3 = conf_regs_o_flushed_set[4*RegWidth-1:3*RegWidth];
-            conf_regs_o.flushed_set4 = conf_regs_o_flushed_set[5*RegWidth-1:4*RegWidth];
-            conf_regs_o.flushed_set5 = conf_regs_o_flushed_set[6*RegWidth-1:5*RegWidth];
-            conf_regs_o.flushed_set6 = conf_regs_o_flushed_set[7*RegWidth-1:6*RegWidth];
-            conf_regs_o.flushed_set7 = conf_regs_o_flushed_set[8*RegWidth-1:7*RegWidth];
             conf_regs_o.flushed_set0_en = 1'b1;
             conf_regs_o.flushed_set1_en = 1'b1;
             conf_regs_o.flushed_set2_en = 1'b1;
             conf_regs_o.flushed_set3_en = 1'b1;
-            conf_regs_o.flushed_set4_en = 1'b1;
-            conf_regs_o.flushed_set5_en = 1'b1;
-            conf_regs_o.flushed_set6_en = 1'b1;
-            conf_regs_o.flushed_set7_en = 1'b1;
 /******************************************************************************************************************************/
           end
         end else begin
@@ -1025,44 +918,42 @@ module axi_llc_config #(
                              Cfg.SetAssociativity, RegWidth));
   end
 
-  if (PrintLlcCfg) begin : gen_llc_hello
-    initial begin : proc_llc_hello
-      @(posedge rst_ni);
-      $display("###############################################################################");
-      $display("###############################################################################");
-      $display("AXI LLC module instantiated:");
-      $display("%m");
-      $display("###############################################################################");
-      $display("Cache Size parameters:");
-      $display("Max Cache/SPM size:                (decimal): %d KiB", Cfg.SPMLength/1024);
-      $display("SetAssociativity (Number of Ways)  (decimal): %d", Cfg.SetAssociativity  );
-      $display("Number of Cache Lines per Set      (decimal): %d", Cfg.NumLines          );
-      $display("Number of Blocks per Cache Line    (decimal): %d", Cfg.NumBlocks         );
-      $display("Block Size in Bits                 (decimal): %d", Cfg.BlockSize         );
-      $display("Tag Length of AXI Address          (decimal): %d", Cfg.TagLength         );
-      $display("Index Length of AXI Address        (decimal): %d", Cfg.IndexLength       );
-      $display("Block Offset Length of AXI Address (decimal): %d", Cfg.BlockOffsetLength );
-      $display("Byte Offset Length of AXI Address  (decimal): %d", Cfg.ByteOffsetLength  );
-      $display("###############################################################################");
-      $display("AXI4 Port parameters:");
-      $display("Slave port (CPU):");
-      $display("ID   width (decimal): %d", AxiCfg.SlvPortIdWidth );
-      $display("ADDR width (decimal): %d", AxiCfg.AddrWidthFull  );
-      $display("DATA width (decimal): %d", AxiCfg.DataWidthFull  );
-      $display("STRB width (decimal): %d", AxiCfg.DataWidthFull/8);
-      $display("Master port (memory):");
-      $display("ID   width (decimal): %d", AxiCfg.SlvPortIdWidth + 1);
-      $display("ADDR width (decimal): %d", AxiCfg.AddrWidthFull     );
-      $display("DATA width (decimal): %d", AxiCfg.DataWidthFull     );
-      $display("STRB width (decimal): %d", AxiCfg.DataWidthFull/8   );
-      $display("Address mapping information:");
-      $display("Cached region Start address (hex): %h", axi_cached_rule_i.start_addr );
-      $display("Cached region End   address (hex): %h", axi_cached_rule_i.end_addr   );
-      $display("SPM    region Start address (hex): %h", axi_spm_rule_i.start_addr    );
-      $display("SPM    region End   address (hex): %h", axi_spm_rule_i.end_addr      );
-      $display("###############################################################################");
-      $display("###############################################################################");
-    end
+  initial begin : proc_llc_hello
+    @(posedge rst_ni);
+    $display("###############################################################################");
+    $display("###############################################################################");
+    $display("AXI LLC module instantiated:");
+    $display("%m");
+    $display("###############################################################################");
+    $display("Cache Size parameters:");
+    $display("Max Cache/SPM size:                (decimal): %d KiB", Cfg.SPMLength/1024);
+    $display("SetAssociativity (Number of Ways)  (decimal): %d", Cfg.SetAssociativity  );
+    $display("Number of Cache Lines per Set      (decimal): %d", Cfg.NumLines          );
+    $display("Number of Blocks per Cache Line    (decimal): %d", Cfg.NumBlocks         );
+    $display("Block Size in Bits                 (decimal): %d", Cfg.BlockSize         );
+    $display("Tag Length of AXI Address          (decimal): %d", Cfg.TagLength         );
+    $display("Index Length of AXI Address        (decimal): %d", Cfg.IndexLength       );
+    $display("Block Offset Length of AXI Address (decimal): %d", Cfg.BlockOffsetLength );
+    $display("Byte Offset Length of AXI Address  (decimal): %d", Cfg.ByteOffsetLength  );
+    $display("###############################################################################");
+    $display("AXI4 Port parameters:");
+    $display("Slave port (CPU):");
+    $display("ID   width (decimal): %d", AxiCfg.SlvPortIdWidth );
+    $display("ADDR width (decimal): %d", AxiCfg.AddrWidthFull  );
+    $display("DATA width (decimal): %d", AxiCfg.DataWidthFull  );
+    $display("STRB width (decimal): %d", AxiCfg.DataWidthFull/8);
+    $display("Master port (memory):");
+    $display("ID   width (decimal): %d", AxiCfg.SlvPortIdWidth + 1);
+    $display("ADDR width (decimal): %d", AxiCfg.AddrWidthFull     );
+    $display("DATA width (decimal): %d", AxiCfg.DataWidthFull     );
+    $display("STRB width (decimal): %d", AxiCfg.DataWidthFull/8   );
+    $display("Address mapping information:");
+    $display("Cached region Start address (hex): %h", axi_cached_rule_i.start_addr );
+    $display("Cached region End   address (hex): %h", axi_cached_rule_i.end_addr   );
+    $display("SPM    region Start address (hex): %h", axi_spm_rule_i.start_addr    );
+    $display("SPM    region End   address (hex): %h", axi_spm_rule_i.end_addr      );
+    $display("###############################################################################");
+    $display("###############################################################################");
   end
 `endif
 // pragma translate_on

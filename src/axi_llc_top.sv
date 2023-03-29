@@ -645,11 +645,7 @@ module axi_llc_top #(
     .r_unlock_gnt_o ( r_unlock_gnt ),
     .cnt_down_i     ( cnt_down     ),
     .bist_res_o     ( bist_res     ),
-    .bist_valid_o   ( bist_valid   ),
-    // partition table
-    // we should only pass the particular entry's patition to this module
-    .partition_table_i ( partition_table[ spill_desc.patid ]),
-    .partition_share_i ( partition_table[ MaxThread ])
+    .bist_valid_o   ( bist_valid   )
   );
 
   axi_llc_evict_unit #(
@@ -745,13 +741,11 @@ module axi_llc_top #(
   axi_llc_write_unit #(
     .Cfg       ( Cfg          ),
     .AxiCfg    ( AxiCfg       ),
-    .MaxThread ( MaxThread    ),
     .desc_t    ( llc_desc_t   ),
     .way_inp_t ( way_inp_t    ),
     .lock_t    ( lock_t       ),
     .w_chan_t  ( w_chan_t     ),
-    .b_chan_t  ( slv_b_chan_t ),
-    .partition_table_t (partition_table_t)
+    .b_chan_t  ( slv_b_chan_t )
   ) i_write_unit  (
     .clk_i           ( clk_i                                ),
     .rst_ni          ( rst_ni                               ),
@@ -770,21 +764,18 @@ module axi_llc_top #(
     .way_inp_ready_i ( to_way_ready[axi_llc_pkg::WChanUnit] ),
     .w_unlock_o      ( w_unlock                             ),
     .w_unlock_req_o  ( w_unlock_req                         ),
-    .w_unlock_gnt_i  ( w_unlock_gnt                         ),
-    .partition_table_i ( partition_table                    )
+    .w_unlock_gnt_i  ( w_unlock_gnt                         )
   );
 
   // read unit
   axi_llc_read_unit #(
     .Cfg       ( Cfg          ),
     .AxiCfg    ( AxiCfg       ),
-    .MaxThread ( MaxThread    ),
     .desc_t    ( llc_desc_t   ),
     .way_inp_t ( way_inp_t    ),
     .way_oup_t ( way_oup_t    ),
     .lock_t    ( lock_t       ),
-    .r_chan_t  ( slv_r_chan_t ),
-    .partition_table_t (partition_table_t)
+    .r_chan_t  ( slv_r_chan_t )
   ) i_read_unit (
     .clk_i           ( clk_i                                ),
     .rst_ni          ( rst_ni                               ),
@@ -803,8 +794,7 @@ module axi_llc_top #(
     .way_out_ready_o ( read_way_out_ready                   ),
     .r_unlock_o      ( r_unlock                             ),
     .r_unlock_req_o  ( r_unlock_req                         ),
-    .r_unlock_gnt_i  ( r_unlock_gnt                         ),
-    .partition_table_i ( partition_table                    )
+    .r_unlock_gnt_i  ( r_unlock_gnt                         )
   );
 
   // data storage
