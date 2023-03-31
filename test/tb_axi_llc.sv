@@ -46,7 +46,8 @@ module tb_axi_llc #(
 
   localparam int unsigned TbAxiStrbWidthFull = TbAxiDataWidthFull / 32'd8;
   // localparam int unsigned TbAxiUserWidthFull = 32'd8;
-  localparam int unsigned TbAxiUserWidthFull = $clog2(TbNumLines);
+  // Needs to be one bit more for visiting the shared region (0 to MaxThread)
+  localparam int unsigned TbAxiUserWidthFull = $clog2(TbMaxThread) + 1;
 
   typedef logic [TbAxiIdWidthFull-1:0]     axi_slv_id_t;
   typedef logic [TbAxiIdWidthFull:0]       axi_mst_id_t;
@@ -209,7 +210,6 @@ module tb_axi_llc #(
   axi_llc_pkg::events_t llc_events;
   // AXI channels
   axi_slv_req_t  axi_cpu_req;
-  // axi_slv_req_t  axi_cpu_req_pat;
   axi_slv_resp_t axi_cpu_res;
   axi_mst_req_t  axi_mem_req;
   axi_mst_resp_t axi_mem_res;
@@ -287,11 +287,6 @@ module tb_axi_llc #(
     .rst_no ( rst_n )
   );
   assign test = 1'b0;
-  // always_comb begin
-  //   axi_cpu_req_pat = axi_cpu_req;
-  //   axi_cpu_req_pat.aw.user = 1'b1;
-  //   axi_cpu_req_pat.ar.user = 1'b1;
-  // end
 
 
   ////////////////////////////////////////

@@ -90,16 +90,18 @@ module axi_llc_burst_cutter #(
   logic [Cfg.IndexLength-1:0] start_index, share_index;
   logic [Cfg.IndexLength:0] pat_size, share_size;
 
-  assign pat_size = partition_table_i[curr_chan_i.user].NumIndex;
-  assign start_index = partition_table_i[curr_chan_i.user].StartIndex;
-  assign share_size = partition_table_i[MaxThread].NumIndex;
-  assign share_index = partition_table_i[MaxThread].StartIndex;
+
 
   // Cache-Partition
   // Add two entries carried in descripter: partition id (patid) and the new calculated index 
   // (index_partition).
   // If a partition's size is 0, the entry will be put into the shared region
-  always_comb begin : proc_cutter
+  always_comb begin : proc_cutter    
+    share_size =  partition_table_i[MaxThread].NumIndex;
+    share_index = partition_table_i[MaxThread].StartIndex;
+    pat_size =    (curr_chan_i.user <= MaxThread) ? partition_table_i[curr_chan_i.user].NumIndex : share_size;
+    start_index = (curr_chan_i.user <= MaxThread) ? partition_table_i[curr_chan_i.user].StartIndex : share_index;
+
     // Make sure the outputs are defined to a default.
     next_chan_o         = curr_chan_i;
     desc_o              = desc_t'{
@@ -112,7 +114,8 @@ module axi_llc_burst_cutter #(
       a_x_cache: curr_chan_i.cache,
       x_resp:    axi_pkg::RESP_OKAY,
       rw:        Write,
-      patid:     curr_chan_i.user,
+      // If the patid is larger than the table supported, assign it to the shared region
+      patid:     (curr_chan_i.user <= MaxThread) ? curr_chan_i.user : MaxThread,
       index_partition: (pat_size != 0) ? start_index + (curr_chan_i.addr[LineOffset+:Cfg.IndexLength] % pat_size) : 
                           share_index + (curr_chan_i.addr[LineOffset+:Cfg.IndexLength] % share_size),
       default: '0

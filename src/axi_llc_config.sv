@@ -367,15 +367,17 @@ module axi_llc_config #(
         partition_table_o[i].NumIndex = conf_regs_i_cfg_set_partition[(i+1)*Cfg.IndexLength-1 -: Cfg.IndexLength];
 
         if ((partition_table_o[i].NumIndex >= Cfg.NumLines) || (partition_table_o[i].StartIndex >= Cfg.NumLines)) begin
-          $error("Partition Configuration Error!");
+          $error("Partition Configuration Error! Partition size larger than num of lines!");
         end
       end
 
       partition_table_o[MaxThread].StartIndex = partition_table_o[MaxThread-1].StartIndex + partition_table_o[MaxThread-1].NumIndex;
       partition_table_o[MaxThread].NumIndex = Cfg.NumLines - partition_table_o[MaxThread].StartIndex;
 
-      if (partition_table_o[MaxThread].StartIndex >= Cfg.NumLines) begin
-        $error("Partition Configuration Error!");
+      // The shared partition has to have a size greater or equal to 1 to ensure the functionality when visiting 
+      // a partition with size of 0. 
+      if (partition_table_o[MaxThread].StartIndex >= (Cfg.NumLines-1)) begin
+        $error("Partition Configuration Error! Shared partition size less than 1!");
       end
 
     end
