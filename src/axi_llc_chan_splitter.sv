@@ -136,6 +136,7 @@ module axi_llc_chan_splitter #(
   end
 
   // this module determines how many data beats of the AX request map onto a cache line
+  // Cache-Partition: add the port of partition table for burst_cutter to calculate the value
   axi_llc_burst_cutter #(
     .Cfg    ( Cfg      ),
     .AxiCfg ( AxiCfg   ),

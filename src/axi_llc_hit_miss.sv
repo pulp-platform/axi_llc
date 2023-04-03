@@ -48,8 +48,7 @@ module axi_llc_hit_miss #(
   parameter type                       cnt_t     = logic,
   /// Way indicator, is a onehot signal with width: `Cfg.SetAssociativity`.
   parameter type                       way_ind_t = logic,
-  parameter type                       set_ind_t = logic,
-  parameter type                       partition_table_t = logic
+  parameter type                       set_ind_t = logic
 ) (
   /// Clock, positive edge triggered.
   input  logic     clk_i,
@@ -84,23 +83,12 @@ module axi_llc_hit_miss #(
   input  cnt_t     cnt_down_i,
   // bist aoutput
   output way_ind_t bist_res_o,
-  output logic     bist_valid_o,
-  // partition table
-  input partition_table_t   partition_table_i,
-  input partition_table_t   partition_share_i
+  output logic     bist_valid_o
 );
   `include "common_cells/registers.svh"
   localparam int unsigned IndexBase = Cfg.ByteOffsetLength + Cfg.BlockOffsetLength;
   localparam int unsigned TagBase   = Cfg.ByteOffsetLength + Cfg.BlockOffsetLength +
                                       Cfg.IndexLength;
-
-  // CACHE-PARTITION
-  logic [Cfg.IndexLength-1:0] start_index;
-  logic [Cfg.IndexLength-1:0] pat_size;
-  assign start_index  = partition_table_i.StartIndex;
-  assign pat_size     = partition_table_i.NumIndex;
-  // localparam int unsigned  old_set_size  = Cfg.IndexLength-ThreadBit;
-
 
   // Type definitions for the requests and responses to/from the tag storage
       // typedef logic [Cfg.SetAssociativity-1:0] way_ind_t;
@@ -156,15 +144,6 @@ module axi_llc_hit_miss #(
   desc_t desc_d,    desc_q;            // descriptor residing in unit
   logic  load_desc;
 
-  // CACHE-PARTITION
-  logic [Cfg.TagLength-1:0]                   tag_partition;
-  logic [Cfg.IndexLength-1:0]                 index_partition;
-
-  // should be inputs passed to this block
-  // or, pass PatID to this module and calculate corresponding values
-
-
-
   // control
   always_comb begin
     // default assignments
@@ -174,6 +153,7 @@ module axi_llc_hit_miss #(
     load_busy = 1'b0;
     desc_d    = desc_q;
     // output
+    // Cache-Partition: If flush, recalculate the new index use old method to ensure the flush-by-set correct
     desc_o    = desc_q; // some fields get combinatorically overwritten from the tag lookup
     desc_o.index_partition = desc_q.flush ? desc_q.a_x_addr[IndexBase+:Cfg.IndexLength] : desc_q.index_partition;
     load_desc = 1'b0;
@@ -268,16 +248,12 @@ module axi_llc_hit_miss #(
                       load_desc = 1'b1;
                     end else begin
                       /********** CACHE-PARTITION **********/
-                      tag_partition = desc_i.a_x_addr[IndexBase+:Cfg.TagLength];
-                      // index_partition = pat_size ? start_index : partition_share_i.StartIndex;
-                      // index_partition = (pat_size != 0) ? start_index + (desc_i.a_x_addr[IndexBase+:Cfg.IndexLength] % pat_size) : 
-                      //   partition_share_i.StartIndex + (desc_i.a_x_addr[IndexBase+:Cfg.IndexLength] % partition_share_i.NumIndex);
-                      
+                      // use the new index and tag to store the tag
                       store_req = store_req_t'{
                         mode:      desc_i.flush ? axi_llc_pkg::Flush : axi_llc_pkg::Lookup,
                         indicator: desc_i.flush ? desc_i.way_ind     : ~flushed_i,
                         index:     desc_i.flush ? desc_i.a_x_addr[IndexBase+:Cfg.IndexLength] : desc_i.index_partition,
-                        tag:       desc_i.flush ? tag_t'(0)          : tag_partition,
+                        tag:       desc_i.flush ? tag_t'(0)          : desc_i.a_x_addr[IndexBase+:Cfg.TagLength],
                         dirty:     desc_i.rw,
                         default:   '0
                       };
@@ -331,17 +307,12 @@ module axi_llc_hit_miss #(
             load_desc = 1'b1;
           end else begin
             /********** CACHE-PARTITION **********/
-            tag_partition = desc_i.a_x_addr[IndexBase+:Cfg.TagLength];
-            // tag_partition = desc_i.a_x_addr[31:IndexBase];
-            // index_partition = pat_size ? start_index : partition_share_i.StartIndex;
-            // index_partition = (pat_size != 0) ? start_index + (desc_i.a_x_addr[IndexBase+:Cfg.IndexLength] % pat_size) : 
-            //   partition_share_i.StartIndex + (desc_i.a_x_addr[IndexBase+:Cfg.IndexLength] % partition_share_i.NumIndex);
-            
+            // use the new index and tag to store the tag
             store_req = store_req_t'{
               mode:      desc_i.flush ? axi_llc_pkg::Flush : axi_llc_pkg::Lookup,
               indicator: desc_i.flush ? desc_i.way_ind     : ~flushed_i,
               index:     desc_i.flush ? desc_i.a_x_addr[IndexBase+:Cfg.IndexLength] : desc_i.index_partition,
-              tag:       desc_i.flush ? tag_t'(0)          : tag_partition,
+              tag:       desc_i.flush ? tag_t'(0)          : desc_i.a_x_addr[IndexBase+:Cfg.TagLength],
               dirty:     desc_i.rw,
               default:   '0
             };
@@ -431,8 +402,7 @@ module axi_llc_hit_miss #(
   // inputs to the lock box
   assign lock = '{
     // index:   desc_o.a_x_addr[(Cfg.ByteOffsetLength + Cfg.BlockOffsetLength)+:Cfg.IndexLength],
-    // index:   (pat_size != 0) ? start_index + (desc_o.a_x_addr[IndexBase+:Cfg.IndexLength] % pat_size) : 
-    //           partition_share_i.StartIndex + (desc_o.a_x_addr[IndexBase+:Cfg.IndexLength] % partition_share_i.NumIndex),
+    // Cache-Partition: the lock signal also needs to used the new index
     index:   desc_o.index_partition,
     way_ind: desc_o.way_ind
   };

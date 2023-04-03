@@ -434,6 +434,9 @@ module axi_llc_config #(
 
   logic [Cfg.IndexLength-1:0] slv_ar_addr_index, slv_aw_addr_index;
 
+  // Cache-Partition
+  // This block is used to calculate the start-index and partition size using the information from the 
+  // config registers
   always_comb begin : proc_partition_table
     conf_regs_o.commit_partition_cfg_en = 1'b0;
     if (conf_regs_i.commit_partition_cfg) begin
@@ -452,13 +455,15 @@ module axi_llc_config #(
         partition_table_o[i].NumIndex = conf_regs_i_cfg_set_partition[(i+1)*Cfg.IndexLength-1 -: Cfg.IndexLength];
 
         if ((partition_table_o[i].NumIndex >= Cfg.NumLines) || (partition_table_o[i].StartIndex >= Cfg.NumLines)) begin
-          $error("The set partition configuration overflows the total cache size!");
+          $error("Partition Configuration Error! Partition size larger than num of lines!");
         end
       end
 
       partition_table_o[MaxThread].StartIndex = partition_table_o[MaxThread-1].StartIndex + partition_table_o[MaxThread-1].NumIndex;
       partition_table_o[MaxThread].NumIndex = Cfg.NumLines - partition_table_o[MaxThread].StartIndex;
 
+      // The shared partition has to have a size greater or equal to 1 to ensure the functionality when visiting 
+      // a partition with size of 0. 
       if (partition_table_o[MaxThread].StartIndex >= Cfg.NumLines) begin
         $error("Partition Configuration Error!");
       end

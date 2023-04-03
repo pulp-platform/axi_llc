@@ -86,7 +86,7 @@ module axi_llc_ax_master #(
   assign desc_ready_o = ~desc_valid_q & ~chan_valid_q;
 
   // assignment of the addresses, either refill or eviction, calculate address index for request
-  // CACHE-PARTITION
+  // Cache-Partition: now the tag stores both original tag and index
   localparam int AddrOffset = Cfg.BlockOffsetLength + Cfg.ByteOffsetLength;
   assign evict_addr  =
       {desc_i.evict_tag, {AddrOffset{1'b0}}};

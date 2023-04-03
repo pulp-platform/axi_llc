@@ -48,6 +48,8 @@ module tb_axi_llc #(
   // localparam int unsigned TbAxiUserWidthFull = 32'd8;
   localparam int unsigned TbAxiUserWidthFull = $clog2(TbMaxThread);
 
+
+
   typedef logic [TbAxiIdWidthFull-1:0]     axi_slv_id_t;
   typedef logic [TbAxiIdWidthFull:0]       axi_mst_id_t;
   typedef logic [TbAxiAddrWidthFull-1:0]   axi_addr_t;
@@ -413,7 +415,6 @@ module tb_axi_llc #(
   axi_llc_pkg::events_t llc_events;
   // AXI channels
   axi_slv_req_t  axi_cpu_req;
-  // axi_slv_req_t  axi_cpu_req_pat;
   axi_slv_resp_t axi_cpu_res;
   axi_mst_req_t  axi_mem_req;
   axi_mst_resp_t axi_mem_res;
@@ -491,12 +492,6 @@ module tb_axi_llc #(
     .rst_no ( rst_n )
   );
   assign test = 1'b0;
-  // always_comb begin
-  //   axi_cpu_req_pat = axi_cpu_req;
-  //   axi_cpu_req_pat.aw.user = 1'b1;
-  //   axi_cpu_req_pat.ar.user = 1'b1;
-  // end
-
 
   ////////////////////////////////////////
   // Scoreboards and simulation control //
@@ -590,7 +585,8 @@ module tb_axi_llc #(
     // clear_spm_cpu(cpu_scoreboard);
 
     // Randomize patid and test 0
-    $info("Run 10 random RW tests for random PatID");
+
+    $info("Run 10 random RW tests for random PatIDs");
     $info("Random read and write 0");
     axi_master.run(TbNumReads/10, TbNumWrites/10);
     flush_all(reg_conf_driver);
@@ -792,8 +788,8 @@ module tb_axi_llc #(
   task flush_all_set(regbus_conf_driver_t reg_conf_driver);
     automatic logic       cfg_error;
     automatic logic[63:0] data = {64{1'b1}};
-    automatic logic[31:0] rdata0_low, rdata1_low, rdata2_low, rdata3_low;
-    automatic logic[31:0] rdata0_high, rdata1_high, rdata2_high, rdata3_high;
+    automatic logic[31:0] rdata0_low, rdata1_low, rdata2_low, rdata3_low, rdata4_low, rdata5_low, rdata6_low, rdata7_low;
+    automatic logic[31:0] rdata0_high, rdata1_high, rdata2_high, rdata3_high, rdata4_high, rdata5_high, rdata6_high, rdata7_high;
     automatic logic[255:0] data_set = {256{1'b1}};
     $info("Flushing the cache set!");
 /********************************************     SET BASED CACHE PARTITIONING     ********************************************/
@@ -805,6 +801,14 @@ module tb_axi_llc #(
     reg_conf_driver.send_write(CfgFlushSet2High, data[63:32], 4'hF, cfg_error);
     reg_conf_driver.send_write(CfgFlushSet3Low, data[31:0], 4'hF, cfg_error);
     reg_conf_driver.send_write(CfgFlushSet3High, data[63:32], 4'hF, cfg_error);
+    reg_conf_driver.send_write(CfgFlushSet4Low, data[31:0], 4'hF, cfg_error);
+    reg_conf_driver.send_write(CfgFlushSet4High, data[63:32], 4'hF, cfg_error);
+    reg_conf_driver.send_write(CfgFlushSet5Low, data[31:0], 4'hF, cfg_error);
+    reg_conf_driver.send_write(CfgFlushSet5High, data[63:32], 4'hF, cfg_error);
+    reg_conf_driver.send_write(CfgFlushSet6Low, data[31:0], 4'hF, cfg_error);
+    reg_conf_driver.send_write(CfgFlushSet6High, data[63:32], 4'hF, cfg_error);
+    reg_conf_driver.send_write(CfgFlushSet7Low, data[31:0], 4'hF, cfg_error);
+    reg_conf_driver.send_write(CfgFlushSet7High, data[63:32], 4'hF, cfg_error);
 /******************************************************************************************************************************/
 
     data  = 64'd1;
@@ -820,7 +824,16 @@ module tb_axi_llc #(
       reg_conf_driver.send_read(CfgFlushSet2High, rdata2_high, cfg_error);
       reg_conf_driver.send_read(CfgFlushSet3Low, rdata3_low, cfg_error);
       reg_conf_driver.send_read(CfgFlushSet3High, rdata3_high, cfg_error);
-      data_set = {rdata3_high, rdata3_low, rdata2_high, rdata2_low, rdata1_high, rdata1_low, rdata0_high, rdata0_low};
+      reg_conf_driver.send_read(CfgFlushSet4Low, rdata4_low, cfg_error);
+      reg_conf_driver.send_read(CfgFlushSet4High, rdata4_high, cfg_error);
+      reg_conf_driver.send_read(CfgFlushSet5Low, rdata5_low, cfg_error);
+      reg_conf_driver.send_read(CfgFlushSet5High, rdata5_high, cfg_error);
+      reg_conf_driver.send_read(CfgFlushSet6Low, rdata6_low, cfg_error);
+      reg_conf_driver.send_read(CfgFlushSet6High, rdata6_high, cfg_error);
+      reg_conf_driver.send_read(CfgFlushSet7Low, rdata7_low, cfg_error);
+      reg_conf_driver.send_read(CfgFlushSet7High, rdata7_high, cfg_error);
+      data_set = {rdata7_high, rdata7_low, rdata6_high, rdata6_low, rdata5_high, rdata5_low, rdata4_high, rdata4_low, 
+                  rdata3_high, rdata3_low, rdata2_high, rdata2_low, rdata1_high, rdata1_low, rdata0_high, rdata0_low};
       repeat (5000) @(posedge clk);
     end
     $info("Finished flushing the cache set!");
