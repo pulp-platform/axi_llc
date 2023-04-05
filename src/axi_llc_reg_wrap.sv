@@ -154,6 +154,8 @@ module axi_llc_reg_wrap #(
   /// Note on restrictions:
   /// The same restriction as of parameter `NumLines` applies.
   parameter int unsigned NumBlocks = 32'd0,
+  /// Just for comparation of synthesis between cache w/ and w/o set-based partition function
+  parameter int unsigned MaxThread = 32'd0,
   /// AXI4+ATOP ID field width of the slave port.
   /// The ID field width of the master port is this parameter + 1.
   parameter int unsigned AxiIdWidth = 32'd0,
