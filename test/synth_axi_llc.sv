@@ -1,4 +1,4 @@
-module synth_axi_demux import axi_pkg::*; #(
+module synth_axi_llc import axi_pkg::*; #(
   /// Set Associativity of the LLC
   parameter int unsigned SetAssociativity = 32'd8,
   /// Number of cache lines of the LLC
