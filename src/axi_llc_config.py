@@ -14,7 +14,7 @@ valid_reg_bit = math.floor(RegWidth / IndexLength) * IndexLength
 print(f'Each configration register can hold {math.floor(RegWidth / IndexLength)} partition sizes')
 print(f'Number of valid bits in set partition configuration register is : {valid_reg_bit}')
 
-with open('axi_llc_config.sv', 'w') as f:
+with open('src/axi_llc_config.sv', 'w') as f:
     f.write(f'''// Copyright 2022 ETH Zurich and University of Bologna.
 // Solderpad Hardware License, Version 0.51, see LICENSE for details.
 // SPDX-License-Identifier: SHL-0.51
