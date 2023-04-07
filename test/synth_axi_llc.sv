@@ -1,4 +1,4 @@
-module synth_axi_demux import axi_pkg::*; #(
+module synth_axi_llc import axi_pkg::*; #(
   /// Set Associativity of the LLC
   parameter int unsigned SetAssociativity = 32'd8,
   /// Number of cache lines of the LLC
@@ -16,12 +16,12 @@ module synth_axi_demux import axi_pkg::*; #(
   /// User width of the full AXI bus
   parameter int unsigned AxiUserWidth     = 32'd9,
   /// Axi types
-  parameter type axi_slv_id_t             = logic [AxiIdWidthFull-1:0],
-  parameter type axi_mst_id_t             = logic [AxiIdWidthFull:0],
-  parameter type axi_addr_t               = logic [AxiAddrWidthFull-1:0],
-  parameter type axi_data_t               = logic [AxiDataWidthFull-1:0],
-  parameter type axi_strb_t               = logic [AxiDataWidthFull/32'd8-1:0],
-  parameter type axi_user_t               = logic [AxiUserWidthFull-1:0]
+  parameter type axi_slv_id_t             = logic [AxiIdWidth-1:0],
+  parameter type axi_mst_id_t             = logic [AxiIdWidth:0],
+  parameter type axi_addr_t               = logic [AxiAddrWidth-1:0],
+  parameter type axi_data_t               = logic [AxiDataWidth-1:0],
+  parameter type axi_strb_t               = logic [AxiDataWidth/32'd8-1:0],
+  parameter type axi_user_t               = logic [AxiUserWidth-1:0]
 ) (
   /// Rising-edge clock of all ports.
   input logic clk_i,
@@ -224,7 +224,7 @@ module synth_axi_demux import axi_pkg::*; #(
   // Address Ranges //
   ////////////////////
   localparam axi_addr_t SpmRegionLength    =
-      axi_addr_t'(SetAssociativity * NumLines * NumBlocks * AxiDataWidthFull / 32'd8);
+      axi_addr_t'(SetAssociativity * NumLines * NumBlocks * AxiDataWidth / 32'd8);
   localparam axi_addr_t CachedRegionLength = axi_addr_t'(2*SpmRegionLength);
 
   /////////////////
@@ -354,10 +354,10 @@ module synth_axi_demux import axi_pkg::*; #(
     .NumLines         ( NumLines         ),
     .NumBlocks        ( NumBlocks        ),
     .MaxThread        ( MaxThread        ),
-    .AxiIdWidth       ( AxiIdWidthFull   ),
-    .AxiAddrWidth     ( AxiAddrWidthFull ),
-    .AxiDataWidth     ( AxiDataWidthFull ),
-    .AxiUserWidth     ( AxiUserWidthFull ),
+    .AxiIdWidth       ( AxiIdWidth         ),
+    .AxiAddrWidth     ( AxiAddrWidth       ),
+    .AxiDataWidth     ( AxiDataWidth       ),
+    .AxiUserWidth     ( AxiUserWidth       ),
     .slv_req_t        ( axi_slv_req_t      ),
     .slv_resp_t       ( axi_slv_resp_t     ),
     .mst_req_t        ( axi_mst_req_t      ),

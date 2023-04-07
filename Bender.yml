@@ -59,4 +59,4 @@ sources:
     files:
       # Level 0:
       - test/tb_axi_llc.sv
-
+      - test/synth_axi_llc.sv
