@@ -12,11 +12,11 @@ module tb_axi_llc #(
   /// Set Associativity of the LLC
   parameter int unsigned TbSetAssociativity = 32'd8,
   /// Number of cache lines of the LLC
-  parameter int unsigned TbNumLines         = 32'd16, // must be 256 currently
+  parameter int unsigned TbNumLines         = 32'd32, // must be 256 currently
   /// Number of Blocks per cache line
   parameter int unsigned TbNumBlocks        = 32'd8,
   /// Max. number of threads supported for partitioning
-  parameter int unsigned TbMaxThread        = 32'd16,
+  parameter int unsigned TbMaxThread        = 32'd32,
   /// ID width of the Full AXI slave port, master port has ID `AxiIdWidthFull + 32'd1`
   parameter int unsigned TbAxiIdWidthFull   = 32'd6,
   /// Address width of the full AXI bus
@@ -141,24 +141,28 @@ module tb_axi_llc #(
     CfgFlushSet0High = 32'h14,
     CfgSetPartition0Low = 32'h18,
     CfgSetPartition0High = 32'h1c,
-    CommitCfg     = 32'h20,
-    CommitPadding = 32'h24,
-    CommitPartitionCfg     = 32'h28,
-    CommitPartitionPadding = 32'h2c,
-    FlushedLow    = 32'h30,
-    FlushedHigh   = 32'h34,
-    BistOutLow    = 32'h38,
-    BistOutHigh   = 32'h3c,
-    SetAssoLow    = 32'h40,
-    SetAssoHigh   = 32'h44,
-    NumLinesLow   = 32'h48,
-    NumLinesHigh  = 32'h4c,
-    NumBlocksLow  = 32'h50,
-    NumBlocksHigh = 32'h54,
-    VersionLow    = 32'h58,
-    VersionHigh   = 32'h5c,
-    FlushedSet0Low  = 32'h60,
-    FlushedSet0High  = 32'h64
+    CfgSetPartition1Low = 32'h20,
+    CfgSetPartition1High = 32'h24,
+    CfgSetPartition2Low = 32'h28,
+    CfgSetPartition2High = 32'h2c,
+    CommitCfg     = 32'h30,
+    CommitPadding = 32'h34,
+    CommitPartitionCfg     = 32'h38,
+    CommitPartitionPadding = 32'h3c,
+    FlushedLow    = 32'h40,
+    FlushedHigh   = 32'h44,
+    BistOutLow    = 32'h48,
+    BistOutHigh   = 32'h4c,
+    SetAssoLow    = 32'h50,
+    SetAssoHigh   = 32'h54,
+    NumLinesLow   = 32'h58,
+    NumLinesHigh  = 32'h5c,
+    NumBlocksLow  = 32'h60,
+    NumBlocksHigh = 32'h64,
+    VersionLow    = 32'h68,
+    VersionHigh   = 32'h6c,
+    FlushedSet0Low  = 32'h70,
+    FlushedSet0High  = 32'h74
   } llc_cfg_addr_e;
 
   ////////////////////////////////
@@ -403,16 +407,16 @@ module tb_axi_llc #(
     $info("Run 10 random RW tests for random PatIDs");
     $info("Random read and write 0");
     axi_master.run(TbNumReads/10, TbNumWrites/10);
-    flush_all(reg_conf_driver);
-    // flush_all_set(reg_conf_driver);
+    // flush_all(reg_conf_driver);
+    flush_all_set(reg_conf_driver);
     compare_mems(cpu_scoreboard, mem_scoreboard);
     clear_spm_cpu(cpu_scoreboard);
 
     // Randomize patid and test 1
     $info("Random read and write 1");
     axi_master.run(TbNumReads/10, TbNumWrites/10);
-    flush_all(reg_conf_driver);
-    // flush_all_set(reg_conf_driver);
+    // flush_all(reg_conf_driver);
+    flush_all_set(reg_conf_driver);
     compare_mems(cpu_scoreboard, mem_scoreboard);
     clear_spm_cpu(cpu_scoreboard);
 
@@ -630,8 +634,8 @@ module tb_axi_llc #(
 
   task cache_partition(regbus_conf_driver_t reg_conf_driver);
     automatic logic       cfg_error;
-    automatic logic[51:0] data0 = {2{1'b1}};
-    automatic logic[3:0]  data1 = {62{1'b0}};
+    automatic logic[51:0] data0 = {1{1'b1}};
+    automatic logic[3:0]  data1 = {63{1'b0}};
     automatic logic[63:0] data = {data1,data0};
     automatic logic[63:0] zeros = 64'b0;
     // automatic logic[31:0] rdata0_low, rdata1_low, rdata2_low, rdata3_low;
@@ -641,6 +645,10 @@ module tb_axi_llc #(
 /********************************************     SET BASED CACHE PARTITIONING     ********************************************/
     reg_conf_driver.send_write(CfgSetPartition0Low, data[31:0], 4'hF, cfg_error);
     reg_conf_driver.send_write(CfgSetPartition0High, data[63:32], 4'hF, cfg_error);
+    reg_conf_driver.send_write(CfgSetPartition1Low, data[31:0], 4'hF, cfg_error);
+    reg_conf_driver.send_write(CfgSetPartition1High, data[63:32], 4'hF, cfg_error);
+    reg_conf_driver.send_write(CfgSetPartition2Low, data[31:0], 4'hF, cfg_error);
+    reg_conf_driver.send_write(CfgSetPartition2High, data[63:32], 4'hF, cfg_error);
 /******************************************************************************************************************************/
     data  = 64'd1;
     reg_conf_driver.send_write(CommitPartitionCfg, data[31:0], 4'hF, cfg_error);

@@ -63,10 +63,6 @@
     logic       cfg_flush_set0_en;                                      \
     reg_data_t  cfg_set_partition0;                                     \
     logic       cfg_set_partition0_en;                                  \
-    reg_data_t  cfg_set_partition1;                                     \
-    logic       cfg_set_partition1_en;                                  \
-    reg_data_t  cfg_set_partition2;                                     \
-    logic       cfg_set_partition2_en;                                  \
     reg_data_t  flushed_set0;                                           \
     logic       flushed_set0_en;                                        \
 /******************************************************************************************************************************/  \
@@ -89,8 +85,6 @@
 /********************************************     SET BASED CACHE PARTITIONING     ********************************************/  \
     reg_data_t  cfg_flush_set0;                                         \
     reg_data_t  cfg_set_partition0;                                     \
-    reg_data_t  cfg_set_partition1;                                     \
-    reg_data_t  cfg_set_partition2;                                     \
     reg_data_t  flushed_set0;                                           \
 /******************************************************************************************************************************/  \
   } cfg_regs_q_t;

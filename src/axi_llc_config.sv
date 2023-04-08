@@ -323,7 +323,6 @@ module axi_llc_config #(
 /******************************************************************************************************************************/
 // If the user set the flush bit position of conf_regs_i.flushed_set* which is beyond the number of cache lines, those bits are ignored
   always_comb begin
-    // mask_flush_set = 0;
     mask_flush_set = {Cfg.NumLines{1'b1}};
   end
   assign conf_regs_i_flushed_set = raw_flushed_set & mask_flush_set;
@@ -344,9 +343,7 @@ module axi_llc_config #(
   logic [MaxThread * Cfg.IndexLength - 1 : 0] conf_regs_i_cfg_set_partition;
 
 /********************************************     SET BASED CACHE PARTITIONING     ********************************************/
-  assign conf_regs_i_cfg_set_partition = {conf_regs_i.cfg_set_partition2[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition1[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition0[valid_reg_bit-1:0]};
+  assign conf_regs_i_cfg_set_partition = {conf_regs_i.cfg_set_partition0[valid_reg_bit-1:0]};
 /******************************************************************************************************************************/
 
   logic [Cfg.IndexLength-1:0] slv_ar_addr_index, slv_aw_addr_index;
