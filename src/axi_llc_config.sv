@@ -343,7 +343,11 @@ module axi_llc_config #(
   logic [MaxThread * Cfg.IndexLength - 1 : 0] conf_regs_i_cfg_set_partition;
 
 /********************************************     SET BASED CACHE PARTITIONING     ********************************************/
-  assign conf_regs_i_cfg_set_partition = {conf_regs_i.cfg_set_partition2[valid_reg_bit-1:0], 
+  assign conf_regs_i_cfg_set_partition = {conf_regs_i.cfg_set_partition6[valid_reg_bit-1:0], 
+                                          conf_regs_i.cfg_set_partition5[valid_reg_bit-1:0], 
+                                          conf_regs_i.cfg_set_partition4[valid_reg_bit-1:0], 
+                                          conf_regs_i.cfg_set_partition3[valid_reg_bit-1:0], 
+                                          conf_regs_i.cfg_set_partition2[valid_reg_bit-1:0], 
                                           conf_regs_i.cfg_set_partition1[valid_reg_bit-1:0], 
                                           conf_regs_i.cfg_set_partition0[valid_reg_bit-1:0]};
 /******************************************************************************************************************************/

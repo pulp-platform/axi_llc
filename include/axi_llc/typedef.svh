@@ -67,6 +67,14 @@
     logic       cfg_set_partition1_en;                                  \
     reg_data_t  cfg_set_partition2;                                     \
     logic       cfg_set_partition2_en;                                  \
+    reg_data_t  cfg_set_partition3;                                     \
+    logic       cfg_set_partition3_en;                                  \
+    reg_data_t  cfg_set_partition4;                                     \
+    logic       cfg_set_partition4_en;                                  \
+    reg_data_t  cfg_set_partition5;                                     \
+    logic       cfg_set_partition5_en;                                  \
+    reg_data_t  cfg_set_partition6;                                     \
+    logic       cfg_set_partition6_en;                                  \
     reg_data_t  flushed_set0;                                           \
     logic       flushed_set0_en;                                        \
 /******************************************************************************************************************************/  \
@@ -91,6 +99,10 @@
     reg_data_t  cfg_set_partition0;                                     \
     reg_data_t  cfg_set_partition1;                                     \
     reg_data_t  cfg_set_partition2;                                     \
+    reg_data_t  cfg_set_partition3;                                     \
+    reg_data_t  cfg_set_partition4;                                     \
+    reg_data_t  cfg_set_partition5;                                     \
+    reg_data_t  cfg_set_partition6;                                     \
     reg_data_t  flushed_set0;                                           \
 /******************************************************************************************************************************/  \
   } cfg_regs_q_t;
