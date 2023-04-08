@@ -463,24 +463,24 @@ module tb_axi_llc #(
     // Randomize patid and test 7
     $info("Random read and write 7");
     axi_master.run(TbNumReads/10, TbNumWrites/10);
-    flush_all(reg_conf_driver);
-    // flush_all_set(reg_conf_driver);
+    // flush_all(reg_conf_driver);
+    flush_all_set(reg_conf_driver);
     compare_mems(cpu_scoreboard, mem_scoreboard);
     clear_spm_cpu(cpu_scoreboard);
 
     // Randomize patid and test 8
     $info("Random read and write 8");
     axi_master.run(TbNumReads/10, TbNumWrites/10);
-    flush_all(reg_conf_driver);
-    // flush_all_set(reg_conf_driver);
+    // flush_all(reg_conf_driver);
+    flush_all_set(reg_conf_driver);
     compare_mems(cpu_scoreboard, mem_scoreboard);
     clear_spm_cpu(cpu_scoreboard);
 
     // Randomize patid and test 9
     $info("Random read and write 9");
     axi_master.run(TbNumReads/10, TbNumWrites/10);
-    flush_all(reg_conf_driver);
-    // flush_all_set(reg_conf_driver);
+    // flush_all(reg_conf_driver);
+    flush_all_set(reg_conf_driver);
     compare_mems(cpu_scoreboard, mem_scoreboard);
     clear_spm_cpu(cpu_scoreboard);
 
@@ -536,8 +536,8 @@ module tb_axi_llc #(
 
     print_perf_couters();
 
-    // flush_all(reg_conf_driver);
-    flush_all_set(reg_conf_driver);
+    flush_all(reg_conf_driver);
+    // flush_all_set(reg_conf_driver);
     compare_mems(cpu_scoreboard, mem_scoreboard);
     clear_spm_cpu(cpu_scoreboard);
 

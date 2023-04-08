@@ -491,7 +491,7 @@ module axi_llc_config #(
   assign conf_regs_o.num_blocks_en  = 1'b1;
   assign conf_regs_o.version_en     = 1'b1;
 
-  set_t conf_regs_o_flushed_set;
+  logic [flushed_set_length-1:0] conf_regs_o_flushed_set;
 
   always_comb begin : proc_axi_llc_cfg
     // Default assignments

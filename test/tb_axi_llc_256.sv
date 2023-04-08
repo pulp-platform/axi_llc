@@ -618,8 +618,8 @@ module tb_axi_llc #(
 
     print_perf_couters();
 
-    // flush_all(reg_conf_driver);
-    flush_all_set(reg_conf_driver);
+    flush_all(reg_conf_driver);
+    // flush_all_set(reg_conf_driver);
     compare_mems(cpu_scoreboard, mem_scoreboard);
     clear_spm_cpu(cpu_scoreboard);
 
