@@ -293,31 +293,10 @@ module axi_llc_tag_store #(
     //   .rdata_o ( ram_rdata  )
     // );
 
-    // axi_llc_sram_tag #(
-    //   .NumWords    ( Cfg.NumLines                 ),
-    //   .DataWidth   ( SRAMDataWidth                ),
-    //   .ByteWidth   ( SRAMDataWidth                ),
-    //   .NumPorts    ( 32'd1                        ),
-    //   .Latency     ( axi_llc_pkg::TagMacroLatency ),
-    //   .SimInit     ( "none"                       ),
-    //   .PrintSimCfg ( 1'b1                         )
-    // ) i_tag_store (
-    //   .clk_i,
-    //   .rst_ni,
-    //   .req_i   ( ram_req[i] ),
-    //   .we_i    ( ram_we[i]  ),
-    //   .addr_i  ( ram_index  ),
-    //   .wdata_i ( sram_wdata ),
-    //   .be_i    ( ram_we[i]  ),
-    //   .rdata_o ( sram_rdata )
-    // );
-
-    assign ram_rdata = sram_rdata[TagDataLen-1:0];
-
-    axi_llc_sram_tag_fpga #(
+    axi_llc_sram_tag #(
       .NumWords    ( Cfg.NumLines                 ),
-      .DataWidth   ( 2**($clog2(TagDataLen))      ),
-      .ByteWidth   ( 2**($clog2(TagDataLen))      ),
+      .DataWidth   ( SRAMDataWidth                ),
+      .ByteWidth   ( SRAMDataWidth                ),
       .NumPorts    ( 32'd1                        ),
       .Latency     ( axi_llc_pkg::TagMacroLatency ),
       .SimInit     ( "none"                       ),
@@ -328,10 +307,31 @@ module axi_llc_tag_store #(
       .req_i   ( ram_req[i] ),
       .we_i    ( ram_we[i]  ),
       .addr_i  ( ram_index  ),
-      .wdata_i ( ram_wdata  ),
+      .wdata_i ( sram_wdata ),
       .be_i    ( ram_we[i]  ),
-      .rdata_o ( ram_rdata  )
+      .rdata_o ( sram_rdata )
     );
+
+    assign ram_rdata = sram_rdata[TagDataLen-1:0];
+
+    // axi_llc_sram_tag_fpga #(
+    //   .NumWords    ( Cfg.NumLines                 ),
+    //   .DataWidth   ( 2**($clog2(TagDataLen))      ),
+    //   .ByteWidth   ( 2**($clog2(TagDataLen))      ),
+    //   .NumPorts    ( 32'd1                        ),
+    //   .Latency     ( axi_llc_pkg::TagMacroLatency ),
+    //   .SimInit     ( "none"                       ),
+    //   .PrintSimCfg ( 1'b1                         )
+    // ) i_tag_store (
+    //   .clk_i,
+    //   .rst_ni,
+    //   .req_i   ( ram_req[i] ),
+    //   .we_i    ( ram_we[i]  ),
+    //   .addr_i  ( ram_index  ),
+    //   .wdata_i ( ram_wdata  ),
+    //   .be_i    ( ram_we[i]  ),
+    //   .rdata_o ( ram_rdata  )
+    // );
 
 
 
