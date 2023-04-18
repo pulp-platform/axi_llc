@@ -57,6 +57,7 @@ sources:
   - src/axi_llc_top.sv
   # Level 4
   - src/axi_llc_reg_wrap.sv
+  - test/synth_axi_llc.sv
 
 
   - target: test

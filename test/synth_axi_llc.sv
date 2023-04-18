@@ -2,11 +2,11 @@ module synth_axi_llc import axi_pkg::*; #(
   /// Set Associativity of the LLC
   parameter int unsigned SetAssociativity = 32'd8,
   /// Number of cache lines of the LLC
-  parameter int unsigned NumLines         = 32'd512, // must be 256 currently
+  parameter int unsigned NumLines         = 32'd256, // must be 256 currently
   /// Number of Blocks per cache line
   parameter int unsigned NumBlocks        = 32'd8,
   /// Max. number of threads supported for partitioning
-  parameter int unsigned MaxThread        = 32'd512,
+  parameter int unsigned MaxThread        = 32'd256,
   /// ID width of the Full AXI slave port, master port has ID `AxiIdWidthFull + 32'd1`
   parameter int unsigned AxiIdWidth       = 32'd6,
   /// Address width of the full AXI bus
@@ -14,7 +14,7 @@ module synth_axi_llc import axi_pkg::*; #(
   /// Data width of the full AXI bus
   parameter int unsigned AxiDataWidth     = 32'd128,
   /// User width of the full AXI bus
-  parameter int unsigned AxiUserWidth     = 32'd9,
+  parameter int unsigned AxiUserWidth     = 32'd8,
   /// Axi types
   parameter type axi_slv_id_t             = logic [AxiIdWidth-1:0],
   parameter type axi_mst_id_t             = logic [AxiIdWidth:0],
