@@ -24,6 +24,12 @@ sources:
   # levels 1 and 0, etc. Files within a level are ordered alphabetically.
   # Level 0
   - src/axi_llc_pkg.sv
+  - src/axi_llc_sram_data.sv
+  - src/axi_llc_sram_tag.sv
+  ################################### DELETE WHEN PUSH TO GITHUB ###################################
+  - src/axi_llc_sram_data_fpga.sv
+  - src/axi_llc_sram_tag_fpga.sv
+  ##################################################################################################
   - src/axi_llc_burst_cutter.sv
   - src/axi_llc_data_way.sv
   - src/axi_llc_merge_unit.sv
@@ -59,4 +65,5 @@ sources:
     files:
       # Level 0:
       - test/tb_axi_llc.sv
+      - test/synth_axi_llc.sv
 
