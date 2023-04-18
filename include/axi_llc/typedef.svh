@@ -61,6 +61,12 @@
 /********************************************     SET BASED CACHE PARTITIONING     ********************************************/  \
     reg_data_t  cfg_flush_set0;                                         \
     logic       cfg_flush_set0_en;                                      \
+    reg_data_t  cfg_flush_set1;                                         \
+    logic       cfg_flush_set1_en;                                      \
+    reg_data_t  cfg_flush_set2;                                         \
+    logic       cfg_flush_set2_en;                                      \
+    reg_data_t  cfg_flush_set3;                                         \
+    logic       cfg_flush_set3_en;                                      \
     reg_data_t  cfg_set_partition0;                                     \
     logic       cfg_set_partition0_en;                                  \
     reg_data_t  cfg_set_partition1;                                     \
@@ -75,8 +81,64 @@
     logic       cfg_set_partition5_en;                                  \
     reg_data_t  cfg_set_partition6;                                     \
     logic       cfg_set_partition6_en;                                  \
+    reg_data_t  cfg_set_partition7;                                     \
+    logic       cfg_set_partition7_en;                                  \
+    reg_data_t  cfg_set_partition8;                                     \
+    logic       cfg_set_partition8_en;                                  \
+    reg_data_t  cfg_set_partition9;                                     \
+    logic       cfg_set_partition9_en;                                  \
+    reg_data_t  cfg_set_partition10;                                     \
+    logic       cfg_set_partition10_en;                                  \
+    reg_data_t  cfg_set_partition11;                                     \
+    logic       cfg_set_partition11_en;                                  \
+    reg_data_t  cfg_set_partition12;                                     \
+    logic       cfg_set_partition12_en;                                  \
+    reg_data_t  cfg_set_partition13;                                     \
+    logic       cfg_set_partition13_en;                                  \
+    reg_data_t  cfg_set_partition14;                                     \
+    logic       cfg_set_partition14_en;                                  \
+    reg_data_t  cfg_set_partition15;                                     \
+    logic       cfg_set_partition15_en;                                  \
+    reg_data_t  cfg_set_partition16;                                     \
+    logic       cfg_set_partition16_en;                                  \
+    reg_data_t  cfg_set_partition17;                                     \
+    logic       cfg_set_partition17_en;                                  \
+    reg_data_t  cfg_set_partition18;                                     \
+    logic       cfg_set_partition18_en;                                  \
+    reg_data_t  cfg_set_partition19;                                     \
+    logic       cfg_set_partition19_en;                                  \
+    reg_data_t  cfg_set_partition20;                                     \
+    logic       cfg_set_partition20_en;                                  \
+    reg_data_t  cfg_set_partition21;                                     \
+    logic       cfg_set_partition21_en;                                  \
+    reg_data_t  cfg_set_partition22;                                     \
+    logic       cfg_set_partition22_en;                                  \
+    reg_data_t  cfg_set_partition23;                                     \
+    logic       cfg_set_partition23_en;                                  \
+    reg_data_t  cfg_set_partition24;                                     \
+    logic       cfg_set_partition24_en;                                  \
+    reg_data_t  cfg_set_partition25;                                     \
+    logic       cfg_set_partition25_en;                                  \
+    reg_data_t  cfg_set_partition26;                                     \
+    logic       cfg_set_partition26_en;                                  \
+    reg_data_t  cfg_set_partition27;                                     \
+    logic       cfg_set_partition27_en;                                  \
+    reg_data_t  cfg_set_partition28;                                     \
+    logic       cfg_set_partition28_en;                                  \
+    reg_data_t  cfg_set_partition29;                                     \
+    logic       cfg_set_partition29_en;                                  \
+    reg_data_t  cfg_set_partition30;                                     \
+    logic       cfg_set_partition30_en;                                  \
+    reg_data_t  cfg_set_partition31;                                     \
+    logic       cfg_set_partition31_en;                                  \
     reg_data_t  flushed_set0;                                           \
     logic       flushed_set0_en;                                        \
+    reg_data_t  flushed_set1;                                           \
+    logic       flushed_set1_en;                                        \
+    reg_data_t  flushed_set2;                                           \
+    logic       flushed_set2_en;                                        \
+    reg_data_t  flushed_set3;                                           \
+    logic       flushed_set3_en;                                        \
 /******************************************************************************************************************************/  \
   } cfg_regs_d_t;
 
@@ -96,6 +158,9 @@
     set_asso_t  flushed;                                                \
 /********************************************     SET BASED CACHE PARTITIONING     ********************************************/  \
     reg_data_t  cfg_flush_set0;                                         \
+    reg_data_t  cfg_flush_set1;                                         \
+    reg_data_t  cfg_flush_set2;                                         \
+    reg_data_t  cfg_flush_set3;                                         \
     reg_data_t  cfg_set_partition0;                                     \
     reg_data_t  cfg_set_partition1;                                     \
     reg_data_t  cfg_set_partition2;                                     \
@@ -103,7 +168,35 @@
     reg_data_t  cfg_set_partition4;                                     \
     reg_data_t  cfg_set_partition5;                                     \
     reg_data_t  cfg_set_partition6;                                     \
+    reg_data_t  cfg_set_partition7;                                     \
+    reg_data_t  cfg_set_partition8;                                     \
+    reg_data_t  cfg_set_partition9;                                     \
+    reg_data_t  cfg_set_partition10;                                     \
+    reg_data_t  cfg_set_partition11;                                     \
+    reg_data_t  cfg_set_partition12;                                     \
+    reg_data_t  cfg_set_partition13;                                     \
+    reg_data_t  cfg_set_partition14;                                     \
+    reg_data_t  cfg_set_partition15;                                     \
+    reg_data_t  cfg_set_partition16;                                     \
+    reg_data_t  cfg_set_partition17;                                     \
+    reg_data_t  cfg_set_partition18;                                     \
+    reg_data_t  cfg_set_partition19;                                     \
+    reg_data_t  cfg_set_partition20;                                     \
+    reg_data_t  cfg_set_partition21;                                     \
+    reg_data_t  cfg_set_partition22;                                     \
+    reg_data_t  cfg_set_partition23;                                     \
+    reg_data_t  cfg_set_partition24;                                     \
+    reg_data_t  cfg_set_partition25;                                     \
+    reg_data_t  cfg_set_partition26;                                     \
+    reg_data_t  cfg_set_partition27;                                     \
+    reg_data_t  cfg_set_partition28;                                     \
+    reg_data_t  cfg_set_partition29;                                     \
+    reg_data_t  cfg_set_partition30;                                     \
+    reg_data_t  cfg_set_partition31;                                     \
     reg_data_t  flushed_set0;                                           \
+    reg_data_t  flushed_set1;                                           \
+    reg_data_t  flushed_set2;                                           \
+    reg_data_t  flushed_set3;                                           \
 /******************************************************************************************************************************/  \
   } cfg_regs_q_t;
 
