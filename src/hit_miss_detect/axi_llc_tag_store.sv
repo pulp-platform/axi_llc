@@ -316,8 +316,8 @@ module axi_llc_tag_store #(
 
     axi_llc_sram_tag_fpga #(
       .NumWords    ( Cfg.NumLines                 ),
-      .DataWidth   ( 2**($clog2(TagDataLen))      ),
-      .ByteWidth   ( 2**($clog2(TagDataLen))      ),
+      .DataWidth   ( SRAMDataWidth                ),
+      .ByteWidth   ( SRAMDataWidth                ),
       .NumPorts    ( 32'd1                        ),
       .Latency     ( axi_llc_pkg::TagMacroLatency ),
       .SimInit     ( "none"                       ),
