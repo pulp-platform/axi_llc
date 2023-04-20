@@ -325,9 +325,9 @@ module axi_llc_tag_store #(
       .req_i   ( ram_req[i] ),
       .we_i    ( ram_we[i]  ),
       .addr_i  ( ram_index  ),
-      .wdata_i ( ram_wdata  ),
+      .wdata_i ( sram_wdata  ),
       .be_i    ( ram_we[i]  ),
-      .rdata_o ( ram_rdata  )
+      .rdata_o ( sram_rdata  )
     );
 
     // shift register for a validtoken for read data, this pulses once for each read request
