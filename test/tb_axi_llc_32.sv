@@ -20,9 +20,9 @@ module tb_axi_llc #(
   /// ID width of the Full AXI slave port, master port has ID `AxiIdWidthFull + 32'd1`
   parameter int unsigned TbAxiIdWidthFull   = 32'd6,
   /// Address width of the full AXI bus
-  parameter int unsigned TbAxiAddrWidthFull = 32'd32,
+  parameter int unsigned TbAxiAddrWidthFull = 32'd48,
   /// Data width of the full AXI bus
-  parameter int unsigned TbAxiDataWidthFull = 32'd128,
+  parameter int unsigned TbAxiDataWidthFull = 32'd64,
   /// Width of the Registers
   parameter int unsigned TbRegWidth         = 32'd64,
   /// Number of random write transactions in a testblock.

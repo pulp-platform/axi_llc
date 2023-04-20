@@ -596,8 +596,8 @@ module tb_axi_llc #(
 
   task cache_partition(regbus_conf_driver_t reg_conf_driver);
     automatic logic       cfg_error;
-    automatic logic[51:0] data0 = {2{1'b1}};
-    automatic logic[3:0]  data1 = {62{1'b0}};
+    automatic logic[1:0] data0 = {2{1'b1}};
+    automatic logic[61:0]  data1 = {62{1'b0}};
     automatic logic[63:0] data = {data1,data0};
     automatic logic[63:0] zeros = 64'b0;
     // automatic logic[31:0] rdata0_low, rdata1_low, rdata2_low, rdata3_low;
