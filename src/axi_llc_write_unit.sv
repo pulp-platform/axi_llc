@@ -106,21 +106,17 @@ module axi_llc_write_unit #(
   );
 
   // way_inp assignments
-  assign way_inp_o = '{
-    cache_unit: axi_llc_pkg::WChanUnit,
-    way_ind:    desc_q.way_ind,
-    line_addr:  desc_q.a_x_addr[(Cfg.ByteOffsetLength + Cfg.BlockOffsetLength) +: Cfg.IndexLength],
-    blk_offset: desc_q.a_x_addr[ Cfg.ByteOffsetLength +: Cfg.BlockOffsetLength],
-    we:         1'b1,
-    data:       w_chan.data,
-    strb:       w_chan.strb
-  };
+  assign way_inp_o.cache_unit = axi_llc_pkg::WChanUnit;
+  assign way_inp_o.way_ind    = desc_q.way_ind;
+  assign way_inp_o.line_addr  = desc_q.a_x_addr[(Cfg.ByteOffsetLength + Cfg.BlockOffsetLength) +: Cfg.IndexLength];
+  assign way_inp_o.blk_offset = desc_q.a_x_addr[ Cfg.ByteOffsetLength +: Cfg.BlockOffsetLength];
+  assign way_inp_o.we         = 1'b1;
+  assign way_inp_o.data       = w_chan.data;
+  assign way_inp_o.strb       = w_chan.strb;
 
   // assignment of the write unlock fields, which are not set with the control below
-  assign w_unlock_o = '{
-    index:   desc_q.a_x_addr[(Cfg.ByteOffsetLength + Cfg.BlockOffsetLength) +: Cfg.IndexLength],
-    way_ind: desc_q.way_ind
-  };
+  assign w_unlock_o.index   = desc_q.a_x_addr[(Cfg.ByteOffsetLength + Cfg.BlockOffsetLength) +: Cfg.IndexLength];
+  assign w_unlock_o.way_ind = desc_q.way_ind;
 
   // unit control
   always_comb begin

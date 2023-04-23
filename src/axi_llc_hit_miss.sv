@@ -372,10 +372,8 @@ module axi_llc_hit_miss #(
   );
 
   // inputs to the lock box
-  assign lock = '{
-    index:   desc_o.a_x_addr[(Cfg.ByteOffsetLength + Cfg.BlockOffsetLength)+:Cfg.IndexLength],
-    way_ind: desc_o.way_ind
-  };
+  assign lock.index   = desc_o.a_x_addr[(Cfg.ByteOffsetLength + Cfg.BlockOffsetLength)+:Cfg.IndexLength];
+  assign lock.way_ind = desc_o.way_ind;
   // Lock it if a transfer happens on ether channel and no flush!
   assign lock_req = ~desc_o.flush & ((miss_valid_o & miss_ready_i) | (hit_valid_o & hit_ready_i));
 
