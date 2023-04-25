@@ -293,6 +293,7 @@ module axi_llc_tag_store #(
     //   .rdata_o ( ram_rdata  )
     // );
 
+    // // For functional test
     // axi_llc_sram_tag #(
     //   .NumWords    ( Cfg.NumLines                 ),
     //   .DataWidth   ( SRAMDataWidth                ),
@@ -312,8 +313,7 @@ module axi_llc_tag_store #(
     //   .rdata_o ( sram_rdata )
     // );
 
-    assign ram_rdata = sram_rdata[TagDataLen-1:0];
-
+    // For synthesis
     axi_llc_sram_tag_fpga #(
       .NumWords    ( Cfg.NumLines                 ),
       .DataWidth   ( SRAMDataWidth                ),
@@ -321,7 +321,8 @@ module axi_llc_tag_store #(
       .NumPorts    ( 32'd1                        ),
       .Latency     ( axi_llc_pkg::TagMacroLatency ),
       .SimInit     ( "none"                       ),
-      .PrintSimCfg ( 1'b1                         )
+      .PrintSimCfg ( 1'b1                         ),
+      .NumLines    ( Cfg.NumLines                 )
     ) i_tag_store (
       .clk_i,
       .rst_ni,
@@ -333,7 +334,7 @@ module axi_llc_tag_store #(
       .rdata_o ( sram_rdata  )
     );
 
-
+    assign ram_rdata = sram_rdata[TagDataLen-1:0];
 
     // shift register for a validtoken for read data, this pulses once for each read request
     shift_reg #(

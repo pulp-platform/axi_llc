@@ -11,8 +11,8 @@ REGGEN_PATH  = $(shell $(BENDER) path register_interface)/vendor/lowrisc_opentit
 REGGEN	     = $(PYTHON) $(REGGEN_PATH)
 
 REGWIDTH            = 64
-CACHENUMLINES       = 128
-MAXTHREAD           = 128
+CACHENUMLINES       = 256
+MAXTHREAD           = 256
 AXI_LLC_REGS_PATH   = data/axi_llc_regs.py
 TYPEDEF_PATH        = include/axi_llc/typedef.py
 ASSIGN_PATH         = include/axi_llc/assign.py

@@ -133,6 +133,7 @@ module axi_llc_data_way #(
   //   .rdata_o ( out_o.data )
   // );
 
+  // // For functional test
   // axi_llc_sram_data #(
   //   .NumWords   ( Cfg.NumLines * Cfg.NumBlocks ),
   //   .DataWidth  ( Cfg.BlockSize                ),
@@ -152,6 +153,7 @@ module axi_llc_data_way #(
   //   .rdata_o ( out_o.data )
   // );
 
+  // For synthesis
   axi_llc_sram_data_fpga #(
     .NumWords   ( Cfg.NumLines * Cfg.NumBlocks ),
     .DataWidth  ( Cfg.BlockSize                ),
@@ -159,7 +161,8 @@ module axi_llc_data_way #(
     .NumPorts   ( 32'd1                        ),
     .Latency    ( 32'd1                        ),
     .SimInit    ( "none"                       ),
-    .PrintSimCfg( 1'b1                         )
+    .PrintSimCfg( 1'b1                         ),
+    .NumLines   ( Cfg.NumLines                 )
   ) i_data_sram (
     .clk_i,
     .rst_ni,
