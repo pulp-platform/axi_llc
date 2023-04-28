@@ -316,23 +316,35 @@ module axi_llc_config #(
   logic       [flushed_set_length-1:0] conf_regs_i_cfg_flush_set;
   logic       [Cfg.IndexLength-1:0] num_unvalid_bit_flush_set;
   assign num_unvalid_bit_flush_set = flushed_set_length - Cfg.NumLines;
-  logic       [flushed_set_length-1:0] raw_cfg_flush_set, raw_flushed_set, mask_flush_set;
+  logic       [flushed_set_length-1:0] raw_flushed_set, mask_flush_set;
 /********************************************     SET BASED CACHE PARTITIONING     ********************************************/
   assign raw_flushed_set = {conf_regs_i.flushed_set3,
                             conf_regs_i.flushed_set2,
                             conf_regs_i.flushed_set1,
                             conf_regs_i.flushed_set0};
-  assign raw_cfg_flush_set = {conf_regs_i.cfg_flush_set3,
-                              conf_regs_i.cfg_flush_set2,
-                              conf_regs_i.cfg_flush_set1,
-                              conf_regs_i.cfg_flush_set0};
-/******************************************************************************************************************************/
 // If the user set the flush bit position of conf_regs_i.flushed_set* which is beyond the number of cache lines, those bits are ignored
   always_comb begin
-    mask_flush_set = {Cfg.NumLines{1'b1}};
+    conf_regs_i_cfg_flush_set = '0;
+    if (conf_regs_i.cfg_flush_thread == (MaxThread + 1)) begin
+      conf_regs_i_cfg_flush_set = {Cfg.NumLines{1'b1}};
+    end else if (partition_table_o[conf_regs_i.cfg_flush_thread].NumIndex) begin
+      for (int unsigned k=0; k < Cfg.NumLines; k++) begin
+        if ((k >= partition_table_o[conf_regs_i.cfg_flush_thread].StartIndex) && (k < (partition_table_o[conf_regs_i.cfg_flush_thread].StartIndex + partition_table_o[conf_regs_i.cfg_flush_thread].NumIndex))) begin
+          conf_regs_i_cfg_flush_set[k] = 1'b1;
+        end
+      end
+    end else if (partition_table_o[conf_regs_i.cfg_flush_thread].NumIndex == 0) begin
+      for (int unsigned k=0; k < Cfg.NumLines; k++) begin
+        if ((k >= partition_table_o[MaxThread].StartIndex) && (k < (partition_table_o[MaxThread].StartIndex + partition_table_o[MaxThread].NumIndex))) begin
+          conf_regs_i_cfg_flush_set[k] = 1'b1;
+        end
+      end
+    end
   end
+/******************************************************************************************************************************/
+
+  assign mask_flush_set = {Cfg.NumLines{1'b1}};
   assign conf_regs_i_flushed_set = raw_flushed_set & mask_flush_set;
-  assign conf_regs_i_cfg_flush_set = raw_cfg_flush_set & mask_flush_set;
 
   localparam int unsigned IndexBase = Cfg.ByteOffsetLength + Cfg.BlockOffsetLength;
 
@@ -383,37 +395,116 @@ module axi_llc_config #(
                                           conf_regs_i.cfg_set_partition0[valid_reg_bit-1:0]};
 /******************************************************************************************************************************/
 
-  logic [Cfg.IndexLength-1:0] slv_ar_addr_index, slv_aw_addr_index;
+  logic partition_table_valid_d, partition_table_valid_q;
+  `FFLARN(partition_table_valid_q, partition_table_valid_d, 1'b1, 1'b0, clk_i, rst_ni)
+
+  logic [$clog2(MaxThread):0] flush_set_thread_d, flush_set_thread_q; 
+  logic load_flush_set_thread;
+  `FFLARN(flush_set_thread_q, flush_set_thread_d, load_flush_set_thread, -1, clk_i, rst_ni)
+  assign load_flush_set_thread = (flush_set_thread_d != flush_set_thread_q);
+
+  logic start_addr_valid;
+
+  logic ar_bypass, aw_bypass;
+  assign aw_bypass = (slv_aw_thread_id_i == flush_set_thread_q) || 
+                    ((!partition_table_o[slv_aw_thread_id_i].NumIndex) && (flush_set_thread_q == MaxThread)) ||
+                    (flush_set_thread_q == (MaxThread + 1));
+  assign ar_bypass = (slv_ar_thread_id_i == flush_set_thread_q) || 
+                    ((!partition_table_o[slv_ar_thread_id_i].NumIndex) && (flush_set_thread_q == MaxThread)) || 
+                    (flush_set_thread_q == (MaxThread + 1));
 
   always_comb begin : proc_partition_table
     conf_regs_o.commit_partition_cfg_en = 1'b0;
+    partition_table_valid_d = partition_table_valid_q;
     if (conf_regs_i.commit_partition_cfg) begin
+      partition_table_valid_d = 0;
       conf_regs_o.commit_partition_cfg      = 1'b0;   // Clear the commit configuration flag
       conf_regs_o.commit_partition_cfg_en   = 1'b1;
 
+/*1 For loop****************************************************************************************************/
+      // partition_table_o[0].NumIndex = conf_regs_i_cfg_set_partition[Cfg.IndexLength-1:0];
+      // partition_table_o[0].StartIndex = 0;
+
+      // // if (partition_table_o[0].NumIndex >= Cfg.NumLines) begin
+      // //   $error("The partition size must not be larger than number of cache lines!");
+      // // end
+
+      // for (int unsigned i = 1; i < MaxThread; i++) begin : gen_partition_table
+      //   partition_table_o[i].StartIndex = partition_table_o[i-1].StartIndex + partition_table_o[i-1].NumIndex;
+      //   partition_table_o[i].NumIndex = conf_regs_i_cfg_set_partition[(i+1)*Cfg.IndexLength-1 -: Cfg.IndexLength];
+
+      //   // if ((partition_table_o[i].NumIndex >= Cfg.NumLines) || (partition_table_o[i].StartIndex >= Cfg.NumLines)) begin
+      //   //   $error("The set partition configuration overflows the total cache size!");
+      //   // end
+      // end
+
+      // partition_table_o[MaxThread].StartIndex = partition_table_o[MaxThread-1].StartIndex + partition_table_o[MaxThread-1].NumIndex;
+      // partition_table_o[MaxThread].NumIndex = Cfg.NumLines - partition_table_o[MaxThread].StartIndex;
+
+      // // if (partition_table_o[MaxThread].StartIndex >= Cfg.NumLines) begin
+      // //   $error("Partition Configuration Error!");
+      // // end
+/*********************************************************************************************************/
+
+
+
+
+
+/*2 For loop****************************************************************************************************/
       partition_table_o[0].NumIndex = conf_regs_i_cfg_set_partition[Cfg.IndexLength-1:0];
       partition_table_o[0].StartIndex = 0;
 
-      if (partition_table_o[0].NumIndex >= Cfg.NumLines) begin
-        $error("The partition size must not be larger than number of cache lines!");
+      // if (partition_table_o[0].NumIndex >= Cfg.NumLines) begin
+      //   $error("The partition size must not be larger than number of cache lines!");
+      // end
+
+      start_addr_valid = conf_regs_i_cfg_set_partition[(Cfg.IndexLength<<1)-1:Cfg.IndexLength] ? 1 : 0;
+      partition_table_o[1].NumIndex = conf_regs_i_cfg_set_partition[(Cfg.IndexLength<<1)-1:Cfg.IndexLength];
+      partition_table_o[1].StartIndex = conf_regs_i_cfg_set_partition[(Cfg.IndexLength<<1)-1:Cfg.IndexLength] ? 
+                                        (Cfg.NumLines-conf_regs_i_cfg_set_partition[(Cfg.IndexLength<<1)-1:Cfg.IndexLength]) : (Cfg.NumLines-1);
+
+      // if (partition_table_o[1].NumIndex >= Cfg.NumLines) begin
+      //   $error("The partition size must not be larger than number of cache lines!");
+      // end
+
+      for (int unsigned i = 1; i < (MaxThread>>1); i++) begin : gen_partition_table_odd_number
+        partition_table_o[i<<1].StartIndex = partition_table_o[(i<<1)-2].StartIndex + partition_table_o[(i<<1)-2].NumIndex;
+        partition_table_o[i<<1].NumIndex = conf_regs_i_cfg_set_partition[((i<<1)+1)*Cfg.IndexLength-1 -: Cfg.IndexLength];
+
+        // if ((partition_table_o[i].NumIndex >= Cfg.NumLines) || (partition_table_o[i].StartIndex >= Cfg.NumLines)) begin
+        //   $error("The set partition configuration overflows the total cache size! ---odd");
+        // end
       end
 
-      for (int unsigned i = 1; i < MaxThread; i++) begin : gen_partition_table
-        partition_table_o[i].StartIndex = partition_table_o[i-1].StartIndex + partition_table_o[i-1].NumIndex;
-        partition_table_o[i].NumIndex = conf_regs_i_cfg_set_partition[(i+1)*Cfg.IndexLength-1 -: Cfg.IndexLength];
+      for (int unsigned j = 1; j < (MaxThread>>1); j++) begin : gen_partition_table_even_number
+        partition_table_o[(j<<1)+1].StartIndex = start_addr_valid ? 
+                                                 partition_table_o[(j<<1)-1].StartIndex - conf_regs_i_cfg_set_partition[((j<<1)+2)*Cfg.IndexLength-1 -: Cfg.IndexLength] : 
+                                                 (conf_regs_i_cfg_set_partition[((j<<1)+2)*Cfg.IndexLength-1 -: Cfg.IndexLength] == 0 ? (Cfg.NumLines-1) : 
+                                                  partition_table_o[(j<<1)-1].StartIndex - conf_regs_i_cfg_set_partition[((j<<1)+2)*Cfg.IndexLength-1 -: Cfg.IndexLength] + 1);
+        partition_table_o[(j<<1)+1].NumIndex = conf_regs_i_cfg_set_partition[((j<<1)+2)*Cfg.IndexLength-1 -: Cfg.IndexLength];
 
-        if ((partition_table_o[i].NumIndex >= Cfg.NumLines) || (partition_table_o[i].StartIndex >= Cfg.NumLines)) begin
-          $error("The set partition configuration overflows the total cache size!");
-        end
+        start_addr_valid |= (conf_regs_i_cfg_set_partition[((j<<1)+2)*Cfg.IndexLength-1 -: Cfg.IndexLength] != 0);
+        // if ((partition_table_o[j].NumIndex >= Cfg.NumLines) || (partition_table_o[j].StartIndex >= Cfg.NumLines)) begin
+        //   $error("The set partition configuration overflows the total cache size! ---even");
+        // end
       end
 
+      partition_table_o[MaxThread].StartIndex = partition_table_o[MaxThread-2].StartIndex + partition_table_o[MaxThread-2].NumIndex;
+      partition_table_o[MaxThread].NumIndex = start_addr_valid ? partition_table_o[MaxThread-1].StartIndex - partition_table_o[MaxThread].StartIndex : 
+                                              partition_table_o[MaxThread-1].StartIndex - partition_table_o[MaxThread].StartIndex + 1;
+
+      // if (partition_table_o[MaxThread].StartIndex >= Cfg.NumLines) begin
+      //   $error("Partition Configuration Error!");
+      // end
+/*********************************************************************************************************/
+
+      partition_table_valid_d = 1'b1;
+    end
+
+    if (!partition_table_valid_d) begin // default partition table when not configued
+      partition_table_o = '0;
       partition_table_o[MaxThread].StartIndex = partition_table_o[MaxThread-1].StartIndex + partition_table_o[MaxThread-1].NumIndex;
       partition_table_o[MaxThread].NumIndex = Cfg.NumLines - partition_table_o[MaxThread].StartIndex;
-
-      if (partition_table_o[MaxThread].StartIndex >= Cfg.NumLines) begin
-        $error("Partition Configuration Error!");
-      end
-
     end
 
     axi_addr_map_aw[0] = axi_spm_rule_i;
@@ -423,15 +514,7 @@ module axi_llc_config #(
     // define that all burst go to the bypass, if flushed is completely set
     axi_addr_map_aw[1].idx    = 32'd0;
 
-    if (partition_table_o[slv_aw_thread_id_i].NumIndex) begin
-      slv_aw_addr_index = partition_table_o[slv_aw_thread_id_i].StartIndex + (slv_aw_addr_i[IndexBase+:Cfg.IndexLength] % 
-                            partition_table_o[slv_aw_thread_id_i].NumIndex);
-    end else begin
-      slv_aw_addr_index = partition_table_o[MaxThread].StartIndex + (slv_aw_addr_i[IndexBase+:Cfg.IndexLength] % 
-                            partition_table_o[MaxThread].NumIndex);
-    end
-
-    axi_addr_map_aw[1].idx[0] = index_based_flush_q ? (conf_regs_i_flushed_set[slv_aw_addr_index] | (&conf_regs_i.flushed)) : (&conf_regs_i.flushed); 
+    axi_addr_map_aw[1].idx[0] = index_based_flush_q ? aw_bypass : (&conf_regs_i.flushed); 
 
     // for ar channel input
     axi_addr_map_ar[0] = axi_spm_rule_i;
@@ -441,15 +524,7 @@ module axi_llc_config #(
     // define that all burst go to the bypass, if flushed is completely set
     axi_addr_map_ar[1].idx    = 32'd0;
 
-    if (partition_table_o[slv_ar_thread_id_i].NumIndex) begin
-      slv_ar_addr_index = partition_table_o[slv_ar_thread_id_i].StartIndex + (slv_ar_addr_i[IndexBase+:Cfg.IndexLength] % 
-                            partition_table_o[slv_ar_thread_id_i].NumIndex);
-    end else begin
-      slv_ar_addr_index = partition_table_o[MaxThread].StartIndex + (slv_ar_addr_i[IndexBase+:Cfg.IndexLength] % 
-                            partition_table_o[MaxThread].NumIndex);
-    end
-
-    axi_addr_map_ar[1].idx[0] = index_based_flush_q ? (conf_regs_i_flushed_set[slv_ar_addr_index] | (&conf_regs_i.flushed)) : (&conf_regs_i.flushed);  
+    axi_addr_map_ar[1].idx[0] = index_based_flush_q ? ar_bypass : (&conf_regs_i.flushed);  
   end
 
   addr_decode #(
@@ -533,10 +608,7 @@ module axi_llc_config #(
     conf_regs_o.cfg_spm       = conf_regs_i.cfg_spm;
     conf_regs_o.cfg_flush     = conf_regs_i.cfg_flush;
 /********************************************     SET BASED CACHE PARTITIONING     ********************************************/
-    conf_regs_o.cfg_flush_set0 = conf_regs_i.cfg_flush_set0;
-    conf_regs_o.cfg_flush_set1 = conf_regs_i.cfg_flush_set1;
-    conf_regs_o.cfg_flush_set2 = conf_regs_i.cfg_flush_set2;
-    conf_regs_o.cfg_flush_set3 = conf_regs_i.cfg_flush_set3;
+    conf_regs_o.cfg_flush_thread = conf_regs_i.cfg_flush_thread;
     conf_regs_o.commit_cfg    = conf_regs_i.commit_cfg;
     conf_regs_o.flushed       = conf_regs_i.flushed;
     conf_regs_o.flushed_set0   = conf_regs_i.flushed_set0;
@@ -546,10 +618,7 @@ module axi_llc_config #(
     // Register enables
     conf_regs_o.cfg_spm_en    = 1'b1;   // default one
     conf_regs_o.cfg_flush_en  = 1'b1;   // default one
-    conf_regs_o.cfg_flush_set0_en = 1'b1;
-    conf_regs_o.cfg_flush_set1_en = 1'b1;
-    conf_regs_o.cfg_flush_set2_en = 1'b1;
-    conf_regs_o.cfg_flush_set3_en = 1'b1;
+    conf_regs_o.cfg_flush_thread_en = 1'b1;
     conf_regs_o.commit_cfg_en = 1'b0;   // default disabled
     conf_regs_o.flushed_en    = 1'b0;   // default disabled
     conf_regs_o.flushed_set0_en  = 1'b0;
@@ -566,6 +635,7 @@ module axi_llc_config #(
     to_flush_d     = to_flush_q;
     to_flush_set_d = to_flush_set_q;
     index_based_flush_d = index_based_flush_q;
+    flush_set_thread_d = flush_set_thread_q;
     // Emit flush descriptors.
     desc_valid_o   = 1'b0;
     // Default signal definitions for the descriptor send and receive counter control.
@@ -586,12 +656,10 @@ module axi_llc_config #(
         conf_regs_o.cfg_spm_en    = 1'b0;
         conf_regs_o.cfg_flush_en  = 1'b0;
 /********************************************     SET BASED CACHE PARTITIONING     ********************************************/
-        conf_regs_o.cfg_flush_set0_en = 1'b0;
-        conf_regs_o.cfg_flush_set1_en = 1'b0;
-        conf_regs_o.cfg_flush_set2_en = 1'b0;
-        conf_regs_o.cfg_flush_set3_en = 1'b0;
+        conf_regs_o.cfg_flush_thread_en = 1'b0;
 /******************************************************************************************************************************/
         llc_isolate_o             = 1'b0;
+        flush_set_thread_d        = -1;
         // Change state, if there is a flush request, i.e. CommitCfg was set
         if (conf_regs_i.commit_cfg) begin
           conf_regs_o.commit_cfg      = 1'b0;   // Clear the commit configuration flag
@@ -613,19 +681,18 @@ module axi_llc_config #(
       end
       FsmInitFlush: begin
         // this state determines which cache line should be flushed
-        if (|conf_regs_i_cfg_flush_set) begin
+        if (conf_regs_i.cfg_flush_thread != -1) begin
           to_flush_set_d          = conf_regs_i_cfg_flush_set & ~conf_regs_i_flushed_set;
           index_based_flush_d = 1'b1; //meaning that the current flush operation is index-based
+          flush_set_thread_d  = partition_table_o[conf_regs_i.cfg_flush_thread].NumIndex ? conf_regs_i.cfg_flush_thread : MaxThread;
           if (to_flush_set_d == '0) begin
             // nothing to flush, go to idle
             flush_state_d = FsmIdle;
             index_based_flush_d = 1'b0;
+            flush_set_thread_d = -1;
 
 /********************************************     SET BASED CACHE PARTITIONING     ********************************************/
-            conf_regs_o.cfg_flush_set0 = 64'b0;
-            conf_regs_o.cfg_flush_set1 = 64'b0;
-            conf_regs_o.cfg_flush_set2 = 64'b0;
-            conf_regs_o.cfg_flush_set3 = 64'b0;
+            conf_regs_o.cfg_flush_thread = -1;
 /******************************************************************************************************************************/
           end else begin
             flush_state_d = FsmSendFlush;
@@ -732,11 +799,8 @@ module axi_llc_config #(
             conf_regs_o.flushed_set2_en = 1'b1; 
             conf_regs_o.flushed_set3_en = 1'b1; 
             to_flush_set_d              = set_t'(1'b0);
-            // Clear the `CfgFlushSet` register, load enable is default '1
-            conf_regs_o.cfg_flush_set0  = 64'b0;
-            conf_regs_o.cfg_flush_set1  = 64'b0;
-            conf_regs_o.cfg_flush_set2  = 64'b0;
-            conf_regs_o.cfg_flush_set3  = 64'b0;
+            // Reset the `CfgFlushTherad` register, load enable is default '1
+            conf_regs_o.cfg_flush_thread  = -1;
           end else begin
             // there are still cache lines to flush
             flush_state_d = FsmInitFlush;

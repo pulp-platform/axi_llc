@@ -75,12 +75,9 @@ with open('include/axi_llc/typedef.svh', 'w') as f:
     logic       bist_status_done;                                       \\\n\
     logic       bist_status_en;                                         \\\n\
 /********************************************     SET BASED CACHE PARTITIONING     ********************************************/  \\\n\
+    reg_data_t  cfg_flush_thread;                                       \\\n\
+    logic       cfg_flush_thread_en;                                    \\\n\
 ")
-
-    for i in range(num_setflushreg):
-        f.write(f'''    reg_data_t  cfg_flush_set{i};                                         \\
-    logic       cfg_flush_set{i}_en;                                      \\
-''')
 
     for i in range(num_parreg):
         f.write(f'''    reg_data_t  cfg_set_partition{i};                                     \\
@@ -109,11 +106,8 @@ with open('include/axi_llc/typedef.svh', 'w') as f:
     logic       commit_cfg;                                             \\\n\
     logic       commit_partition_cfg;                                   \\\n\
     set_asso_t  flushed;                                                \\\n\
-/********************************************     SET BASED CACHE PARTITIONING     ********************************************/  \\\n")
-
-    for i in range(num_setflushreg):
-        f.write(f'''    reg_data_t  cfg_flush_set{i};                                         \\
-''')
+/********************************************     SET BASED CACHE PARTITIONING     ********************************************/  \\\n\
+    reg_data_t  cfg_flush_thread;                                       \\\n")
 
     for i in range(num_parreg):
         f.write(f'''    reg_data_t  cfg_set_partition{i};                                     \\

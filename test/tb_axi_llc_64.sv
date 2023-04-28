@@ -12,7 +12,7 @@ module tb_axi_llc #(
   /// Set Associativity of the LLC
   parameter int unsigned TbSetAssociativity = 32'd8,
   /// Number of cache lines of the LLC
-  parameter int unsigned TbNumLines         = 32'd64, // must be 256 currently
+  parameter int unsigned TbNumLines         = 32'd256, // must be 256 currently
   /// Number of Blocks per cache line
   parameter int unsigned TbNumBlocks        = 32'd8,
   /// Max. number of threads supported for partitioning
@@ -20,9 +20,9 @@ module tb_axi_llc #(
   /// ID width of the Full AXI slave port, master port has ID `AxiIdWidthFull + 32'd1`
   parameter int unsigned TbAxiIdWidthFull   = 32'd6,
   /// Address width of the full AXI bus
-  parameter int unsigned TbAxiAddrWidthFull = 32'd32,
+  parameter int unsigned TbAxiAddrWidthFull = 32'd48,
   /// Data width of the full AXI bus
-  parameter int unsigned TbAxiDataWidthFull = 32'd128,
+  parameter int unsigned TbAxiDataWidthFull = 32'd64,
   /// Width of the Registers
   parameter int unsigned TbRegWidth         = 32'd64,
   /// Number of random write transactions in a testblock.
@@ -88,8 +88,8 @@ module tb_axi_llc #(
     CfgSpmHigh    = 32'h04,
     CfgFlushLow   = 32'h08,
     CfgFlushHigh  = 32'h0C,
-    CfgFlushSet0Low  = 32'h10,
-    CfgFlushSet0High = 32'h14,
+    CfgFlushThreadLow  = 32'h10,
+    CfgFlushThreadHigh = 32'h14,
     CfgSetPartition0Low = 32'h18,
     CfgSetPartition0High = 32'h1c,
     CfgSetPartition1Low = 32'h20,
@@ -104,24 +104,32 @@ module tb_axi_llc #(
     CfgSetPartition5High = 32'h44,
     CfgSetPartition6Low = 32'h48,
     CfgSetPartition6High = 32'h4c,
-    CommitCfg     = 32'h50,
-    CommitPadding = 32'h54,
-    CommitPartitionCfg     = 32'h58,
-    CommitPartitionPadding = 32'h5c,
-    FlushedLow    = 32'h60,
-    FlushedHigh   = 32'h64,
-    BistOutLow    = 32'h68,
-    BistOutHigh   = 32'h6c,
-    SetAssoLow    = 32'h70,
-    SetAssoHigh   = 32'h74,
-    NumLinesLow   = 32'h78,
-    NumLinesHigh  = 32'h7c,
-    NumBlocksLow  = 32'h80,
-    NumBlocksHigh = 32'h84,
-    VersionLow    = 32'h88,
-    VersionHigh   = 32'h8c,
-    FlushedSet0Low  = 32'h90,
-    FlushedSet0High  = 32'h94
+    CfgSetPartition7Low = 32'h50,
+    CfgSetPartition7High = 32'h54,
+    CommitCfg     = 32'h58,
+    CommitPadding = 32'h5c,
+    CommitPartitionCfg     = 32'h78,
+    CommitPartitionPadding = 32'h7c,
+    FlushedLow    = 32'h80,
+    FlushedHigh   = 32'h84,
+    BistOutLow    = 32'h88,
+    BistOutHigh   = 32'h8c,
+    SetAssoLow    = 32'h90,
+    SetAssoHigh   = 32'h94,
+    NumLinesLow   = 32'h98,
+    NumLinesHigh  = 32'h9c,
+    NumBlocksLow  = 32'ha0,
+    NumBlocksHigh = 32'ha4,
+    VersionLow    = 32'ha8,
+    VersionHigh   = 32'hac,
+    FlushedSet0Low  = 32'hb0,
+    FlushedSet0High  = 32'hb4,
+    FlushedSet1Low  = 32'hb8,
+    FlushedSet1High  = 32'hbc,
+    FlushedSet2Low  = 32'hc0,
+    FlushedSet2High  = 32'hc4,
+    FlushedSet3Low  = 32'hc8,
+    FlushedSet3High  = 32'hcc
   } llc_cfg_addr_e;
 
   ////////////////////////////////
@@ -335,8 +343,6 @@ module tb_axi_llc #(
     reg_conf_driver.send_read(CfgSpmHigh,     cfg_data, cfg_error);
     reg_conf_driver.send_read(CfgFlushLow,    cfg_data, cfg_error);
     reg_conf_driver.send_read(CfgFlushHigh,   cfg_data, cfg_error);
-    reg_conf_driver.send_read(CfgFlushSet0Low,    cfg_data, cfg_error);
-    reg_conf_driver.send_read(CfgFlushSet0High,   cfg_data, cfg_error);
     reg_conf_driver.send_read(CommitCfg,      cfg_data, cfg_error);
     reg_conf_driver.send_read(FlushedLow,     cfg_data, cfg_error);
     reg_conf_driver.send_read(FlushedHigh,    cfg_data, cfg_error);
@@ -368,8 +374,8 @@ module tb_axi_llc #(
     $info("Run 10 random RW tests for random PatIDs");
     $info("Random read and write 0");
     axi_master.run(TbNumReads/10, TbNumWrites/10);
-    // flush_all(reg_conf_driver);
-    flush_all_set(reg_conf_driver);
+    flush_all(reg_conf_driver);
+    // flush_all_set(reg_conf_driver);
     compare_mems(cpu_scoreboard, mem_scoreboard);
     clear_spm_cpu(cpu_scoreboard);
 
@@ -568,32 +574,70 @@ module tb_axi_llc #(
 
   task flush_all_set(regbus_conf_driver_t reg_conf_driver);
     automatic logic       cfg_error;
-    automatic logic[63:0] data = {64{1'b1}};
-/********************************************     SET BASED CACHE PARTITIONING     ********************************************/
-    automatic logic[31:0] rdata0_low;
-    automatic logic[31:0] rdata0_high;
-/******************************************************************************************************************************/
-    automatic logic[TbNumLines-1:0] data_set = {TbNumLines{1'b1}};
-    $info("Flushing the cache set!");
-/********************************************     SET BASED CACHE PARTITIONING     ********************************************/
-    reg_conf_driver.send_write(CfgFlushSet0Low, data[31:0], 4'hF, cfg_error);
-    reg_conf_driver.send_write(CfgFlushSet0High, data[63:32], 4'hF, cfg_error);
-/******************************************************************************************************************************/
-
+    automatic logic[63:0] data = TbMaxThread+1;
+    automatic logic[31:0] rdata_low;
+    automatic logic[31:0] rdata_high;
+    $info("Flushing all the cache set!");
+    reg_conf_driver.send_write(CfgFlushThreadLow, data[31:0], 4'hF, cfg_error);
+    reg_conf_driver.send_write(CfgFlushThreadHigh, data[63:32], 4'hF, cfg_error);
     data  = 64'd1;
     reg_conf_driver.send_write(CommitCfg, data[31:0], 4'hF, cfg_error);
 
+    data  = 64'd0;
     // poll on the flush config until it is cleared
-    while (|data_set) begin
-/********************************************     SET BASED CACHE PARTITIONING     ********************************************/
-      reg_conf_driver.send_read(CfgFlushSet0Low, rdata0_low, cfg_error);
-      reg_conf_driver.send_read(CfgFlushSet0High, rdata0_high, cfg_error);
-      data_set = {rdata0_high, rdata0_low};
-/******************************************************************************************************************************/
+    while (data!={64{1'b1}}) begin
+      reg_conf_driver.send_read(CfgFlushThreadLow, rdata_low, cfg_error);
+      reg_conf_driver.send_read(CfgFlushThreadHigh, rdata_high, cfg_error);
+      data = {rdata_high, rdata_low};
       repeat (5000) @(posedge clk);
     end
-    $info("Finished flushing the cache set!");
+
+  //   // flush section 1
+  //   data = TbMaxThread;
+  //   reg_conf_driver.send_write(CfgFlushThreadLow, data[31:0], 4'hF, cfg_error);
+  //   reg_conf_driver.send_write(CfgFlushThreadHigh, data[63:32], 4'hF, cfg_error);
+  //   data  = 64'd1;
+  //   reg_conf_driver.send_write(CommitCfg, data[31:0], 4'hF, cfg_error);
+
+  //   data  = 64'd0;
+  //   // poll on the flush config until it is cleared
+  //   while (data!={64{1'b1}}) begin
+  //     reg_conf_driver.send_read(CfgFlushThreadLow, rdata_low, cfg_error);
+  //     reg_conf_driver.send_read(CfgFlushThreadHigh, rdata_high, cfg_error);
+  //     data = {rdata_high, rdata_low};
+  //     repeat (5000) @(posedge clk);
+  //   end
+    $info("Finished flushing all the cache set!");
   endtask : flush_all_set
+
+//   task flush_all_set(regbus_conf_driver_t reg_conf_driver);
+//     automatic logic       cfg_error;
+//     automatic logic[63:0] data = {64{1'b1}};
+// /********************************************     SET BASED CACHE PARTITIONING     ********************************************/
+//     automatic logic[31:0] rdata0_low;
+//     automatic logic[31:0] rdata0_high;
+// /******************************************************************************************************************************/
+//     automatic logic[TbNumLines-1:0] data_set = {TbNumLines{1'b1}};
+//     $info("Flushing the cache set!");
+// /********************************************     SET BASED CACHE PARTITIONING     ********************************************/
+//     reg_conf_driver.send_write(CfgFlushSet0Low, data[31:0], 4'hF, cfg_error);
+//     reg_conf_driver.send_write(CfgFlushSet0High, data[63:32], 4'hF, cfg_error);
+// /******************************************************************************************************************************/
+
+//     data  = 64'd1;
+//     reg_conf_driver.send_write(CommitCfg, data[31:0], 4'hF, cfg_error);
+
+//     // poll on the flush config until it is cleared
+//     while (|data_set) begin
+// /********************************************     SET BASED CACHE PARTITIONING     ********************************************/
+//       reg_conf_driver.send_read(CfgFlushSet0Low, rdata0_low, cfg_error);
+//       reg_conf_driver.send_read(CfgFlushSet0High, rdata0_high, cfg_error);
+//       data_set = {rdata0_high, rdata0_low};
+// /******************************************************************************************************************************/
+//       repeat (5000) @(posedge clk);
+//     end
+//     $info("Finished flushing the cache set!");
+//   endtask : flush_all_set
 
   task cache_partition(regbus_conf_driver_t reg_conf_driver);
     automatic logic       cfg_error;
@@ -612,7 +656,7 @@ module tb_axi_llc #(
     reg_conf_driver.send_write(CfgSetPartition1High, data[63:32], 4'hF, cfg_error);
     reg_conf_driver.send_write(CfgSetPartition2Low, data[31:0], 4'hF, cfg_error);
     reg_conf_driver.send_write(CfgSetPartition2High, data[63:32], 4'hF, cfg_error);
-    reg_conf_driver.send_write(CfgSetPartition3Low, data[31:0], 4'hF, cfg_error);
+    reg_conf_driver.send_write(CfgSetPartition3Low, 32'b0000_0000_0000_0000_0000_0000_0000_0011, 4'hF, cfg_error);
     reg_conf_driver.send_write(CfgSetPartition3High, data[63:32], 4'hF, cfg_error);
     reg_conf_driver.send_write(CfgSetPartition4Low, data[31:0], 4'hF, cfg_error);
     reg_conf_driver.send_write(CfgSetPartition4High, data[63:32], 4'hF, cfg_error);
@@ -620,6 +664,8 @@ module tb_axi_llc #(
     reg_conf_driver.send_write(CfgSetPartition5High, data[63:32], 4'hF, cfg_error);
     reg_conf_driver.send_write(CfgSetPartition6Low, data[31:0], 4'hF, cfg_error);
     reg_conf_driver.send_write(CfgSetPartition6High, data[63:32], 4'hF, cfg_error);
+    reg_conf_driver.send_write(CfgSetPartition7Low, data[31:0], 4'hF, cfg_error);
+    reg_conf_driver.send_write(CfgSetPartition7High, data[63:32], 4'hF, cfg_error);
 /******************************************************************************************************************************/
     data  = 64'd1;
     reg_conf_driver.send_write(CommitPartitionCfg, data[31:0], 4'hF, cfg_error);

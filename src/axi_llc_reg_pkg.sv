@@ -31,35 +31,11 @@ package axi_llc_reg_pkg;
 
   typedef struct packed {
     logic [31:0] q;
-  } axi_llc_reg2hw_cfg_flush_set0_low_reg_t;
+  } axi_llc_reg2hw_cfg_flush_thread_low_reg_t;
 
   typedef struct packed {
     logic [31:0] q;
-  } axi_llc_reg2hw_cfg_flush_set0_high_reg_t;
-
-  typedef struct packed {
-    logic [31:0] q;
-  } axi_llc_reg2hw_cfg_flush_set1_low_reg_t;
-
-  typedef struct packed {
-    logic [31:0] q;
-  } axi_llc_reg2hw_cfg_flush_set1_high_reg_t;
-
-  typedef struct packed {
-    logic [31:0] q;
-  } axi_llc_reg2hw_cfg_flush_set2_low_reg_t;
-
-  typedef struct packed {
-    logic [31:0] q;
-  } axi_llc_reg2hw_cfg_flush_set2_high_reg_t;
-
-  typedef struct packed {
-    logic [31:0] q;
-  } axi_llc_reg2hw_cfg_flush_set3_low_reg_t;
-
-  typedef struct packed {
-    logic [31:0] q;
-  } axi_llc_reg2hw_cfg_flush_set3_high_reg_t;
+  } axi_llc_reg2hw_cfg_flush_thread_high_reg_t;
 
   typedef struct packed {
     logic [31:0] q;
@@ -388,42 +364,12 @@ package axi_llc_reg_pkg;
   typedef struct packed {
     logic [31:0] d;
     logic        de;
-  } axi_llc_hw2reg_cfg_flush_set0_low_reg_t;
+  } axi_llc_hw2reg_cfg_flush_thread_low_reg_t;
 
   typedef struct packed {
     logic [31:0] d;
     logic        de;
-  } axi_llc_hw2reg_cfg_flush_set0_high_reg_t;
-
-  typedef struct packed {
-    logic [31:0] d;
-    logic        de;
-  } axi_llc_hw2reg_cfg_flush_set1_low_reg_t;
-
-  typedef struct packed {
-    logic [31:0] d;
-    logic        de;
-  } axi_llc_hw2reg_cfg_flush_set1_high_reg_t;
-
-  typedef struct packed {
-    logic [31:0] d;
-    logic        de;
-  } axi_llc_hw2reg_cfg_flush_set2_low_reg_t;
-
-  typedef struct packed {
-    logic [31:0] d;
-    logic        de;
-  } axi_llc_hw2reg_cfg_flush_set2_high_reg_t;
-
-  typedef struct packed {
-    logic [31:0] d;
-    logic        de;
-  } axi_llc_hw2reg_cfg_flush_set3_low_reg_t;
-
-  typedef struct packed {
-    logic [31:0] d;
-    logic        de;
-  } axi_llc_hw2reg_cfg_flush_set3_high_reg_t;
+  } axi_llc_hw2reg_cfg_flush_thread_high_reg_t;
 
   typedef struct packed {
     logic [31:0] d;
@@ -862,18 +808,12 @@ package axi_llc_reg_pkg;
 
   // Register -> HW type
   typedef struct packed {
-    axi_llc_reg2hw_cfg_spm_low_reg_t cfg_spm_low; // [2753:2722]
-    axi_llc_reg2hw_cfg_spm_high_reg_t cfg_spm_high; // [2721:2690]
-    axi_llc_reg2hw_cfg_flush_low_reg_t cfg_flush_low; // [2689:2658]
-    axi_llc_reg2hw_cfg_flush_high_reg_t cfg_flush_high; // [2657:2626]
-    axi_llc_reg2hw_cfg_flush_set0_low_reg_t cfg_flush_set0_low; // [2625:2594]
-    axi_llc_reg2hw_cfg_flush_set0_high_reg_t cfg_flush_set0_high; // [2593:2562]
-    axi_llc_reg2hw_cfg_flush_set1_low_reg_t cfg_flush_set1_low; // [2561:2530]
-    axi_llc_reg2hw_cfg_flush_set1_high_reg_t cfg_flush_set1_high; // [2529:2498]
-    axi_llc_reg2hw_cfg_flush_set2_low_reg_t cfg_flush_set2_low; // [2497:2466]
-    axi_llc_reg2hw_cfg_flush_set2_high_reg_t cfg_flush_set2_high; // [2465:2434]
-    axi_llc_reg2hw_cfg_flush_set3_low_reg_t cfg_flush_set3_low; // [2433:2402]
-    axi_llc_reg2hw_cfg_flush_set3_high_reg_t cfg_flush_set3_high; // [2401:2370]
+    axi_llc_reg2hw_cfg_spm_low_reg_t cfg_spm_low; // [2561:2530]
+    axi_llc_reg2hw_cfg_spm_high_reg_t cfg_spm_high; // [2529:2498]
+    axi_llc_reg2hw_cfg_flush_low_reg_t cfg_flush_low; // [2497:2466]
+    axi_llc_reg2hw_cfg_flush_high_reg_t cfg_flush_high; // [2465:2434]
+    axi_llc_reg2hw_cfg_flush_thread_low_reg_t cfg_flush_thread_low; // [2433:2402]
+    axi_llc_reg2hw_cfg_flush_thread_high_reg_t cfg_flush_thread_high; // [2401:2370]
     axi_llc_reg2hw_cfg_set_partition0_low_reg_t cfg_set_partition0_low; // [2369:2338]
     axi_llc_reg2hw_cfg_set_partition0_high_reg_t cfg_set_partition0_high; // [2337:2306]
     axi_llc_reg2hw_cfg_set_partition1_low_reg_t cfg_set_partition1_low; // [2305:2274]
@@ -954,18 +894,12 @@ package axi_llc_reg_pkg;
 
   // HW -> register type
   typedef struct packed {
-    axi_llc_hw2reg_cfg_spm_low_reg_t cfg_spm_low; // [3173:3141]
-    axi_llc_hw2reg_cfg_spm_high_reg_t cfg_spm_high; // [3140:3108]
-    axi_llc_hw2reg_cfg_flush_low_reg_t cfg_flush_low; // [3107:3075]
-    axi_llc_hw2reg_cfg_flush_high_reg_t cfg_flush_high; // [3074:3042]
-    axi_llc_hw2reg_cfg_flush_set0_low_reg_t cfg_flush_set0_low; // [3041:3009]
-    axi_llc_hw2reg_cfg_flush_set0_high_reg_t cfg_flush_set0_high; // [3008:2976]
-    axi_llc_hw2reg_cfg_flush_set1_low_reg_t cfg_flush_set1_low; // [2975:2943]
-    axi_llc_hw2reg_cfg_flush_set1_high_reg_t cfg_flush_set1_high; // [2942:2910]
-    axi_llc_hw2reg_cfg_flush_set2_low_reg_t cfg_flush_set2_low; // [2909:2877]
-    axi_llc_hw2reg_cfg_flush_set2_high_reg_t cfg_flush_set2_high; // [2876:2844]
-    axi_llc_hw2reg_cfg_flush_set3_low_reg_t cfg_flush_set3_low; // [2843:2811]
-    axi_llc_hw2reg_cfg_flush_set3_high_reg_t cfg_flush_set3_high; // [2810:2778]
+    axi_llc_hw2reg_cfg_spm_low_reg_t cfg_spm_low; // [2975:2943]
+    axi_llc_hw2reg_cfg_spm_high_reg_t cfg_spm_high; // [2942:2910]
+    axi_llc_hw2reg_cfg_flush_low_reg_t cfg_flush_low; // [2909:2877]
+    axi_llc_hw2reg_cfg_flush_high_reg_t cfg_flush_high; // [2876:2844]
+    axi_llc_hw2reg_cfg_flush_thread_low_reg_t cfg_flush_thread_low; // [2843:2811]
+    axi_llc_hw2reg_cfg_flush_thread_high_reg_t cfg_flush_thread_high; // [2810:2778]
     axi_llc_hw2reg_cfg_set_partition0_low_reg_t cfg_set_partition0_low; // [2777:2745]
     axi_llc_hw2reg_cfg_set_partition0_high_reg_t cfg_set_partition0_high; // [2744:2712]
     axi_llc_hw2reg_cfg_set_partition1_low_reg_t cfg_set_partition1_low; // [2711:2679]
@@ -1060,79 +994,73 @@ package axi_llc_reg_pkg;
   parameter logic [BlockAw-1:0] AXI_LLC_CFG_SPM_HIGH_OFFSET = 9'h 4;
   parameter logic [BlockAw-1:0] AXI_LLC_CFG_FLUSH_LOW_OFFSET = 9'h 8;
   parameter logic [BlockAw-1:0] AXI_LLC_CFG_FLUSH_HIGH_OFFSET = 9'h c;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_FLUSH_SET0_LOW_OFFSET = 9'h 10;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_FLUSH_SET0_HIGH_OFFSET = 9'h 14;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_FLUSH_SET1_LOW_OFFSET = 9'h 18;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_FLUSH_SET1_HIGH_OFFSET = 9'h 1c;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_FLUSH_SET2_LOW_OFFSET = 9'h 20;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_FLUSH_SET2_HIGH_OFFSET = 9'h 24;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_FLUSH_SET3_LOW_OFFSET = 9'h 28;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_FLUSH_SET3_HIGH_OFFSET = 9'h 2c;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION0_LOW_OFFSET = 9'h 30;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION0_HIGH_OFFSET = 9'h 34;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION1_LOW_OFFSET = 9'h 38;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION1_HIGH_OFFSET = 9'h 3c;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION2_LOW_OFFSET = 9'h 40;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION2_HIGH_OFFSET = 9'h 44;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION3_LOW_OFFSET = 9'h 48;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION3_HIGH_OFFSET = 9'h 4c;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION4_LOW_OFFSET = 9'h 50;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION4_HIGH_OFFSET = 9'h 54;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION5_LOW_OFFSET = 9'h 58;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION5_HIGH_OFFSET = 9'h 5c;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION6_LOW_OFFSET = 9'h 60;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION6_HIGH_OFFSET = 9'h 64;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION7_LOW_OFFSET = 9'h 68;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION7_HIGH_OFFSET = 9'h 6c;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION8_LOW_OFFSET = 9'h 70;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION8_HIGH_OFFSET = 9'h 74;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION9_LOW_OFFSET = 9'h 78;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION9_HIGH_OFFSET = 9'h 7c;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION10_LOW_OFFSET = 9'h 80;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION10_HIGH_OFFSET = 9'h 84;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION11_LOW_OFFSET = 9'h 88;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION11_HIGH_OFFSET = 9'h 8c;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION12_LOW_OFFSET = 9'h 90;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION12_HIGH_OFFSET = 9'h 94;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION13_LOW_OFFSET = 9'h 98;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION13_HIGH_OFFSET = 9'h 9c;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION14_LOW_OFFSET = 9'h a0;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION14_HIGH_OFFSET = 9'h a4;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION15_LOW_OFFSET = 9'h a8;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION15_HIGH_OFFSET = 9'h ac;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION16_LOW_OFFSET = 9'h b0;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION16_HIGH_OFFSET = 9'h b4;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION17_LOW_OFFSET = 9'h b8;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION17_HIGH_OFFSET = 9'h bc;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION18_LOW_OFFSET = 9'h c0;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION18_HIGH_OFFSET = 9'h c4;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION19_LOW_OFFSET = 9'h c8;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION19_HIGH_OFFSET = 9'h cc;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION20_LOW_OFFSET = 9'h d0;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION20_HIGH_OFFSET = 9'h d4;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION21_LOW_OFFSET = 9'h d8;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION21_HIGH_OFFSET = 9'h dc;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION22_LOW_OFFSET = 9'h e0;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION22_HIGH_OFFSET = 9'h e4;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION23_LOW_OFFSET = 9'h e8;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION23_HIGH_OFFSET = 9'h ec;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION24_LOW_OFFSET = 9'h f0;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION24_HIGH_OFFSET = 9'h f4;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION25_LOW_OFFSET = 9'h f8;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION25_HIGH_OFFSET = 9'h fc;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION26_LOW_OFFSET = 9'h 100;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION26_HIGH_OFFSET = 9'h 104;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION27_LOW_OFFSET = 9'h 108;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION27_HIGH_OFFSET = 9'h 10c;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION28_LOW_OFFSET = 9'h 110;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION28_HIGH_OFFSET = 9'h 114;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION29_LOW_OFFSET = 9'h 118;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION29_HIGH_OFFSET = 9'h 11c;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION30_LOW_OFFSET = 9'h 120;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION30_HIGH_OFFSET = 9'h 124;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION31_LOW_OFFSET = 9'h 128;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION31_HIGH_OFFSET = 9'h 12c;
-  parameter logic [BlockAw-1:0] AXI_LLC_COMMIT_CFG_OFFSET = 9'h 130;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_FLUSH_THREAD_LOW_OFFSET = 9'h 10;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_FLUSH_THREAD_HIGH_OFFSET = 9'h 14;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION0_LOW_OFFSET = 9'h 18;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION0_HIGH_OFFSET = 9'h 1c;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION1_LOW_OFFSET = 9'h 20;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION1_HIGH_OFFSET = 9'h 24;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION2_LOW_OFFSET = 9'h 28;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION2_HIGH_OFFSET = 9'h 2c;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION3_LOW_OFFSET = 9'h 30;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION3_HIGH_OFFSET = 9'h 34;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION4_LOW_OFFSET = 9'h 38;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION4_HIGH_OFFSET = 9'h 3c;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION5_LOW_OFFSET = 9'h 40;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION5_HIGH_OFFSET = 9'h 44;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION6_LOW_OFFSET = 9'h 48;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION6_HIGH_OFFSET = 9'h 4c;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION7_LOW_OFFSET = 9'h 50;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION7_HIGH_OFFSET = 9'h 54;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION8_LOW_OFFSET = 9'h 58;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION8_HIGH_OFFSET = 9'h 5c;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION9_LOW_OFFSET = 9'h 60;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION9_HIGH_OFFSET = 9'h 64;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION10_LOW_OFFSET = 9'h 68;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION10_HIGH_OFFSET = 9'h 6c;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION11_LOW_OFFSET = 9'h 70;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION11_HIGH_OFFSET = 9'h 74;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION12_LOW_OFFSET = 9'h 78;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION12_HIGH_OFFSET = 9'h 7c;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION13_LOW_OFFSET = 9'h 80;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION13_HIGH_OFFSET = 9'h 84;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION14_LOW_OFFSET = 9'h 88;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION14_HIGH_OFFSET = 9'h 8c;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION15_LOW_OFFSET = 9'h 90;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION15_HIGH_OFFSET = 9'h 94;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION16_LOW_OFFSET = 9'h 98;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION16_HIGH_OFFSET = 9'h 9c;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION17_LOW_OFFSET = 9'h a0;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION17_HIGH_OFFSET = 9'h a4;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION18_LOW_OFFSET = 9'h a8;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION18_HIGH_OFFSET = 9'h ac;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION19_LOW_OFFSET = 9'h b0;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION19_HIGH_OFFSET = 9'h b4;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION20_LOW_OFFSET = 9'h b8;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION20_HIGH_OFFSET = 9'h bc;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION21_LOW_OFFSET = 9'h c0;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION21_HIGH_OFFSET = 9'h c4;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION22_LOW_OFFSET = 9'h c8;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION22_HIGH_OFFSET = 9'h cc;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION23_LOW_OFFSET = 9'h d0;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION23_HIGH_OFFSET = 9'h d4;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION24_LOW_OFFSET = 9'h d8;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION24_HIGH_OFFSET = 9'h dc;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION25_LOW_OFFSET = 9'h e0;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION25_HIGH_OFFSET = 9'h e4;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION26_LOW_OFFSET = 9'h e8;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION26_HIGH_OFFSET = 9'h ec;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION27_LOW_OFFSET = 9'h f0;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION27_HIGH_OFFSET = 9'h f4;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION28_LOW_OFFSET = 9'h f8;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION28_HIGH_OFFSET = 9'h fc;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION29_LOW_OFFSET = 9'h 100;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION29_HIGH_OFFSET = 9'h 104;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION30_LOW_OFFSET = 9'h 108;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION30_HIGH_OFFSET = 9'h 10c;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION31_LOW_OFFSET = 9'h 110;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION31_HIGH_OFFSET = 9'h 114;
+  parameter logic [BlockAw-1:0] AXI_LLC_COMMIT_CFG_OFFSET = 9'h 118;
   parameter logic [BlockAw-1:0] AXI_LLC_COMMIT_PARTITION_CFG_OFFSET = 9'h 138;
   parameter logic [BlockAw-1:0] AXI_LLC_FLUSHED_LOW_OFFSET = 9'h 140;
   parameter logic [BlockAw-1:0] AXI_LLC_FLUSHED_HIGH_OFFSET = 9'h 144;
@@ -1162,14 +1090,8 @@ package axi_llc_reg_pkg;
     AXI_LLC_CFG_SPM_HIGH,
     AXI_LLC_CFG_FLUSH_LOW,
     AXI_LLC_CFG_FLUSH_HIGH,
-    AXI_LLC_CFG_FLUSH_SET0_LOW,
-    AXI_LLC_CFG_FLUSH_SET0_HIGH,
-    AXI_LLC_CFG_FLUSH_SET1_LOW,
-    AXI_LLC_CFG_FLUSH_SET1_HIGH,
-    AXI_LLC_CFG_FLUSH_SET2_LOW,
-    AXI_LLC_CFG_FLUSH_SET2_HIGH,
-    AXI_LLC_CFG_FLUSH_SET3_LOW,
-    AXI_LLC_CFG_FLUSH_SET3_HIGH,
+    AXI_LLC_CFG_FLUSH_THREAD_LOW,
+    AXI_LLC_CFG_FLUSH_THREAD_HIGH,
     AXI_LLC_CFG_SET_PARTITION0_LOW,
     AXI_LLC_CFG_SET_PARTITION0_HIGH,
     AXI_LLC_CFG_SET_PARTITION1_LOW,
@@ -1260,106 +1182,100 @@ package axi_llc_reg_pkg;
   } axi_llc_id_e;
 
   // Register width information to check illegal writes
-  parameter logic [3:0] AXI_LLC_PERMIT [99] = '{
+  parameter logic [3:0] AXI_LLC_PERMIT [93] = '{
     4'b 1111, // index[ 0] AXI_LLC_CFG_SPM_LOW
     4'b 1111, // index[ 1] AXI_LLC_CFG_SPM_HIGH
     4'b 1111, // index[ 2] AXI_LLC_CFG_FLUSH_LOW
     4'b 1111, // index[ 3] AXI_LLC_CFG_FLUSH_HIGH
-    4'b 1111, // index[ 4] AXI_LLC_CFG_FLUSH_SET0_LOW
-    4'b 1111, // index[ 5] AXI_LLC_CFG_FLUSH_SET0_HIGH
-    4'b 1111, // index[ 6] AXI_LLC_CFG_FLUSH_SET1_LOW
-    4'b 1111, // index[ 7] AXI_LLC_CFG_FLUSH_SET1_HIGH
-    4'b 1111, // index[ 8] AXI_LLC_CFG_FLUSH_SET2_LOW
-    4'b 1111, // index[ 9] AXI_LLC_CFG_FLUSH_SET2_HIGH
-    4'b 1111, // index[10] AXI_LLC_CFG_FLUSH_SET3_LOW
-    4'b 1111, // index[11] AXI_LLC_CFG_FLUSH_SET3_HIGH
-    4'b 1111, // index[12] AXI_LLC_CFG_SET_PARTITION0_LOW
-    4'b 1111, // index[13] AXI_LLC_CFG_SET_PARTITION0_HIGH
-    4'b 1111, // index[14] AXI_LLC_CFG_SET_PARTITION1_LOW
-    4'b 1111, // index[15] AXI_LLC_CFG_SET_PARTITION1_HIGH
-    4'b 1111, // index[16] AXI_LLC_CFG_SET_PARTITION2_LOW
-    4'b 1111, // index[17] AXI_LLC_CFG_SET_PARTITION2_HIGH
-    4'b 1111, // index[18] AXI_LLC_CFG_SET_PARTITION3_LOW
-    4'b 1111, // index[19] AXI_LLC_CFG_SET_PARTITION3_HIGH
-    4'b 1111, // index[20] AXI_LLC_CFG_SET_PARTITION4_LOW
-    4'b 1111, // index[21] AXI_LLC_CFG_SET_PARTITION4_HIGH
-    4'b 1111, // index[22] AXI_LLC_CFG_SET_PARTITION5_LOW
-    4'b 1111, // index[23] AXI_LLC_CFG_SET_PARTITION5_HIGH
-    4'b 1111, // index[24] AXI_LLC_CFG_SET_PARTITION6_LOW
-    4'b 1111, // index[25] AXI_LLC_CFG_SET_PARTITION6_HIGH
-    4'b 1111, // index[26] AXI_LLC_CFG_SET_PARTITION7_LOW
-    4'b 1111, // index[27] AXI_LLC_CFG_SET_PARTITION7_HIGH
-    4'b 1111, // index[28] AXI_LLC_CFG_SET_PARTITION8_LOW
-    4'b 1111, // index[29] AXI_LLC_CFG_SET_PARTITION8_HIGH
-    4'b 1111, // index[30] AXI_LLC_CFG_SET_PARTITION9_LOW
-    4'b 1111, // index[31] AXI_LLC_CFG_SET_PARTITION9_HIGH
-    4'b 1111, // index[32] AXI_LLC_CFG_SET_PARTITION10_LOW
-    4'b 1111, // index[33] AXI_LLC_CFG_SET_PARTITION10_HIGH
-    4'b 1111, // index[34] AXI_LLC_CFG_SET_PARTITION11_LOW
-    4'b 1111, // index[35] AXI_LLC_CFG_SET_PARTITION11_HIGH
-    4'b 1111, // index[36] AXI_LLC_CFG_SET_PARTITION12_LOW
-    4'b 1111, // index[37] AXI_LLC_CFG_SET_PARTITION12_HIGH
-    4'b 1111, // index[38] AXI_LLC_CFG_SET_PARTITION13_LOW
-    4'b 1111, // index[39] AXI_LLC_CFG_SET_PARTITION13_HIGH
-    4'b 1111, // index[40] AXI_LLC_CFG_SET_PARTITION14_LOW
-    4'b 1111, // index[41] AXI_LLC_CFG_SET_PARTITION14_HIGH
-    4'b 1111, // index[42] AXI_LLC_CFG_SET_PARTITION15_LOW
-    4'b 1111, // index[43] AXI_LLC_CFG_SET_PARTITION15_HIGH
-    4'b 1111, // index[44] AXI_LLC_CFG_SET_PARTITION16_LOW
-    4'b 1111, // index[45] AXI_LLC_CFG_SET_PARTITION16_HIGH
-    4'b 1111, // index[46] AXI_LLC_CFG_SET_PARTITION17_LOW
-    4'b 1111, // index[47] AXI_LLC_CFG_SET_PARTITION17_HIGH
-    4'b 1111, // index[48] AXI_LLC_CFG_SET_PARTITION18_LOW
-    4'b 1111, // index[49] AXI_LLC_CFG_SET_PARTITION18_HIGH
-    4'b 1111, // index[50] AXI_LLC_CFG_SET_PARTITION19_LOW
-    4'b 1111, // index[51] AXI_LLC_CFG_SET_PARTITION19_HIGH
-    4'b 1111, // index[52] AXI_LLC_CFG_SET_PARTITION20_LOW
-    4'b 1111, // index[53] AXI_LLC_CFG_SET_PARTITION20_HIGH
-    4'b 1111, // index[54] AXI_LLC_CFG_SET_PARTITION21_LOW
-    4'b 1111, // index[55] AXI_LLC_CFG_SET_PARTITION21_HIGH
-    4'b 1111, // index[56] AXI_LLC_CFG_SET_PARTITION22_LOW
-    4'b 1111, // index[57] AXI_LLC_CFG_SET_PARTITION22_HIGH
-    4'b 1111, // index[58] AXI_LLC_CFG_SET_PARTITION23_LOW
-    4'b 1111, // index[59] AXI_LLC_CFG_SET_PARTITION23_HIGH
-    4'b 1111, // index[60] AXI_LLC_CFG_SET_PARTITION24_LOW
-    4'b 1111, // index[61] AXI_LLC_CFG_SET_PARTITION24_HIGH
-    4'b 1111, // index[62] AXI_LLC_CFG_SET_PARTITION25_LOW
-    4'b 1111, // index[63] AXI_LLC_CFG_SET_PARTITION25_HIGH
-    4'b 1111, // index[64] AXI_LLC_CFG_SET_PARTITION26_LOW
-    4'b 1111, // index[65] AXI_LLC_CFG_SET_PARTITION26_HIGH
-    4'b 1111, // index[66] AXI_LLC_CFG_SET_PARTITION27_LOW
-    4'b 1111, // index[67] AXI_LLC_CFG_SET_PARTITION27_HIGH
-    4'b 1111, // index[68] AXI_LLC_CFG_SET_PARTITION28_LOW
-    4'b 1111, // index[69] AXI_LLC_CFG_SET_PARTITION28_HIGH
-    4'b 1111, // index[70] AXI_LLC_CFG_SET_PARTITION29_LOW
-    4'b 1111, // index[71] AXI_LLC_CFG_SET_PARTITION29_HIGH
-    4'b 1111, // index[72] AXI_LLC_CFG_SET_PARTITION30_LOW
-    4'b 1111, // index[73] AXI_LLC_CFG_SET_PARTITION30_HIGH
-    4'b 1111, // index[74] AXI_LLC_CFG_SET_PARTITION31_LOW
-    4'b 1111, // index[75] AXI_LLC_CFG_SET_PARTITION31_HIGH
-    4'b 0001, // index[76] AXI_LLC_COMMIT_CFG
-    4'b 0001, // index[77] AXI_LLC_COMMIT_PARTITION_CFG
-    4'b 1111, // index[78] AXI_LLC_FLUSHED_LOW
-    4'b 1111, // index[79] AXI_LLC_FLUSHED_HIGH
-    4'b 1111, // index[80] AXI_LLC_BIST_OUT_LOW
-    4'b 1111, // index[81] AXI_LLC_BIST_OUT_HIGH
-    4'b 1111, // index[82] AXI_LLC_SET_ASSO_LOW
-    4'b 1111, // index[83] AXI_LLC_SET_ASSO_HIGH
-    4'b 1111, // index[84] AXI_LLC_NUM_LINES_LOW
-    4'b 1111, // index[85] AXI_LLC_NUM_LINES_HIGH
-    4'b 1111, // index[86] AXI_LLC_NUM_BLOCKS_LOW
-    4'b 1111, // index[87] AXI_LLC_NUM_BLOCKS_HIGH
-    4'b 1111, // index[88] AXI_LLC_VERSION_LOW
-    4'b 1111, // index[89] AXI_LLC_VERSION_HIGH
-    4'b 0001, // index[90] AXI_LLC_BIST_STATUS
-    4'b 1111, // index[91] AXI_LLC_FLUSHED_SET0_LOW
-    4'b 1111, // index[92] AXI_LLC_FLUSHED_SET0_HIGH
-    4'b 1111, // index[93] AXI_LLC_FLUSHED_SET1_LOW
-    4'b 1111, // index[94] AXI_LLC_FLUSHED_SET1_HIGH
-    4'b 1111, // index[95] AXI_LLC_FLUSHED_SET2_LOW
-    4'b 1111, // index[96] AXI_LLC_FLUSHED_SET2_HIGH
-    4'b 1111, // index[97] AXI_LLC_FLUSHED_SET3_LOW
-    4'b 1111  // index[98] AXI_LLC_FLUSHED_SET3_HIGH
+    4'b 1111, // index[ 4] AXI_LLC_CFG_FLUSH_THREAD_LOW
+    4'b 1111, // index[ 5] AXI_LLC_CFG_FLUSH_THREAD_HIGH
+    4'b 1111, // index[ 6] AXI_LLC_CFG_SET_PARTITION0_LOW
+    4'b 1111, // index[ 7] AXI_LLC_CFG_SET_PARTITION0_HIGH
+    4'b 1111, // index[ 8] AXI_LLC_CFG_SET_PARTITION1_LOW
+    4'b 1111, // index[ 9] AXI_LLC_CFG_SET_PARTITION1_HIGH
+    4'b 1111, // index[10] AXI_LLC_CFG_SET_PARTITION2_LOW
+    4'b 1111, // index[11] AXI_LLC_CFG_SET_PARTITION2_HIGH
+    4'b 1111, // index[12] AXI_LLC_CFG_SET_PARTITION3_LOW
+    4'b 1111, // index[13] AXI_LLC_CFG_SET_PARTITION3_HIGH
+    4'b 1111, // index[14] AXI_LLC_CFG_SET_PARTITION4_LOW
+    4'b 1111, // index[15] AXI_LLC_CFG_SET_PARTITION4_HIGH
+    4'b 1111, // index[16] AXI_LLC_CFG_SET_PARTITION5_LOW
+    4'b 1111, // index[17] AXI_LLC_CFG_SET_PARTITION5_HIGH
+    4'b 1111, // index[18] AXI_LLC_CFG_SET_PARTITION6_LOW
+    4'b 1111, // index[19] AXI_LLC_CFG_SET_PARTITION6_HIGH
+    4'b 1111, // index[20] AXI_LLC_CFG_SET_PARTITION7_LOW
+    4'b 1111, // index[21] AXI_LLC_CFG_SET_PARTITION7_HIGH
+    4'b 1111, // index[22] AXI_LLC_CFG_SET_PARTITION8_LOW
+    4'b 1111, // index[23] AXI_LLC_CFG_SET_PARTITION8_HIGH
+    4'b 1111, // index[24] AXI_LLC_CFG_SET_PARTITION9_LOW
+    4'b 1111, // index[25] AXI_LLC_CFG_SET_PARTITION9_HIGH
+    4'b 1111, // index[26] AXI_LLC_CFG_SET_PARTITION10_LOW
+    4'b 1111, // index[27] AXI_LLC_CFG_SET_PARTITION10_HIGH
+    4'b 1111, // index[28] AXI_LLC_CFG_SET_PARTITION11_LOW
+    4'b 1111, // index[29] AXI_LLC_CFG_SET_PARTITION11_HIGH
+    4'b 1111, // index[30] AXI_LLC_CFG_SET_PARTITION12_LOW
+    4'b 1111, // index[31] AXI_LLC_CFG_SET_PARTITION12_HIGH
+    4'b 1111, // index[32] AXI_LLC_CFG_SET_PARTITION13_LOW
+    4'b 1111, // index[33] AXI_LLC_CFG_SET_PARTITION13_HIGH
+    4'b 1111, // index[34] AXI_LLC_CFG_SET_PARTITION14_LOW
+    4'b 1111, // index[35] AXI_LLC_CFG_SET_PARTITION14_HIGH
+    4'b 1111, // index[36] AXI_LLC_CFG_SET_PARTITION15_LOW
+    4'b 1111, // index[37] AXI_LLC_CFG_SET_PARTITION15_HIGH
+    4'b 1111, // index[38] AXI_LLC_CFG_SET_PARTITION16_LOW
+    4'b 1111, // index[39] AXI_LLC_CFG_SET_PARTITION16_HIGH
+    4'b 1111, // index[40] AXI_LLC_CFG_SET_PARTITION17_LOW
+    4'b 1111, // index[41] AXI_LLC_CFG_SET_PARTITION17_HIGH
+    4'b 1111, // index[42] AXI_LLC_CFG_SET_PARTITION18_LOW
+    4'b 1111, // index[43] AXI_LLC_CFG_SET_PARTITION18_HIGH
+    4'b 1111, // index[44] AXI_LLC_CFG_SET_PARTITION19_LOW
+    4'b 1111, // index[45] AXI_LLC_CFG_SET_PARTITION19_HIGH
+    4'b 1111, // index[46] AXI_LLC_CFG_SET_PARTITION20_LOW
+    4'b 1111, // index[47] AXI_LLC_CFG_SET_PARTITION20_HIGH
+    4'b 1111, // index[48] AXI_LLC_CFG_SET_PARTITION21_LOW
+    4'b 1111, // index[49] AXI_LLC_CFG_SET_PARTITION21_HIGH
+    4'b 1111, // index[50] AXI_LLC_CFG_SET_PARTITION22_LOW
+    4'b 1111, // index[51] AXI_LLC_CFG_SET_PARTITION22_HIGH
+    4'b 1111, // index[52] AXI_LLC_CFG_SET_PARTITION23_LOW
+    4'b 1111, // index[53] AXI_LLC_CFG_SET_PARTITION23_HIGH
+    4'b 1111, // index[54] AXI_LLC_CFG_SET_PARTITION24_LOW
+    4'b 1111, // index[55] AXI_LLC_CFG_SET_PARTITION24_HIGH
+    4'b 1111, // index[56] AXI_LLC_CFG_SET_PARTITION25_LOW
+    4'b 1111, // index[57] AXI_LLC_CFG_SET_PARTITION25_HIGH
+    4'b 1111, // index[58] AXI_LLC_CFG_SET_PARTITION26_LOW
+    4'b 1111, // index[59] AXI_LLC_CFG_SET_PARTITION26_HIGH
+    4'b 1111, // index[60] AXI_LLC_CFG_SET_PARTITION27_LOW
+    4'b 1111, // index[61] AXI_LLC_CFG_SET_PARTITION27_HIGH
+    4'b 1111, // index[62] AXI_LLC_CFG_SET_PARTITION28_LOW
+    4'b 1111, // index[63] AXI_LLC_CFG_SET_PARTITION28_HIGH
+    4'b 1111, // index[64] AXI_LLC_CFG_SET_PARTITION29_LOW
+    4'b 1111, // index[65] AXI_LLC_CFG_SET_PARTITION29_HIGH
+    4'b 1111, // index[66] AXI_LLC_CFG_SET_PARTITION30_LOW
+    4'b 1111, // index[67] AXI_LLC_CFG_SET_PARTITION30_HIGH
+    4'b 1111, // index[68] AXI_LLC_CFG_SET_PARTITION31_LOW
+    4'b 1111, // index[69] AXI_LLC_CFG_SET_PARTITION31_HIGH
+    4'b 0001, // index[70] AXI_LLC_COMMIT_CFG
+    4'b 0001, // index[71] AXI_LLC_COMMIT_PARTITION_CFG
+    4'b 1111, // index[72] AXI_LLC_FLUSHED_LOW
+    4'b 1111, // index[73] AXI_LLC_FLUSHED_HIGH
+    4'b 1111, // index[74] AXI_LLC_BIST_OUT_LOW
+    4'b 1111, // index[75] AXI_LLC_BIST_OUT_HIGH
+    4'b 1111, // index[76] AXI_LLC_SET_ASSO_LOW
+    4'b 1111, // index[77] AXI_LLC_SET_ASSO_HIGH
+    4'b 1111, // index[78] AXI_LLC_NUM_LINES_LOW
+    4'b 1111, // index[79] AXI_LLC_NUM_LINES_HIGH
+    4'b 1111, // index[80] AXI_LLC_NUM_BLOCKS_LOW
+    4'b 1111, // index[81] AXI_LLC_NUM_BLOCKS_HIGH
+    4'b 1111, // index[82] AXI_LLC_VERSION_LOW
+    4'b 1111, // index[83] AXI_LLC_VERSION_HIGH
+    4'b 0001, // index[84] AXI_LLC_BIST_STATUS
+    4'b 1111, // index[85] AXI_LLC_FLUSHED_SET0_LOW
+    4'b 1111, // index[86] AXI_LLC_FLUSHED_SET0_HIGH
+    4'b 1111, // index[87] AXI_LLC_FLUSHED_SET1_LOW
+    4'b 1111, // index[88] AXI_LLC_FLUSHED_SET1_HIGH
+    4'b 1111, // index[89] AXI_LLC_FLUSHED_SET2_LOW
+    4'b 1111, // index[90] AXI_LLC_FLUSHED_SET2_HIGH
+    4'b 1111, // index[91] AXI_LLC_FLUSHED_SET3_LOW
+    4'b 1111  // index[92] AXI_LLC_FLUSHED_SET3_HIGH
   };
 
 endpackage

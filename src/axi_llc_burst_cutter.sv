@@ -105,13 +105,13 @@ module axi_llc_burst_cutter #(
     .Cfg              ( Cfg              ),
     .partision_size_t ( partision_size_t ),
     .index_t          ( index_t          ),
-    .chan_t           ( chan_t           )
+    .addr_t           ( addr_t           )
   ) i_index_assigner (
     .pat_size_i        ( pat_size        ),
     .share_size_i      ( share_size      ),
     .start_index_i     ( start_index     ),
     .share_index_i     ( share_index     ),
-    .curr_chan_i       ( curr_chan_i     ),
+    .addr_i            ( curr_chan_i.addr ),
     .index_partition_o ( index_partition )
   );
 
