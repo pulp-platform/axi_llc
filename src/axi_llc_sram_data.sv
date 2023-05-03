@@ -28,7 +28,7 @@ module axi_llc_sram_data #(
   logic [DataWidth-1:0] wen;
   assign wen = (we_i) ? '0 : '1;
 
-  tc_sram #(
+  tc_sram_wrapper #(
       .NumWords   ( NumWords    ),
       .DataWidth  ( DataWidth   ),
       .ByteWidth  ( ByteWidth   ),

@@ -8,6 +8,7 @@ NumLines    = int(sys.argv[2]) # 256 Same as "Sfg.NumLines in sv
 MaxThread   = int(sys.argv[3]) # 256 Same as "MaxThread" in sv
 IndexLength = math.ceil(math.log2(NumLines))  # Same as "Cfg.IndexLength" in sv
 num_setflushreg = math.ceil(NumLines / RegWidth)
+num_setflushthread = 1
 num_parreg  = math.ceil(MaxThread / math.floor(RegWidth / IndexLength))  # The number of configuration registers used for set partitioning.
 valid_reg_bit = math.floor(RegWidth / IndexLength) * IndexLength
 
@@ -48,11 +49,8 @@ with open('include/axi_llc/assign.svh', 'w') as f:
     `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, num_lines)      \\\n\
     `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, num_blocks)     \\\n\
     `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, version)        \\\n\
-/********************************************     SET BASED CACHE PARTITIONING     ********************************************/  \\\n")
-
-    for i in range(num_setflushreg):
-        f.write(f'''    `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, cfg_flush_set{i}) \\
-''')
+/********************************************     SET BASED CACHE PARTITIONING     ********************************************/  \\\n\
+    `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, cfg_flush_thread) \\\n")
 
     for i in range(num_parreg):
         f.write(f'''    `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, cfg_set_partition{i}) \\
@@ -83,9 +81,9 @@ with open('include/axi_llc/assign.svh', 'w') as f:
     for i in range(num_parreg):
         f.write(f'''    assign q_struct.cfg_set_partition{i} = {{regbus.cfg_set_partition{i}_high.q, regbus.cfg_set_partition{i}_low.q}}; \\
 ''')
-    for i in range(num_setflushreg):
-        f.write(f'''    assign q_struct.cfg_flush_set{i} = {{regbus.cfg_flush_set{i}_high.q, regbus.cfg_flush_set{i}_low.q}};''')
-        if (i != num_setflushreg-1): 
+    for i in range(num_setflushthread):
+        f.write(f'''    assign q_struct.cfg_flush_thread = {{regbus.cfg_flush_thread_high.q, regbus.cfg_flush_thread_low.q}};''')
+        if (i != num_setflushthread-1): 
             f.write(' \\\n')
         else: 
             f.write('\n')

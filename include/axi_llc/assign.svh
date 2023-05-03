@@ -35,10 +35,7 @@
     `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, num_blocks)     \
     `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, version)        \
 /********************************************     SET BASED CACHE PARTITIONING     ********************************************/  \
-    `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, cfg_flush_set0) \
-    `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, cfg_flush_set1) \
-    `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, cfg_flush_set2) \
-    `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, cfg_flush_set3) \
+    `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, cfg_flush_thread) \
     `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, cfg_set_partition0) \
     `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, cfg_set_partition1) \
     `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, cfg_set_partition2) \
@@ -122,10 +119,7 @@
     assign q_struct.cfg_set_partition29 = {regbus.cfg_set_partition29_high.q, regbus.cfg_set_partition29_low.q}; \
     assign q_struct.cfg_set_partition30 = {regbus.cfg_set_partition30_high.q, regbus.cfg_set_partition30_low.q}; \
     assign q_struct.cfg_set_partition31 = {regbus.cfg_set_partition31_high.q, regbus.cfg_set_partition31_low.q}; \
-    assign q_struct.cfg_flush_set0 = {regbus.cfg_flush_set0_high.q, regbus.cfg_flush_set0_low.q}; \
-    assign q_struct.cfg_flush_set1 = {regbus.cfg_flush_set1_high.q, regbus.cfg_flush_set1_low.q}; \
-    assign q_struct.cfg_flush_set2 = {regbus.cfg_flush_set2_high.q, regbus.cfg_flush_set2_low.q}; \
-    assign q_struct.cfg_flush_set3 = {regbus.cfg_flush_set3_high.q, regbus.cfg_flush_set3_low.q};
+    assign q_struct.cfg_flush_thread = {regbus.cfg_flush_thread_high.q, regbus.cfg_flush_thread_low.q};
 /******************************************************************************************************************************/  
 
 `endif

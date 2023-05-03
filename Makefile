@@ -53,7 +53,7 @@ help:
 # Registers
 # --------------
 
-regs: set_partition_config
+regs:ls set_partition_config
 	$(REGGEN) -r --outdir src/ data/axi_llc_regs.hjson
 	$(REGGEN) --cdefines --outfile sw/include/axi_llc_regs.h data/axi_llc_regs.hjson
 

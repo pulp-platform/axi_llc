@@ -49,68 +49,20 @@
         {bits: "31:0", name: "high", desc: "upper 32 bit"}
       ]
     },
-    { name: "CFG_FLUSH_SET0_LOW",
-      desc: "Index-based Flush Configuration [31:0] (lower 32 bit)",
+    { name: "CFG_FLUSH_THREAD_LOW",
+      desc: "Index-based Thread Flush Configuration [31:0] (lower 32 bit)",
       swaccess: "rw",
       hwaccess: "hrw",
       fields: [
-        {bits: "31:0", name: "low", desc: "lower 32 bit"}
+        {bits: "31:0", resval: 4294967295, name: "low", desc: "lower 32 bit"}
       ]
     },
-    { name: "CFG_FLUSH_SET0_HIGH",
-      desc: "Index-based Flush Configuration [63:32] (upper 32 bit)",
+    { name: "CFG_FLUSH_THREAD_HIGH",
+      desc: "Index-based Thread Flush Configuration [63:32] (upper 32 bit)",
       swaccess: "rw",
       hwaccess: "hrw",
       fields: [
-        {bits: "31:0", name: "high", desc: "upper 32 bit"}
-      ]
-    },
-    { name: "CFG_FLUSH_SET1_LOW",
-      desc: "Index-based Flush Configuration [95:64] (lower 32 bit)",
-      swaccess: "rw",
-      hwaccess: "hrw",
-      fields: [
-        {bits: "31:0", name: "low", desc: "lower 32 bit"}
-      ]
-    },
-    { name: "CFG_FLUSH_SET1_HIGH",
-      desc: "Index-based Flush Configuration [127:96] (upper 32 bit)",
-      swaccess: "rw",
-      hwaccess: "hrw",
-      fields: [
-        {bits: "31:0", name: "high", desc: "upper 32 bit"}
-      ]
-    },
-    { name: "CFG_FLUSH_SET2_LOW",
-      desc: "Index-based Flush Configuration [159:128] (lower 32 bit)",
-      swaccess: "rw",
-      hwaccess: "hrw",
-      fields: [
-        {bits: "31:0", name: "low", desc: "lower 32 bit"}
-      ]
-    },
-    { name: "CFG_FLUSH_SET2_HIGH",
-      desc: "Index-based Flush Configuration [191:160] (upper 32 bit)",
-      swaccess: "rw",
-      hwaccess: "hrw",
-      fields: [
-        {bits: "31:0", name: "high", desc: "upper 32 bit"}
-      ]
-    },
-    { name: "CFG_FLUSH_SET3_LOW",
-      desc: "Index-based Flush Configuration [223:192] (lower 32 bit)",
-      swaccess: "rw",
-      hwaccess: "hrw",
-      fields: [
-        {bits: "31:0", name: "low", desc: "lower 32 bit"}
-      ]
-    },
-    { name: "CFG_FLUSH_SET3_HIGH",
-      desc: "Index-based Flush Configuration [255:224] (upper 32 bit)",
-      swaccess: "rw",
-      hwaccess: "hrw",
-      fields: [
-        {bits: "31:0", name: "high", desc: "upper 32 bit"}
+        {bits: "31:0", resval: 4294967295, name: "high", desc: "upper 32 bit"}
       ]
     },
     { name: "CFG_SET_PARTITION0_LOW",

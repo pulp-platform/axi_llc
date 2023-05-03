@@ -59,14 +59,8 @@
     reg_data_t  version;                                                \
     logic       version_en;                                             \
 /********************************************     SET BASED CACHE PARTITIONING     ********************************************/  \
-    reg_data_t  cfg_flush_set0;                                         \
-    logic       cfg_flush_set0_en;                                      \
-    reg_data_t  cfg_flush_set1;                                         \
-    logic       cfg_flush_set1_en;                                      \
-    reg_data_t  cfg_flush_set2;                                         \
-    logic       cfg_flush_set2_en;                                      \
-    reg_data_t  cfg_flush_set3;                                         \
-    logic       cfg_flush_set3_en;                                      \
+    reg_data_t  cfg_flush_thread;                                       \
+    logic       cfg_flush_thread_en;                                    \
     reg_data_t  cfg_set_partition0;                                     \
     logic       cfg_set_partition0_en;                                  \
     reg_data_t  cfg_set_partition1;                                     \
@@ -157,10 +151,7 @@
     logic       commit_partition_cfg;                                   \
     set_asso_t  flushed;                                                \
 /********************************************     SET BASED CACHE PARTITIONING     ********************************************/  \
-    reg_data_t  cfg_flush_set0;                                         \
-    reg_data_t  cfg_flush_set1;                                         \
-    reg_data_t  cfg_flush_set2;                                         \
-    reg_data_t  cfg_flush_set3;                                         \
+    reg_data_t  cfg_flush_thread;                                       \
     reg_data_t  cfg_set_partition0;                                     \
     reg_data_t  cfg_set_partition1;                                     \
     reg_data_t  cfg_set_partition2;                                     \

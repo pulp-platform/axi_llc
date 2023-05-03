@@ -63,26 +63,23 @@ with open('data/axi_llc_regs.hjson', 'w') as f:
         {bits: "31:0", name: "high", desc: "upper 32 bit"}\n\
       ]\n\
     },\n\
+    { name: "CFG_FLUSH_THREAD_LOW",\n\
+      desc: "Index-based Thread Flush Configuration [31:0] (lower 32 bit)",\n\
+      swaccess: "rw",\n\
+      hwaccess: "hrw",\n\
+      fields: [\n\
+        {bits: "31:0", resval: 4294967295, name: "low", desc: "lower 32 bit"}\n\
+      ]\n\
+    },\n\
+    { name: "CFG_FLUSH_THREAD_HIGH",\n\
+      desc: "Index-based Thread Flush Configuration [63:32] (upper 32 bit)",\n\
+      swaccess: "rw",\n\
+      hwaccess: "hrw",\n\
+      fields: [\n\
+        {bits: "31:0", resval: 4294967295, name: "high", desc: "upper 32 bit"}\n\
+      ]\n\
+    },\n\
 ')
-
-    for i in range(num_setflushreg):
-        f.write(f'''    {{ name: "CFG_FLUSH_SET{i}_LOW",
-      desc: "Index-based Flush Configuration [{(2*i+1)*32-1}:{2*i*32}] (lower 32 bit)",
-      swaccess: "rw",
-      hwaccess: "hrw",
-      fields: [
-        {{bits: "31:0", name: "low", desc: "lower 32 bit"}}
-      ]
-    }},
-    {{ name: "CFG_FLUSH_SET{i}_HIGH",
-      desc: "Index-based Flush Configuration [{2*(i+1)*32-1}:{(2*i+1)*32}] (upper 32 bit)",
-      swaccess: "rw",
-      hwaccess: "hrw",
-      fields: [
-        {{bits: "31:0", name: "high", desc: "upper 32 bit"}}
-      ]
-    }},
-''')
 
     for i in range(num_parreg):
         f.write(f'''    {{ name: "CFG_SET_PARTITION{i}_LOW",
