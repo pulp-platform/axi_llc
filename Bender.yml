@@ -26,6 +26,8 @@ sources:
   - src/axi_llc_pkg.sv
   - src/axi_llc_sram_data.sv
   - src/axi_llc_sram_tag.sv
+  # - src/axi_llc_sram_data_fpga.sv
+  # - src/axi_llc_sram_tag_fpga.sv
   - src/axi_llc_index_assigner.sv
   - src/axi_llc_burst_cutter.sv
   - src/axi_llc_data_way.sv
@@ -48,7 +50,8 @@ sources:
   - src/axi_llc_ways.sv
   - src/hit_miss_detect/axi_llc_tag_store.sv
   # Level 2
-  - src/axi_llc_config.sv
+  - src/axi_llc_config_pat.sv
+  - src/axi_llc_config_no_pat.sv
   - src/axi_llc_hit_miss.sv
   # Level 3
   - src/axi_llc_top.sv

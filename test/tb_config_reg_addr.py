@@ -32,26 +32,26 @@ with open('test/tb_config_reg_addr.hjson', 'w') as f:
 ''')
     f.write(f'''    CommitCfg     = 32'h{hex(((4 + 2*num_setflushthread)*4 + num_parreg * 0x08))[2:]},
     CommitPadding = 32'h{hex(((4 + 2 * num_setflushthread) * 4 + 4 + num_parreg * 0x08))[2:]},
-    CommitPartitionCfg     = 32'h{hex(((10 + 2 * num_setflushthread) * 4 + (num_parreg + 1) * 0x08))[2:]},
-    CommitPartitionPadding = 32'h{hex(((10 + 2 * num_setflushthread) * 4 + 4 + (num_parreg + 1) * 0x08))[2:]},
-    FlushedLow    = 32'h{hex(((10 + 2 * num_setflushthread) * 4 + (num_parreg + 2) * 0x08))[2:]},
-    FlushedHigh   = 32'h{hex(((10 + 2 * num_setflushthread) * 4 + 4 + (num_parreg + 2) * 0x08))[2:]},
-    BistOutLow    = 32'h{hex(((10 + 2 * num_setflushthread) * 4 + (num_parreg + 3) * 0x08))[2:]},
-    BistOutHigh   = 32'h{hex(((10 + 2 * num_setflushthread) * 4 + 4 + (num_parreg + 3) * 0x08))[2:]},
-    SetAssoLow    = 32'h{hex(((10 + 2 * num_setflushthread) * 4 + (num_parreg + 4) * 0x08))[2:]},
-    SetAssoHigh   = 32'h{hex(((10 + 2 * num_setflushthread) * 4 + 4 + (num_parreg + 4) * 0x08))[2:]},
-    NumLinesLow   = 32'h{hex(((10 + 2 * num_setflushthread) * 4 + (num_parreg + 5) * 0x08))[2:]},
-    NumLinesHigh  = 32'h{hex(((10 + 2 * num_setflushthread) * 4 + 4 + (num_parreg + 5) * 0x08))[2:]},
-    NumBlocksLow  = 32'h{hex(((10 + 2 * num_setflushthread) * 4 + (num_parreg + 6) * 0x08))[2:]},
-    NumBlocksHigh = 32'h{hex(((10 + 2 * num_setflushthread) * 4 + 4 + (num_parreg + 6) * 0x08))[2:]},
-    VersionLow    = 32'h{hex(((10 + 2 * num_setflushthread) * 4 + (num_parreg + 7) * 0x08))[2:]},
-    VersionHigh   = 32'h{hex(((10 + 2 * num_setflushthread) * 4 + 4 + (num_parreg + 7) * 0x08))[2:]},
-    BistStatus    = 32'h{hex(((10 + 2 * num_setflushthread) * 4 + (num_parreg + 8) * 0x08))[2:]},
+    CommitPartitionCfg     = 32'h{hex(((4 + 2 * num_setflushthread) * 4 + (num_parreg + 1) * 0x08))[2:]},
+    CommitPartitionPadding = 32'h{hex(((4 + 2 * num_setflushthread) * 4 + 4 + (num_parreg + 1) * 0x08))[2:]},
+    FlushedLow    = 32'h{hex(((4 + 2 * num_setflushthread) * 4 + (num_parreg + 2) * 0x08))[2:]},
+    FlushedHigh   = 32'h{hex(((4 + 2 * num_setflushthread) * 4 + 4 + (num_parreg + 2) * 0x08))[2:]},
+    BistOutLow    = 32'h{hex(((4 + 2 * num_setflushthread) * 4 + (num_parreg + 3) * 0x08))[2:]},
+    BistOutHigh   = 32'h{hex(((4 + 2 * num_setflushthread) * 4 + 4 + (num_parreg + 3) * 0x08))[2:]},
+    SetAssoLow    = 32'h{hex(((4 + 2 * num_setflushthread) * 4 + (num_parreg + 4) * 0x08))[2:]},
+    SetAssoHigh   = 32'h{hex(((4 + 2 * num_setflushthread) * 4 + 4 + (num_parreg + 4) * 0x08))[2:]},
+    NumLinesLow   = 32'h{hex(((4 + 2 * num_setflushthread) * 4 + (num_parreg + 5) * 0x08))[2:]},
+    NumLinesHigh  = 32'h{hex(((4 + 2 * num_setflushthread) * 4 + 4 + (num_parreg + 5) * 0x08))[2:]},
+    NumBlocksLow  = 32'h{hex(((4 + 2 * num_setflushthread) * 4 + (num_parreg + 6) * 0x08))[2:]},
+    NumBlocksHigh = 32'h{hex(((4 + 2 * num_setflushthread) * 4 + 4 + (num_parreg + 6) * 0x08))[2:]},
+    VersionLow    = 32'h{hex(((4 + 2 * num_setflushthread) * 4 + (num_parreg + 7) * 0x08))[2:]},
+    VersionHigh   = 32'h{hex(((4 + 2 * num_setflushthread) * 4 + 4 + (num_parreg + 7) * 0x08))[2:]},
+    BistStatus    = 32'h{hex(((4 + 2 * num_setflushthread) * 4 + (num_parreg + 8) * 0x08))[2:]},
 ''')
 
     for i in range(num_setflushreg):
-        f.write(f'''    FlushedSet{i}Low  = 32'h{hex(((10 + 2 * num_setflushthread) * 4 + 4 + (num_parreg + 7) * 0x08 + 8 + i * 0x08))[2:]},
-    FlushedSet{i}High  = 32'h{hex(((10 + 2 * num_setflushthread) * 4 + 4 + (num_parreg + 7) * 0x08 + 12+ i * 0x08))[2:]}''')
+        f.write(f'''    FlushedSet{i}Low  = 32'h{hex(((4 + 2 * num_setflushthread) * 4 + 4 + (num_parreg + 7) * 0x08 + 8 + i * 0x08))[2:]},
+    FlushedSet{i}High  = 32'h{hex(((4 + 2 * num_setflushthread) * 4 + 4 + (num_parreg + 7) * 0x08 + 12+ i * 0x08))[2:]}''')
         if (i != num_setflushreg-1):
             f.write(',\n')
         else: 

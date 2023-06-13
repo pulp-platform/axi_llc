@@ -6,6 +6,7 @@ import sys
 RegWidth    = int(sys.argv[1]) # 64 Same as "RegWidth" in sv
 NumLines    = int(sys.argv[2]) # 256 Same as "Sfg.NumLines in sv
 MaxThread   = int(sys.argv[3]) # 256 Same as "MaxThread" in sv
+CachePartition = int(sys.argv[4]) # Signals whether cache partitioning is enabled or disabled, 1 means "enable"
 IndexLength = math.ceil(math.log2(NumLines))  # Same as "Cfg.IndexLength" in sv
 num_setflushreg = math.ceil(NumLines / RegWidth)
 num_parreg  = math.ceil(MaxThread / math.floor(RegWidth / IndexLength))  # The number of configuration registers used for set partitioning.
@@ -57,13 +58,20 @@ with open('include/axi_llc/typedef.svh', 'w') as f:
     set_asso_t  cfg_flush;                                              \\\n\
     logic       cfg_flush_en;                                           \\\n\
     logic       commit_cfg;                                             \\\n\
-    logic       commit_cfg_en;                                          \\\n\
+    logic       commit_cfg_en;                                          \\\n")
+
+    if CachePartition != 0: 
+        f.write("\
     logic       commit_partition_cfg;                                   \\\n\
-    logic       commit_partition_cfg_en;                                \\\n\
+    logic       commit_partition_cfg_en;                                \\\n")
+
+    f.write("\
     set_asso_t  flushed;                                                \\\n\
     logic       flushed_en;                                             \\\n\
     set_asso_t  bist_out;                                               \\\n\
     logic       bist_out_en;                                            \\\n\
+    logic       bist_status_done;                                       \\\n\
+    logic       bist_status_en;                                         \\\n\
     reg_data_t  set_asso;                                               \\\n\
     logic       set_asso_en;                                            \\\n\
     reg_data_t  num_lines;                                              \\\n\
@@ -71,26 +79,27 @@ with open('include/axi_llc/typedef.svh', 'w') as f:
     reg_data_t  num_blocks;                                             \\\n\
     logic       num_blocks_en;                                          \\\n\
     reg_data_t  version;                                                \\\n\
-    logic       version_en;                                             \\\n\
-    logic       bist_status_done;                                       \\\n\
-    logic       bist_status_en;                                         \\\n\
+    logic       version_en;                                             \\\n")
+
+    if CachePartition != 0: 
+        f.write("\
 /********************************************     SET BASED CACHE PARTITIONING     ********************************************/  \\\n\
     reg_data_t  cfg_flush_thread;                                       \\\n\
     logic       cfg_flush_thread_en;                                    \\\n\
 ")
 
-    for i in range(num_parreg):
-        f.write(f'''    reg_data_t  cfg_set_partition{i};                                     \\
+        for i in range(num_parreg):
+            f.write(f'''    reg_data_t  cfg_set_partition{i};                                     \\
     logic       cfg_set_partition{i}_en;                                  \\
 ''')
 
-    for i in range(num_setflushreg):
-        f.write(f'''    reg_data_t  flushed_set{i};                                           \\
+        for i in range(num_setflushreg):
+            f.write(f'''    reg_data_t  flushed_set{i};                                           \\
     logic       flushed_set{i}_en;                                        \\
 ''')
 
-    f.write("/******************************************************************************************************************************/  \\\n\
-  } cfg_regs_d_t;\n\
+        f.write("/******************************************************************************************************************************/  \\\n")
+    f.write("  } cfg_regs_d_t;\n\
 \n\
 // Registers -> HW\n\
 //\n\
@@ -103,22 +112,28 @@ with open('include/axi_llc/typedef.svh', 'w') as f:
   typedef struct packed {                                               \\\n\
     set_asso_t  cfg_spm;                                                \\\n\
     set_asso_t  cfg_flush;                                              \\\n\
-    logic       commit_cfg;                                             \\\n\
-    logic       commit_partition_cfg;                                   \\\n\
-    set_asso_t  flushed;                                                \\\n\
+    logic       commit_cfg;                                             \\\n")
+
+    if CachePartition != 0: 
+        f.write("    logic       commit_partition_cfg;                                   \\\n")
+
+    f.write("    set_asso_t  flushed;                                                \\\n")
+
+    if CachePartition != 0: 
+        f.write("\
 /********************************************     SET BASED CACHE PARTITIONING     ********************************************/  \\\n\
     reg_data_t  cfg_flush_thread;                                       \\\n")
 
-    for i in range(num_parreg):
-        f.write(f'''    reg_data_t  cfg_set_partition{i};                                     \\
+        for i in range(num_parreg):
+            f.write(f'''    reg_data_t  cfg_set_partition{i};                                     \\
 ''')
 
-    for i in range(num_setflushreg):
-        f.write(f'''    reg_data_t  flushed_set{i};                                           \\
+        for i in range(num_setflushreg):
+            f.write(f'''    reg_data_t  flushed_set{i};                                           \\
 ''')
 
-    f.write("/******************************************************************************************************************************/  \\\n\
-  } cfg_regs_q_t;\n\
+        f.write("/******************************************************************************************************************************/  \\\n")
+    f.write("  } cfg_regs_q_t;\n\
 \n\
 ////////////////////////////////////////////////////////////////////////////////////////////////////\n\
 \n\

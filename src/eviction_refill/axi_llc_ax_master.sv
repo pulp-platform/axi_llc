@@ -26,6 +26,8 @@ module axi_llc_ax_master #(
   ///
   /// Required struct definition in: `axi_llc_pkg`.
   parameter axi_llc_pkg::llc_axi_cfg_t AxiCfg = axi_llc_pkg::llc_axi_cfg_t'{default: '0},
+  /// Cache partitioning enabling parameter
+  parameter logic CachePartition              = 1,
   /// AXI LLC descriptor type definition,
   parameter type desc_t = logic,
   /// AXI master port Ax channel type definition.
@@ -88,10 +90,10 @@ module axi_llc_ax_master #(
   // assignment of the addresses, either refill or eviction, calculate address index for request
   // Cache-Partition: now the tag stores both original tag and index
   localparam int AddrOffset = Cfg.BlockOffsetLength + Cfg.ByteOffsetLength;
-  assign evict_addr  =
-      {desc_i.evict_tag, {AddrOffset{1'b0}}};
-  assign refill_addr =
-      {desc_i.a_x_addr[AddrOffset+:Cfg.TagLength], {AddrOffset{1'b0}}};
+  assign evict_addr  = CachePartition ? {desc_i.evict_tag, {AddrOffset{1'b0}}} : 
+                                        {desc_i.evict_tag, desc_i.a_x_addr[AddrOffset+:Cfg.IndexLength], {AddrOffset{1'b0}}};
+  assign refill_addr = CachePartition ? {desc_i.a_x_addr[AddrOffset+:Cfg.TagLength], {AddrOffset{1'b0}}} : 
+                                        {desc_i.a_x_addr[AddrOffset+:(Cfg.TagLength + Cfg.IndexLength)], {AddrOffset{1'b0}}};
 
   // assign evict_addr  =
   //     {desc_i.evict_tag, desc_i.a_x_addr[AddrOffset+:Cfg.IndexLength], {AddrOffset{1'b0}}};

@@ -16,6 +16,8 @@ module axi_llc_r_master #(
   ///
   /// Required struct definition in: `axi_llc_pkg`.
   parameter axi_llc_pkg::llc_axi_cfg_t AxiCfg = axi_llc_pkg::llc_axi_cfg_t'{default: '0},
+  /// Cache partitioning enabling parameter
+  parameter logic CachePartition              = 1,
   /// LLC descriptor type definition.
   parameter type desc_t = logic,
   /// Data way request payload definition.
@@ -71,7 +73,8 @@ module axi_llc_r_master #(
   // way_inp assignments
   assign way_inp_o.cache_unit   = axi_llc_pkg::RefilUnit;
   assign way_inp_o.way_ind      = desc_q.way_ind;
-  assign way_inp_o.line_addr    = desc_q.index_partition;
+  assign way_inp_o.line_addr    = CachePartition ? desc_q.index_partition : 
+                                                   desc_q.a_x_addr[(Cfg.ByteOffsetLength+Cfg.BlockOffsetLength) +: Cfg.IndexLength];
   assign way_inp_o.blk_offset   = block_offset;
   assign way_inp_o.we           = 1'b1;
   assign way_inp_o.data         = r_chan_mst_i.data;

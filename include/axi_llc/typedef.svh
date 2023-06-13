@@ -50,6 +50,8 @@
     logic       flushed_en;                                             \
     set_asso_t  bist_out;                                               \
     logic       bist_out_en;                                            \
+    logic       bist_status_done;                                       \
+    logic       bist_status_en;                                         \
     reg_data_t  set_asso;                                               \
     logic       set_asso_en;                                            \
     reg_data_t  num_lines;                                              \
@@ -58,8 +60,6 @@
     logic       num_blocks_en;                                          \
     reg_data_t  version;                                                \
     logic       version_en;                                             \
-    logic       bist_status_done;                                       \
-    logic       bist_status_en;                                         \
 /********************************************     SET BASED CACHE PARTITIONING     ********************************************/  \
     reg_data_t  cfg_flush_thread;                                       \
     logic       cfg_flush_thread_en;                                    \

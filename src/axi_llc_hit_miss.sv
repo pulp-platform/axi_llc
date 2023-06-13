@@ -28,7 +28,8 @@ module axi_llc_hit_miss #(
   parameter axi_llc_pkg::llc_cfg_t     Cfg       = axi_llc_pkg::llc_cfg_t'{default: '0},
   /// AXI parameter configuration
   parameter axi_llc_pkg::llc_axi_cfg_t AxiCfg    = axi_llc_pkg::llc_axi_cfg_t'{default: '0},
-  // parameter int unsigned               ThreadBit = 0,
+  /// Cache partitioning enabling parameter
+  parameter logic CachePartition              = 1,
   /// LLC descriptor type
   parameter type                       desc_t    = logic,
   /// Lock struct definition. The lock signal indicate that a cache line is unlocked.
@@ -158,7 +159,9 @@ module axi_llc_hit_miss #(
     // output
     // Cache-Partition: If flush, recalculate the new index use old method to ensure the flush-by-set correct
     desc_o    = desc_q; // some fields get combinatorically overwritten from the tag lookup
-    desc_o.index_partition = desc_q.flush ? desc_q.a_x_addr[IndexBase+:Cfg.IndexLength] : desc_q.index_partition;
+    if (CachePartition) begin
+      desc_o.index_partition = desc_q.flush ? desc_q.a_x_addr[IndexBase+:Cfg.IndexLength] : desc_q.index_partition;
+    end
     load_desc = 1'b0;
     // unit handshaking
     ready_o      = 1'b0;
@@ -250,27 +253,27 @@ module axi_llc_hit_miss #(
                       desc_d    = desc_i;
                       load_desc = 1'b1;
                     end else begin
-                      /********** CACHE-PARTITION **********/
-                      // use the new index and tag to store the tag
-                      store_req = store_req_t'{
-                        mode:      desc_i.flush ? axi_llc_pkg::Flush : axi_llc_pkg::Lookup,
-                        indicator: desc_i.flush ? desc_i.way_ind     : ~flushed_i,
-                        index:     desc_i.flush ? desc_i.a_x_addr[IndexBase+:Cfg.IndexLength] : desc_i.index_partition,
-                        tag:       desc_i.flush ? tag_t'(0)          : desc_i.a_x_addr[IndexBase+:Cfg.TagLength],
-                        dirty:     desc_i.rw,
-                        default:   '0
-                      };
-
-                      /*************************************/
-                      // make the request to the tag store,
-                      // store_req = store_req_t'{
-                      //   mode:      desc_i.flush ? axi_llc_pkg::Flush : axi_llc_pkg::Lookup,
-                      //   indicator: desc_i.flush ? desc_i.way_ind     : ~flushed_i,
-                      //   index:     desc_i.a_x_addr[IndexBase+:Cfg.IndexLength],
-                      //   tag:       desc_i.flush ? tag_t'(0)          : desc_i.a_x_addr[TagBase+:Cfg.TagLength],
-                      //   dirty:     desc_i.rw,
-                      //   default:   '0
-                      // };
+                      if (CachePartition) begin
+                        // use the new index and tag to store the tag
+                        store_req = store_req_t'{
+                          mode:      desc_i.flush ? axi_llc_pkg::Flush : axi_llc_pkg::Lookup,
+                          indicator: desc_i.flush ? desc_i.way_ind     : ~flushed_i,
+                          index:     desc_i.flush ? desc_i.a_x_addr[IndexBase+:Cfg.IndexLength] : desc_i.index_partition,
+                          tag:       desc_i.flush ? tag_t'(0)          : desc_i.a_x_addr[IndexBase+:Cfg.TagLength],
+                          dirty:     desc_i.rw,
+                          default:   '0
+                        };
+                      end else begin
+                        // make the request to the tag store,
+                        store_req = store_req_t'{
+                          mode:      desc_i.flush ? axi_llc_pkg::Flush : axi_llc_pkg::Lookup,
+                          indicator: desc_i.flush ? desc_i.way_ind     : ~flushed_i,
+                          index:     desc_i.a_x_addr[IndexBase+:Cfg.IndexLength],
+                          tag:       desc_i.flush ? tag_t'(0)          : desc_i.a_x_addr[TagBase+:Cfg.TagLength],
+                          dirty:     desc_i.rw,
+                          default:   '0
+                        };
+                      end
                       store_req_valid = 1'b1;
                       // transfer
                       if (store_req_ready) begin
@@ -309,27 +312,27 @@ module axi_llc_hit_miss #(
             desc_d    = desc_i;
             load_desc = 1'b1;
           end else begin
-            /********** CACHE-PARTITION **********/
-            // use the new index and tag to store the tag
-            store_req = store_req_t'{
-              mode:      desc_i.flush ? axi_llc_pkg::Flush : axi_llc_pkg::Lookup,
-              indicator: desc_i.flush ? desc_i.way_ind     : ~flushed_i,
-              index:     desc_i.flush ? desc_i.a_x_addr[IndexBase+:Cfg.IndexLength] : desc_i.index_partition,
-              tag:       desc_i.flush ? tag_t'(0)          : desc_i.a_x_addr[IndexBase+:Cfg.TagLength],
-              dirty:     desc_i.rw,
-              default:   '0
-            };
-            /*************************************/
-
-            // make the request to the tag store,
-            // store_req = store_req_t'{
-            //   mode:      desc_i.flush ? axi_llc_pkg::Flush : axi_llc_pkg::Lookup,
-            //   indicator: desc_i.flush ? desc_i.way_ind     : ~flushed_i,
-            //   index:     desc_i.a_x_addr[IndexBase+:Cfg.IndexLength],
-            //   tag:       desc_i.flush ? tag_t'(0)          : desc_i.a_x_addr[TagBase+:Cfg.TagLength],
-            //   dirty:     desc_i.rw,
-            //   default:   '0
-            // };
+            if (CachePartition) begin 
+              // use the new index and tag to store the tag
+              store_req = store_req_t'{
+                mode:      desc_i.flush ? axi_llc_pkg::Flush : axi_llc_pkg::Lookup,
+                indicator: desc_i.flush ? desc_i.way_ind     : ~flushed_i,
+                index:     desc_i.flush ? desc_i.a_x_addr[IndexBase+:Cfg.IndexLength] : desc_i.index_partition,
+                tag:       desc_i.flush ? tag_t'(0)          : desc_i.a_x_addr[IndexBase+:Cfg.TagLength],
+                dirty:     desc_i.rw,
+                default:   '0
+              };
+            end else begin
+              // make the request to the tag store,
+              store_req = store_req_t'{
+                mode:      desc_i.flush ? axi_llc_pkg::Flush : axi_llc_pkg::Lookup,
+                indicator: desc_i.flush ? desc_i.way_ind     : ~flushed_i,
+                index:     desc_i.a_x_addr[IndexBase+:Cfg.IndexLength],
+                tag:       desc_i.flush ? tag_t'(0)          : desc_i.a_x_addr[TagBase+:Cfg.TagLength],
+                dirty:     desc_i.rw,
+                default:   '0
+              };
+            end
             store_req_valid = 1'b1;
             // transfer
             if (store_req_ready) begin
@@ -364,7 +367,7 @@ module axi_llc_hit_miss #(
   axi_llc_tag_store #(
     .Cfg         ( Cfg         ),
     .way_ind_t   ( way_ind_t   ),
-    .set_ind_t   ( set_ind_t   ),
+    // .set_ind_t   ( set_ind_t   ),
     .store_req_t ( store_req_t ),
     .store_res_t ( store_res_t ),
     .PrintSramCfg ( PrintSramCfg )
@@ -374,7 +377,7 @@ module axi_llc_hit_miss #(
     .test_i,
     .spm_lock_i   ( spm_lock_i      ),
     .flushed_i    ( flushed_i       ),
-    .flushed_set_i ( flushed_set_i  ),
+    // .flushed_set_i ( flushed_set_i  ),
     .req_i        ( store_req       ),
     .valid_i      ( store_req_valid ),
     .ready_o      ( store_req_ready ),
@@ -404,10 +407,10 @@ module axi_llc_hit_miss #(
   );
 
   // inputs to the lock box
+  // Cache-Partition: the lock signal also needs to used the new index
   assign lock = '{
-    // index:   desc_o.a_x_addr[(Cfg.ByteOffsetLength + Cfg.BlockOffsetLength)+:Cfg.IndexLength],
-    // Cache-Partition: the lock signal also needs to used the new index
-    index:   desc_o.index_partition,
+    index:   CachePartition ? desc_o.index_partition : 
+                              desc_o.a_x_addr[(Cfg.ByteOffsetLength + Cfg.BlockOffsetLength)+:Cfg.IndexLength],
     way_ind: desc_o.way_ind
   };
   // Lock it if a transfer happens on ether channel and no flush!

@@ -1,21 +1,4 @@
-# This file is used to generate the concat command in 'axi_llc_config.sv'
-
-import math
-import sys
-# all variables below are just for verification
-RegWidth    = int(sys.argv[1]) # Same as "RegWidth" in sv
-NumLines    = int(sys.argv[2])
-MaxThread   = int(sys.argv[3]) # Same as "MaxThread" in sv
-IndexLength = math.ceil(math.log2(NumLines))  # Same as "Cfg.IndexLength" in sv
-num_setflushreg = math.ceil(NumLines / RegWidth)
-num_parreg  = math.ceil(MaxThread / math.floor(RegWidth / IndexLength))  # The number of configuration registers used for set partitioning.
-valid_reg_bit = math.floor(RegWidth / IndexLength) * IndexLength
-
-print(f'Each configration register can hold {math.floor(RegWidth / IndexLength)} partition sizes')
-print(f'Number of valid bits in set partition configuration register is : {valid_reg_bit}')
-
-with open('src/axi_llc_config.sv', 'w') as f:
-    f.write(f'''// Copyright 2022 ETH Zurich and University of Bologna.
+// Copyright 2022 ETH Zurich and University of Bologna.
 // Solderpad Hardware License, Version 0.51, see LICENSE for details.
 // SPDX-License-Identifier: SHL-0.51
 //
@@ -175,14 +158,14 @@ with open('src/axi_llc_config.sv', 'w') as f:
 /// |:--------:|:-----------------------------:|:---------------------------:|
 /// | `[63:0]` | `axi_llc_pkg::AxiLlcVersion`  | Shows the `axi_llc_version` |
 ///
-module axi_llc_config #(
+module axi_llc_config_pat #(
   /// Static AXI LLC configuration.
-  parameter axi_llc_pkg::llc_cfg_t Cfg = axi_llc_pkg::llc_cfg_t'{{default: '0}},
+  parameter axi_llc_pkg::llc_cfg_t Cfg = axi_llc_pkg::llc_cfg_t'{default: '0},
   /// Give the exact AXI parameters in struct form. This is passed down from
   /// [`axi_llc_top`](module.axi_llc_top).
   ///
   /// Required struct definition in: `axi_llc_pkg`.
-  parameter axi_llc_pkg::llc_axi_cfg_t AxiCfg = axi_llc_pkg::llc_axi_cfg_t'{{default: '0}},
+  parameter axi_llc_pkg::llc_axi_cfg_t AxiCfg = axi_llc_pkg::llc_axi_cfg_t'{default: '0},
   /// Register Width
   parameter int unsigned RegWidth = 64,
   /// Max. number of threads supported for partitioning
@@ -337,19 +320,15 @@ module axi_llc_config #(
   assign num_unvalid_bit_flush_set = flushed_set_length - Cfg.NumLines;
   logic       [flushed_set_length-1:0] raw_flushed_set, mask_flush_set;
 /********************************************     SET BASED CACHE PARTITIONING     ********************************************/
-  assign raw_flushed_set = {{''')
-
-    for i in range(num_setflushreg-1,0,-1):
-        f.write(f'''conf_regs_i.flushed_set{i},
-                            ''')
-
-    f.write('conf_regs_i.flushed_set0};\n')
-
-    f.write(f'''// If the user set the flush bit position of conf_regs_i.flushed_set* which is beyond the number of cache lines, those bits are ignored
+  assign raw_flushed_set = {conf_regs_i.flushed_set3,
+                            conf_regs_i.flushed_set2,
+                            conf_regs_i.flushed_set1,
+                            conf_regs_i.flushed_set0};
+// If the user set the flush bit position of conf_regs_i.flushed_set* which is beyond the number of cache lines, those bits are ignored
   always_comb begin
     conf_regs_i_cfg_flush_set = '0;
     if (conf_regs_i.cfg_flush_thread == (MaxThread + 1)) begin
-      conf_regs_i_cfg_flush_set = {{Cfg.NumLines{{1'b1}}}};
+      conf_regs_i_cfg_flush_set = {Cfg.NumLines{1'b1}};
     end else if (partition_table_o[conf_regs_i.cfg_flush_thread].NumIndex) begin
       for (int unsigned k=0; k < Cfg.NumLines; k++) begin
         if ((k >= partition_table_o[conf_regs_i.cfg_flush_thread].StartIndex) && (k < (partition_table_o[conf_regs_i.cfg_flush_thread].StartIndex + partition_table_o[conf_regs_i.cfg_flush_thread].NumIndex))) begin
@@ -366,7 +345,7 @@ module axi_llc_config #(
   end
 /******************************************************************************************************************************/
 
-  assign mask_flush_set = {{Cfg.NumLines{{1'b1}}}};
+  assign mask_flush_set = {Cfg.NumLines{1'b1}};
   assign conf_regs_i_flushed_set = raw_flushed_set & mask_flush_set;
 
   localparam int unsigned IndexBase = Cfg.ByteOffsetLength + Cfg.BlockOffsetLength;
@@ -384,20 +363,39 @@ module axi_llc_config #(
   logic [MaxThread * Cfg.IndexLength - 1 : 0] conf_regs_i_cfg_set_partition;
 
 /********************************************     SET BASED CACHE PARTITIONING     ********************************************/
-''')
-
-    f.write('  assign conf_regs_i_cfg_set_partition = {')
-
-    for i in range(num_parreg-1,-1,-1):
-        f.write(f'''conf_regs_i.cfg_set_partition{i}[valid_reg_bit-1:0]''')
-        if (i != 0):
-            f.write(', \n\
-                                          ')
-        else:
-            f.write('};\n')
-    # f.write('conf_regs_i.cfg_set_partition0[valid_reg_bit-1:0]};\n')
-
-    f.write(f'''/******************************************************************************************************************************/
+  assign conf_regs_i_cfg_set_partition = {conf_regs_i.cfg_set_partition31[valid_reg_bit-1:0], 
+                                          conf_regs_i.cfg_set_partition30[valid_reg_bit-1:0], 
+                                          conf_regs_i.cfg_set_partition29[valid_reg_bit-1:0], 
+                                          conf_regs_i.cfg_set_partition28[valid_reg_bit-1:0], 
+                                          conf_regs_i.cfg_set_partition27[valid_reg_bit-1:0], 
+                                          conf_regs_i.cfg_set_partition26[valid_reg_bit-1:0], 
+                                          conf_regs_i.cfg_set_partition25[valid_reg_bit-1:0], 
+                                          conf_regs_i.cfg_set_partition24[valid_reg_bit-1:0], 
+                                          conf_regs_i.cfg_set_partition23[valid_reg_bit-1:0], 
+                                          conf_regs_i.cfg_set_partition22[valid_reg_bit-1:0], 
+                                          conf_regs_i.cfg_set_partition21[valid_reg_bit-1:0], 
+                                          conf_regs_i.cfg_set_partition20[valid_reg_bit-1:0], 
+                                          conf_regs_i.cfg_set_partition19[valid_reg_bit-1:0], 
+                                          conf_regs_i.cfg_set_partition18[valid_reg_bit-1:0], 
+                                          conf_regs_i.cfg_set_partition17[valid_reg_bit-1:0], 
+                                          conf_regs_i.cfg_set_partition16[valid_reg_bit-1:0], 
+                                          conf_regs_i.cfg_set_partition15[valid_reg_bit-1:0], 
+                                          conf_regs_i.cfg_set_partition14[valid_reg_bit-1:0], 
+                                          conf_regs_i.cfg_set_partition13[valid_reg_bit-1:0], 
+                                          conf_regs_i.cfg_set_partition12[valid_reg_bit-1:0], 
+                                          conf_regs_i.cfg_set_partition11[valid_reg_bit-1:0], 
+                                          conf_regs_i.cfg_set_partition10[valid_reg_bit-1:0], 
+                                          conf_regs_i.cfg_set_partition9[valid_reg_bit-1:0], 
+                                          conf_regs_i.cfg_set_partition8[valid_reg_bit-1:0], 
+                                          conf_regs_i.cfg_set_partition7[valid_reg_bit-1:0], 
+                                          conf_regs_i.cfg_set_partition6[valid_reg_bit-1:0], 
+                                          conf_regs_i.cfg_set_partition5[valid_reg_bit-1:0], 
+                                          conf_regs_i.cfg_set_partition4[valid_reg_bit-1:0], 
+                                          conf_regs_i.cfg_set_partition3[valid_reg_bit-1:0], 
+                                          conf_regs_i.cfg_set_partition2[valid_reg_bit-1:0], 
+                                          conf_regs_i.cfg_set_partition1[valid_reg_bit-1:0], 
+                                          conf_regs_i.cfg_set_partition0[valid_reg_bit-1:0]};
+/******************************************************************************************************************************/
 
   logic partition_table_valid_d, partition_table_valid_q;
   `FFLARN(partition_table_valid_q, partition_table_valid_d, 1'b1, 1'b0, clk_i, rst_ni)
@@ -565,7 +563,7 @@ module axi_llc_config #(
   // Configuration registers: Flush Control, Performance Counters //
   //////////////////////////////////////////////////////////////////
   // States for the control FSM
-  typedef enum logic [3:0] {{
+  typedef enum logic [3:0] {
     FsmIdle,
     FsmWaitAx,
     FsmWaitSplitter,
@@ -574,7 +572,7 @@ module axi_llc_config #(
     FsmWaitFlush,
     FsmEndFlush,
     FsmPreInit
-  }} flush_fsm_e;
+  } flush_fsm_e;
   flush_fsm_e flush_state_d, flush_state_q;
   logic       switch_state;
   set_asso_t  to_flush_d,    to_flush_q;
@@ -596,6 +594,7 @@ module axi_llc_config #(
   assign conf_regs_o.num_lines      = Cfg.NumBlocks;
   assign conf_regs_o.num_blocks     = Cfg.NumBlocks;
   assign conf_regs_o.version        = axi_llc_pkg::AxiLlcVersion;
+  assign conf_regs_o.bist_status_done = bist_valid_i;
 
   // Constant register write enables
   assign conf_regs_o.bist_out_en    = bist_valid_i;
@@ -603,8 +602,10 @@ module axi_llc_config #(
   assign conf_regs_o.num_lines_en   = 1'b1;
   assign conf_regs_o.num_blocks_en  = 1'b1;
   assign conf_regs_o.version_en     = 1'b1;
+  assign conf_regs_o.bist_status_en = 1'b1;
 
   logic [flushed_set_length-1:0] conf_regs_o_flushed_set;
+  logic [RegWidth-1:0] flushed_set0, flushed_set1, flushed_set2, flushed_set3;
 
   always_comb begin : proc_axi_llc_cfg
     // Default assignments
@@ -613,23 +614,23 @@ module axi_llc_config #(
     conf_regs_o.cfg_flush     = conf_regs_i.cfg_flush;
 /********************************************     SET BASED CACHE PARTITIONING     ********************************************/
     conf_regs_o.cfg_flush_thread = conf_regs_i.cfg_flush_thread;
-''')
-    f.write(f'''    conf_regs_o.commit_cfg    = conf_regs_i.commit_cfg;
+    conf_regs_o.commit_cfg    = conf_regs_i.commit_cfg;
     conf_regs_o.flushed       = conf_regs_i.flushed;
-''')
-    for i in range(num_setflushreg):
-        f.write(f'''    conf_regs_o.flushed_set{i}   = conf_regs_i.flushed_set{i};\n''')
-    f.write(f'''    // Register enables
+    conf_regs_o.flushed_set0   = conf_regs_i.flushed_set0;
+    conf_regs_o.flushed_set1   = conf_regs_i.flushed_set1;
+    conf_regs_o.flushed_set2   = conf_regs_i.flushed_set2;
+    conf_regs_o.flushed_set3   = conf_regs_i.flushed_set3;
+    // Register enables
     conf_regs_o.cfg_spm_en    = 1'b1;   // default one
     conf_regs_o.cfg_flush_en  = 1'b1;   // default one
-''')
-    f.write(f'''    conf_regs_o.cfg_flush_thread_en = 1'b1;
+    conf_regs_o.cfg_flush_thread_en = 1'b1;
     conf_regs_o.commit_cfg_en = 1'b0;   // default disabled
     conf_regs_o.flushed_en    = 1'b0;   // default disabled
-''')
-    for i in range(num_setflushreg):
-        f.write(f'''    conf_regs_o.flushed_set{i}_en  = 1'b0;\n''')
-    f.write(f'''/******************************************************************************************************************************/
+    conf_regs_o.flushed_set0_en  = 1'b0;
+    conf_regs_o.flushed_set1_en  = 1'b0;
+    conf_regs_o.flushed_set2_en  = 1'b0;
+    conf_regs_o.flushed_set3_en  = 1'b0;
+/******************************************************************************************************************************/
 
     // Flush state machine
     flush_state_d  = flush_state_q;
@@ -661,8 +662,7 @@ module axi_llc_config #(
         conf_regs_o.cfg_flush_en  = 1'b0;
 /********************************************     SET BASED CACHE PARTITIONING     ********************************************/
         conf_regs_o.cfg_flush_thread_en = 1'b0;
-''')
-    f.write(f'''/******************************************************************************************************************************/
+/******************************************************************************************************************************/
         llc_isolate_o             = 1'b0;
         flush_set_thread_d        = -1;
         // Change state, if there is a flush request, i.e. CommitCfg was set
@@ -698,8 +698,7 @@ module axi_llc_config #(
 
 /********************************************     SET BASED CACHE PARTITIONING     ********************************************/
             conf_regs_o.cfg_flush_thread = -1;
-''')
-    f.write(f'''/******************************************************************************************************************************/
+/******************************************************************************************************************************/
           end else begin
             flush_state_d = FsmSendFlush;
             load_cnt_set      = 1'b1;
@@ -745,7 +744,7 @@ module axi_llc_config #(
           // index-based flush
           if (index_based_flush_q == 1'b1) begin
             // last flush descriptor for this cache line?
-            if (flush_way == {{FlushIdxWidth{{1'b1}}}}) begin
+            if (flush_way == {FlushIdxWidth{1'b1}}) begin
               flush_state_d = FsmWaitFlush;
             end else begin
               en_send_cnt_set = 1'b1;
@@ -753,7 +752,7 @@ module axi_llc_config #(
           //way-based operation
           end else begin
             // last flush descriptor for this way?
-            if (flush_addr == {{Cfg.IndexLength{{1'b1}}}}) begin
+            if (flush_addr == {Cfg.IndexLength{1'b1}}) begin
               flush_state_d = FsmWaitFlush;
             end else begin
               en_send_cnt = 1'b1;
@@ -773,13 +772,13 @@ module axi_llc_config #(
         // this state waits till all flush operations have exited the cache, then `FsmEndFlush`
         if (flush_desc_recv_i) begin
           if (index_based_flush_q == 1'b1) begin
-            if(to_recieve_set == {{FlushIdxWidth{{1'b0}}}}) begin
+            if(to_recieve_set == {FlushIdxWidth{1'b0}}) begin
               flush_state_d = FsmEndFlush;
             end else begin
               en_recv_cnt_set = 1'b1;
             end
           end else begin
-            if(to_recieve == {{Cfg.IndexLength{{1'b0}}}}) begin
+            if(to_recieve == {Cfg.IndexLength{1'b0}}) begin
               flush_state_d = FsmEndFlush;
             end else begin
               en_recv_cnt = 1'b1;
@@ -796,25 +795,34 @@ module axi_llc_config #(
             // index_based_flush_d = 1'b0; // reset flush type
             // reset the flushed register to SPM as new requests can enter the cache
 /********************************************     SET BASED CACHE PARTITIONING     ********************************************/
-''')
-    for i in range(num_setflushreg):
-        f.write(f'''            conf_regs_o.flushed_set{i}    = 64'b0; /**************** temperarily not used since SPM is way-based ****************/ \n''')
-    for i in range(num_setflushreg):
-        f.write(f'''            conf_regs_o.flushed_set{i}_en = 1'b1; \n''')
-    f.write(f'''            to_flush_set_d              = set_t'(1'b0);
+            conf_regs_o.flushed_set0    = 64'b0; /**************** temperarily not used since SPM is way-based ****************/ 
+            conf_regs_o.flushed_set1    = 64'b0; /**************** temperarily not used since SPM is way-based ****************/ 
+            conf_regs_o.flushed_set2    = 64'b0; /**************** temperarily not used since SPM is way-based ****************/ 
+            conf_regs_o.flushed_set3    = 64'b0; /**************** temperarily not used since SPM is way-based ****************/ 
+            conf_regs_o.flushed_set0_en = 1'b1; 
+            conf_regs_o.flushed_set1_en = 1'b1; 
+            conf_regs_o.flushed_set2_en = 1'b1; 
+            conf_regs_o.flushed_set3_en = 1'b1; 
+            to_flush_set_d              = set_t'(1'b0);
             // Reset the `CfgFlushTherad` register, load enable is default '1
             conf_regs_o.cfg_flush_thread  = -1;
-''')
-    f.write(f'''          end else begin
+          end else begin
             // there are still cache lines to flush
             flush_state_d = FsmInitFlush;
             conf_regs_o_flushed_set = conf_regs_i_flushed_set | flush_set_ind;
-''')
-    for i in range(num_setflushreg):
-        f.write(f'''            conf_regs_o.flushed_set{i} = conf_regs_o_flushed_set[{i+1}*RegWidth-1:{i}*RegWidth];\n''')
-    for i in range(num_setflushreg):
-        f.write(f'''            conf_regs_o.flushed_set{i}_en = 1'b1;\n''')
-    f.write(f'''/******************************************************************************************************************************/
+            flushed_set0 = conf_regs_o_flushed_set >> (0*RegWidth);
+            flushed_set1 = conf_regs_o_flushed_set >> (1*RegWidth);
+            flushed_set2 = conf_regs_o_flushed_set >> (2*RegWidth);
+            flushed_set3 = conf_regs_o_flushed_set >> (3*RegWidth);
+            conf_regs_o.flushed_set0 = flushed_set0;
+            conf_regs_o.flushed_set1 = flushed_set1;
+            conf_regs_o.flushed_set2 = flushed_set2;
+            conf_regs_o.flushed_set3 = flushed_set3;
+            conf_regs_o.flushed_set0_en = 1'b1;
+            conf_regs_o.flushed_set1_en = 1'b1;
+            conf_regs_o.flushed_set2_en = 1'b1;
+            conf_regs_o.flushed_set3_en = 1'b1;
+/******************************************************************************************************************************/
           end
         end else begin
           clear_cnt = 1'b1;
@@ -925,7 +933,7 @@ module axi_llc_config #(
     .en_i       ( en_send_cnt             ),
     .load_i     ( load_cnt                ),
     .down_i     ( 1'b0                    ),
-    .d_i        ( {{Cfg.IndexLength{{1'b0}}}} ),
+    .d_i        ( {Cfg.IndexLength{1'b0}} ),
     .q_o        ( flush_addr              ),
     .overflow_o ( /*not used*/            )
   );
@@ -940,7 +948,7 @@ module axi_llc_config #(
     .en_i       ( en_recv_cnt             ),
     .load_i     ( load_cnt                ),
     .down_i     ( 1'b1                    ),
-    .d_i        ( {{Cfg.IndexLength{{1'b1}}}} ),
+    .d_i        ( {Cfg.IndexLength{1'b1}} ),
     .q_o        ( to_recieve              ),
     .overflow_o ( /*not used*/            )
   );
@@ -953,7 +961,7 @@ module axi_llc_config #(
     .en_i       ( en_send_cnt_set         ),
     .load_i     ( load_cnt_set            ),
     .down_i     ( 1'b0                    ),
-    .d_i        ( {{FlushIdxWidth{{1'b0}}}}   ),
+    .d_i        ( {FlushIdxWidth{1'b0}}   ),
     .q_o        ( flush_way               ),
     .overflow_o ( /*not used*/            )
   );
@@ -968,7 +976,7 @@ module axi_llc_config #(
     .en_i       ( en_recv_cnt_set         ),
     .load_i     ( load_cnt_set            ),
     .down_i     ( 1'b1                    ),
-    .d_i        ( {{FlushIdxWidth{{1'b1}}}}   ),
+    .d_i        ( {FlushIdxWidth{1'b1}}   ),
     .q_o        ( to_recieve_set          ),
     .overflow_o ( /*not used*/            )
   );
@@ -977,8 +985,8 @@ module axi_llc_config #(
 `ifndef VERILATOR
   initial begin : proc_check_params
     set_asso      : assert (Cfg.SetAssociativity <= RegWidth) else
-        $fatal(1, $sformatf("LlcCfg: The maximum set associativity (%0d) has to be smaller than \\
-                             or equal to the the configuration register width in bits: %0d (dec).\\n \\
+        $fatal(1, $sformatf("LlcCfg: The maximum set associativity (%0d) has to be smaller than \
+                             or equal to the the configuration register width in bits: %0d (dec).\n \
                              Reason: Set associativity has to fit inside one register.",
                              Cfg.SetAssociativity, RegWidth));
   end
@@ -1025,6 +1033,3 @@ module axi_llc_config #(
 `endif
 // pragma translate_on
 endmodule
-''')
-
-print(f'The command is successfully generated in "./config_set_par_reg_concat.hjson"!')

@@ -34,6 +34,8 @@ module axi_llc_w_master #(
   ///
   /// Required struct definition in: `axi_llc_pkg`.
   parameter axi_llc_pkg::llc_axi_cfg_t AxiCfg = axi_llc_pkg::llc_axi_cfg_t'{default: '0},
+  /// Cache partitioning enabling parameter
+  parameter logic CachePartition              = 1,
   /// LLC descriptor type definition.
   parameter type desc_t = logic,
   /// Data way request payload definition.
@@ -127,7 +129,9 @@ module axi_llc_w_master #(
     way_inp_o = '0;
     way_inp_o.cache_unit = axi_llc_pkg::EvictUnit;
     way_inp_o.way_ind    = desc_q.way_ind;
-    way_inp_o.line_addr  = desc_q.index_partition; // does not depend on the counting address
+    way_inp_o.line_addr  = CachePartition ? desc_q.index_partition : 
+                                            desc_q.a_x_addr[(Cfg.ByteOffsetLength + Cfg.BlockOffsetLength) +: 
+                                            Cfg.IndexLength]; // does not depend on the counting address
     way_inp_o.blk_offset = block_offset;
     // these comments are just for reasoning why the fields are not set
     // way_inp_o.we           = 1'b0; // only read data out from the way

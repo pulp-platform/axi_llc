@@ -154,6 +154,7 @@ module axi_llc_reg_wrap #(
   /// Note on restrictions:
   /// The same restriction as of parameter `NumLines` applies.
   parameter int unsigned NumBlocks = 32'd0,
+  parameter logic CachePartition = 1,
   /// Max. number of threads supported for partitioning:
   /// to currently make it work should set as a integer multiplcation of 8
   /// e.g. MaxThread should be 8 even though we have only 6 threads running 
@@ -268,6 +269,7 @@ module axi_llc_reg_wrap #(
     .SetAssociativity ( SetAssociativity      ),
     .NumLines         ( NumLines              ),
     .NumBlocks        ( NumBlocks             ),
+    .CachePartition   ( CachePartition        ),
     .MaxThread        ( MaxThread             ),
     .AxiIdWidth       ( AxiIdWidth            ),
     .AxiAddrWidth     ( AxiAddrWidth          ),

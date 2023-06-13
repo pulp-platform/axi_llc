@@ -71,7 +71,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "low", desc: "lower 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION0_HIGH",
        desc: "Index-based Partition Configuration [63:32] (upper 32 bit)",
@@ -79,7 +79,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "high", desc: "upper 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION1_LOW",
        desc: "Index-based Partition Configuration [31:0] (lower 32 bit)",
@@ -87,7 +87,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "low", desc: "lower 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION1_HIGH",
        desc: "Index-based Partition Configuration [63:32] (upper 32 bit)",
@@ -95,7 +95,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "high", desc: "upper 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION2_LOW",
        desc: "Index-based Partition Configuration [31:0] (lower 32 bit)",
@@ -103,7 +103,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "low", desc: "lower 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION2_HIGH",
        desc: "Index-based Partition Configuration [63:32] (upper 32 bit)",
@@ -111,7 +111,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "high", desc: "upper 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION3_LOW",
        desc: "Index-based Partition Configuration [31:0] (lower 32 bit)",
@@ -119,7 +119,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "low", desc: "lower 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION3_HIGH",
        desc: "Index-based Partition Configuration [63:32] (upper 32 bit)",
@@ -127,7 +127,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "high", desc: "upper 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION4_LOW",
        desc: "Index-based Partition Configuration [31:0] (lower 32 bit)",
@@ -135,7 +135,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "low", desc: "lower 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION4_HIGH",
        desc: "Index-based Partition Configuration [63:32] (upper 32 bit)",
@@ -143,7 +143,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "high", desc: "upper 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION5_LOW",
        desc: "Index-based Partition Configuration [31:0] (lower 32 bit)",
@@ -151,7 +151,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "low", desc: "lower 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION5_HIGH",
        desc: "Index-based Partition Configuration [63:32] (upper 32 bit)",
@@ -159,7 +159,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "high", desc: "upper 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION6_LOW",
        desc: "Index-based Partition Configuration [31:0] (lower 32 bit)",
@@ -167,7 +167,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "low", desc: "lower 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION6_HIGH",
        desc: "Index-based Partition Configuration [63:32] (upper 32 bit)",
@@ -175,7 +175,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "high", desc: "upper 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION7_LOW",
        desc: "Index-based Partition Configuration [31:0] (lower 32 bit)",
@@ -183,7 +183,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "low", desc: "lower 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION7_HIGH",
        desc: "Index-based Partition Configuration [63:32] (upper 32 bit)",
@@ -191,7 +191,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "high", desc: "upper 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION8_LOW",
        desc: "Index-based Partition Configuration [31:0] (lower 32 bit)",
@@ -199,7 +199,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "low", desc: "lower 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION8_HIGH",
        desc: "Index-based Partition Configuration [63:32] (upper 32 bit)",
@@ -207,7 +207,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "high", desc: "upper 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION9_LOW",
        desc: "Index-based Partition Configuration [31:0] (lower 32 bit)",
@@ -215,7 +215,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "low", desc: "lower 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION9_HIGH",
        desc: "Index-based Partition Configuration [63:32] (upper 32 bit)",
@@ -223,7 +223,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "high", desc: "upper 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION10_LOW",
        desc: "Index-based Partition Configuration [31:0] (lower 32 bit)",
@@ -231,7 +231,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "low", desc: "lower 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION10_HIGH",
        desc: "Index-based Partition Configuration [63:32] (upper 32 bit)",
@@ -239,7 +239,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "high", desc: "upper 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION11_LOW",
        desc: "Index-based Partition Configuration [31:0] (lower 32 bit)",
@@ -247,7 +247,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "low", desc: "lower 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION11_HIGH",
        desc: "Index-based Partition Configuration [63:32] (upper 32 bit)",
@@ -255,7 +255,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "high", desc: "upper 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION12_LOW",
        desc: "Index-based Partition Configuration [31:0] (lower 32 bit)",
@@ -263,7 +263,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "low", desc: "lower 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION12_HIGH",
        desc: "Index-based Partition Configuration [63:32] (upper 32 bit)",
@@ -271,7 +271,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "high", desc: "upper 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION13_LOW",
        desc: "Index-based Partition Configuration [31:0] (lower 32 bit)",
@@ -279,7 +279,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "low", desc: "lower 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION13_HIGH",
        desc: "Index-based Partition Configuration [63:32] (upper 32 bit)",
@@ -287,7 +287,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "high", desc: "upper 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION14_LOW",
        desc: "Index-based Partition Configuration [31:0] (lower 32 bit)",
@@ -295,7 +295,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "low", desc: "lower 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION14_HIGH",
        desc: "Index-based Partition Configuration [63:32] (upper 32 bit)",
@@ -303,7 +303,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "high", desc: "upper 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION15_LOW",
        desc: "Index-based Partition Configuration [31:0] (lower 32 bit)",
@@ -311,7 +311,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "low", desc: "lower 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION15_HIGH",
        desc: "Index-based Partition Configuration [63:32] (upper 32 bit)",
@@ -319,7 +319,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "high", desc: "upper 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION16_LOW",
        desc: "Index-based Partition Configuration [31:0] (lower 32 bit)",
@@ -327,7 +327,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "low", desc: "lower 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION16_HIGH",
        desc: "Index-based Partition Configuration [63:32] (upper 32 bit)",
@@ -335,7 +335,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "high", desc: "upper 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION17_LOW",
        desc: "Index-based Partition Configuration [31:0] (lower 32 bit)",
@@ -343,7 +343,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "low", desc: "lower 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION17_HIGH",
        desc: "Index-based Partition Configuration [63:32] (upper 32 bit)",
@@ -351,7 +351,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "high", desc: "upper 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION18_LOW",
        desc: "Index-based Partition Configuration [31:0] (lower 32 bit)",
@@ -359,7 +359,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "low", desc: "lower 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION18_HIGH",
        desc: "Index-based Partition Configuration [63:32] (upper 32 bit)",
@@ -367,7 +367,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "high", desc: "upper 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION19_LOW",
        desc: "Index-based Partition Configuration [31:0] (lower 32 bit)",
@@ -375,7 +375,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "low", desc: "lower 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION19_HIGH",
        desc: "Index-based Partition Configuration [63:32] (upper 32 bit)",
@@ -383,7 +383,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "high", desc: "upper 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION20_LOW",
        desc: "Index-based Partition Configuration [31:0] (lower 32 bit)",
@@ -391,7 +391,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "low", desc: "lower 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION20_HIGH",
        desc: "Index-based Partition Configuration [63:32] (upper 32 bit)",
@@ -399,7 +399,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "high", desc: "upper 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION21_LOW",
        desc: "Index-based Partition Configuration [31:0] (lower 32 bit)",
@@ -407,7 +407,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "low", desc: "lower 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION21_HIGH",
        desc: "Index-based Partition Configuration [63:32] (upper 32 bit)",
@@ -415,7 +415,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "high", desc: "upper 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION22_LOW",
        desc: "Index-based Partition Configuration [31:0] (lower 32 bit)",
@@ -423,7 +423,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "low", desc: "lower 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION22_HIGH",
        desc: "Index-based Partition Configuration [63:32] (upper 32 bit)",
@@ -431,7 +431,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "high", desc: "upper 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION23_LOW",
        desc: "Index-based Partition Configuration [31:0] (lower 32 bit)",
@@ -439,7 +439,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "low", desc: "lower 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION23_HIGH",
        desc: "Index-based Partition Configuration [63:32] (upper 32 bit)",
@@ -447,7 +447,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "high", desc: "upper 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION24_LOW",
        desc: "Index-based Partition Configuration [31:0] (lower 32 bit)",
@@ -455,7 +455,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "low", desc: "lower 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION24_HIGH",
        desc: "Index-based Partition Configuration [63:32] (upper 32 bit)",
@@ -463,7 +463,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "high", desc: "upper 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION25_LOW",
        desc: "Index-based Partition Configuration [31:0] (lower 32 bit)",
@@ -471,7 +471,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "low", desc: "lower 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION25_HIGH",
        desc: "Index-based Partition Configuration [63:32] (upper 32 bit)",
@@ -479,7 +479,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "high", desc: "upper 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION26_LOW",
        desc: "Index-based Partition Configuration [31:0] (lower 32 bit)",
@@ -487,7 +487,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "low", desc: "lower 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION26_HIGH",
        desc: "Index-based Partition Configuration [63:32] (upper 32 bit)",
@@ -495,7 +495,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "high", desc: "upper 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION27_LOW",
        desc: "Index-based Partition Configuration [31:0] (lower 32 bit)",
@@ -503,7 +503,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "low", desc: "lower 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION27_HIGH",
        desc: "Index-based Partition Configuration [63:32] (upper 32 bit)",
@@ -511,7 +511,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "high", desc: "upper 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION28_LOW",
        desc: "Index-based Partition Configuration [31:0] (lower 32 bit)",
@@ -519,7 +519,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "low", desc: "lower 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION28_HIGH",
        desc: "Index-based Partition Configuration [63:32] (upper 32 bit)",
@@ -527,7 +527,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "high", desc: "upper 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION29_LOW",
        desc: "Index-based Partition Configuration [31:0] (lower 32 bit)",
@@ -535,7 +535,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "low", desc: "lower 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION29_HIGH",
        desc: "Index-based Partition Configuration [63:32] (upper 32 bit)",
@@ -543,7 +543,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "high", desc: "upper 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION30_LOW",
        desc: "Index-based Partition Configuration [31:0] (lower 32 bit)",
@@ -551,7 +551,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "low", desc: "lower 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION30_HIGH",
        desc: "Index-based Partition Configuration [63:32] (upper 32 bit)",
@@ -559,7 +559,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "high", desc: "upper 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION31_LOW",
        desc: "Index-based Partition Configuration [31:0] (lower 32 bit)",
@@ -567,7 +567,7 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "low", desc: "lower 32 bit"}
-       ]
+      ]
     },
     { name: "CFG_SET_PARTITION31_HIGH",
        desc: "Index-based Partition Configuration [63:32] (upper 32 bit)",
@@ -575,9 +575,8 @@
        hwaccess: "hrw",
        fields: [
         {bits: "31:0", name: "high", desc: "upper 32 bit"}
-       ]
+      ]
     },
-
     { name: "COMMIT_CFG",
       desc: "Commit the configuration",
       swaccess: "rw1s",
@@ -586,7 +585,7 @@
         {bits: "0", name: "commit", desc: "commit configuration"}
       ]
     },
-    {skipto: "0x138"}
+    {skipto: "0x120"}
     { name: "COMMIT_PARTITION_CFG",
       desc: "Commit the set partition configuration",
       swaccess: "rw1s",
@@ -595,7 +594,7 @@
         {bits: "0", name: "commit", desc: "commit set partition configuration"}
       ]
     },
-    {skipto: "0x140"}
+    {skipto: "0x128"}
     { name: "FLUSHED_LOW",
       desc: "Flushed Flag (lower 32 bit)",
       swaccess: "ro",

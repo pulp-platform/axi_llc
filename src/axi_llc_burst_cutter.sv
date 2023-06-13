@@ -17,6 +17,8 @@ module axi_llc_burst_cutter #(
   parameter axi_llc_pkg::llc_cfg_t     Cfg    = axi_llc_pkg::llc_cfg_t'{default: '0},
   /// AXI channel configuration struct.
   parameter axi_llc_pkg::llc_axi_cfg_t AxiCfg = axi_llc_pkg::llc_axi_cfg_t'{default: '0},
+  /// Cache partitioning enabling parameter
+  parameter logic CachePartition              = 1,
   parameter int unsigned MaxThread            = 0,
   /// AXI AW or AR channel struct definition.
   parameter type                       chan_t = logic,
@@ -28,6 +30,7 @@ module axi_llc_burst_cutter #(
   parameter type                       desc_t = logic,
   /// Type of the address rule struct used for SPM access streeri
   parameter type                       rule_t = axi_pkg::xbar_rule_64_t,
+  /// partition table type for cache partitioning
   parameter type                       partition_table_t = logic
 ) (
   /// Clock, positive edge triggered.
@@ -49,6 +52,7 @@ module axi_llc_burst_cutter #(
   /// Here only the `satrt_addr` field is used. Internal builds an address decoding map
   /// one for each cache way.
   input  rule_t spm_rule_i, 
+  /// partition table for cache partitioning
   input  partition_table_t [MaxThread:0] partition_table_i
   );
 
@@ -87,97 +91,155 @@ module axi_llc_burst_cutter #(
   end
 
   // Cache-Partition
+generate 
+  if (CachePartition) begin
+    typedef logic [Cfg.IndexLength:0]     partision_size_t;
+    typedef logic [Cfg.IndexLength-1:0]   index_t;
 
-  typedef logic [Cfg.IndexLength:0]     partision_size_t;
-  typedef logic [Cfg.IndexLength-1:0]   index_t;
+    partision_size_t pat_size, share_size;
+    index_t          start_index, share_index, index_partition;
 
-  partision_size_t pat_size, share_size;
-  index_t          start_index, share_index, index_partition;
+    assign share_size  =  partition_table_i[MaxThread].NumIndex;
+    assign share_index =  partition_table_i[MaxThread].StartIndex;
+    assign pat_size    =  (curr_chan_i.user <= MaxThread) ? partition_table_i[curr_chan_i.user].NumIndex : share_size;
+    assign start_index =  (curr_chan_i.user <= MaxThread) ? partition_table_i[curr_chan_i.user].StartIndex : share_index;
 
-  assign share_size  =  partition_table_i[MaxThread].NumIndex;
-  assign share_index =  partition_table_i[MaxThread].StartIndex;
-  assign pat_size    =  (curr_chan_i.user <= MaxThread) ? partition_table_i[curr_chan_i.user].NumIndex : share_size;
-  assign start_index =  (curr_chan_i.user <= MaxThread) ? partition_table_i[curr_chan_i.user].StartIndex : share_index;
+    axi_llc_index_assigner #(
+      .Cfg              ( Cfg              ),
+      .partision_size_t ( partision_size_t ),
+      .index_t          ( index_t          ),
+      .addr_t           ( addr_t           )
+    ) i_index_assigner (
+      .pat_size_i        ( pat_size        ),
+      .share_size_i      ( share_size      ),
+      .start_index_i     ( start_index     ),
+      .share_index_i     ( share_index     ),
+      .addr_i            ( curr_chan_i.addr ),
+      .index_partition_o ( index_partition )
+    );
 
-  axi_llc_index_assigner #(
-    .Cfg              ( Cfg              ),
-    .partision_size_t ( partision_size_t ),
-    .index_t          ( index_t          ),
-    .addr_t           ( addr_t           )
-  ) i_index_assigner (
-    .pat_size_i        ( pat_size        ),
-    .share_size_i      ( share_size      ),
-    .start_index_i     ( start_index     ),
-    .share_index_i     ( share_index     ),
-    .addr_i            ( curr_chan_i.addr ),
-    .index_partition_o ( index_partition )
-  );
+    // Cache-Partition
+    // Add two entries carried in descripter: partition id (patid) and the new calculated index 
+    // (index_partition).
+    // If a partition's size is 0, the entry will be put into the shared region
+    always_comb begin : proc_cutter    
+      // Make sure the outputs are defined to a default.
+      next_chan_o         = curr_chan_i;
 
-  // Cache-Partition
-  // Add two entries carried in descripter: partition id (patid) and the new calculated index 
-  // (index_partition).
-  // If a partition's size is 0, the entry will be put into the shared region
-  always_comb begin : proc_cutter    
-    // Make sure the outputs are defined to a default.
-    next_chan_o         = curr_chan_i;
+      desc_o              = desc_t'{
+        a_x_id:    curr_chan_i.id,
+        a_x_addr:  curr_chan_i.addr,
+        a_x_size:  curr_chan_i.size,
+        a_x_burst: curr_chan_i.burst,
+        a_x_lock:  curr_chan_i.lock,
+        a_x_prot:  curr_chan_i.prot,
+        a_x_cache: curr_chan_i.cache,
+        x_resp:    axi_pkg::RESP_OKAY,
+        rw:        Write,
+        // If the patid is larger than the table supported, assign it to the shared region
+        patid:     (curr_chan_i.user <= MaxThread) ? curr_chan_i.user : MaxThread,
+        index_partition: index_partition,
+        default: '0
+      };
 
-    desc_o              = desc_t'{
-      a_x_id:    curr_chan_i.id,
-      a_x_addr:  curr_chan_i.addr,
-      a_x_size:  curr_chan_i.size,
-      a_x_burst: curr_chan_i.burst,
-      a_x_lock:  curr_chan_i.lock,
-      a_x_prot:  curr_chan_i.prot,
-      a_x_cache: curr_chan_i.cache,
-      x_resp:    axi_pkg::RESP_OKAY,
-      rw:        Write,
-      // If the patid is larger than the table supported, assign it to the shared region
-      patid:     (curr_chan_i.user <= MaxThread) ? curr_chan_i.user : MaxThread,
-      index_partition: index_partition,
-      default: '0
-    };
+      // calculate the line address (tag included)
+      this_line_address   = addr_t'(curr_chan_i.addr[LineOffset+:(AxiCfg.AddrWidthFull-LineOffset)]
+                               << LineOffset);
+      // calculate the next line address (tag included)
+      next_line_address   = this_line_address + (addr_t'(1) << LineOffset);
+      // how many bytes are on the line from curr addr to the end
+      bytes_on_line       = next_line_address - curr_chan_i.addr;
+      // how many transaction beats map onto the current line
+      beats_on_line       = axi_pkg::len_t'((bytes_on_line - 1) >> curr_chan_i.size) + 1;
 
-    // calculate the line address (tag included)
-    this_line_address   = addr_t'(curr_chan_i.addr[LineOffset+:(AxiCfg.AddrWidthFull-LineOffset)]
-                             << LineOffset);
-    // calculate the next line address (tag included)
-    next_line_address   = this_line_address + (addr_t'(1) << LineOffset);
-    // how many bytes are on the line from curr addr to the end
-    bytes_on_line       = next_line_address - curr_chan_i.addr;
-    // how many transaction beats map onto the current line
-    beats_on_line       = axi_pkg::len_t'((bytes_on_line - 1) >> curr_chan_i.size) + 1;
-
-    // Are we making an SPM access?
-    // If so, no partitioning will be performed on this entry
-    if (rule_valid) begin
-      if (rule_index != '0) begin
+      // Are we making an SPM access?
+      // If so, no partitioning will be performed on this entry
+      if (rule_valid) begin
+        if (rule_index != '0) begin
+          desc_o.spm     = 1'b1;
+          desc_o.index_partition = curr_chan_i.addr[LineOffset+:Cfg.IndexLength];
+          desc_o.way_ind = indi_t'(1 << (rule_index - 1));
+        end
+      end else begin
+        // make it an spm access on decerror go always onto way 0
         desc_o.spm     = 1'b1;
         desc_o.index_partition = curr_chan_i.addr[LineOffset+:Cfg.IndexLength];
-        desc_o.way_ind = indi_t'(1 << (rule_index - 1));
+        desc_o.way_ind = indi_t'(1 << 0);
+        desc_o.x_resp  = axi_pkg::RESP_SLVERR;
       end
-    end else begin
-      // make it an spm access on decerror go always onto way 0
-      desc_o.spm     = 1'b1;
-      desc_o.index_partition = curr_chan_i.addr[LineOffset+:Cfg.IndexLength];
-      desc_o.way_ind = indi_t'(1 << 0);
-      desc_o.x_resp  = axi_pkg::RESP_SLVERR;
-    end
 
-    // Do we have beats left on the next line?
-    if(((beats_on_line - 1) < curr_chan_i.len) &&
-        !(curr_chan_i.burst == axi_pkg::BURST_FIXED)) begin
-      // in this case we have at least one beat on the next cache line.
-      next_chan_o.addr  = next_line_address;
-      next_chan_o.len   = curr_chan_i.len - beats_on_line;
-      desc_o.a_x_len    = beats_on_line - 1;
-      desc_o.x_last     = 1'b0;
-    end else begin // all remaining beats are on the current cacheline.
-      next_chan_o.addr  = addr_t'(0);
-      next_chan_o.len   = axi_pkg::len_t'(0);
-      desc_o.a_x_len    = curr_chan_i.len;
-      desc_o.x_last     = 1'b1;
+      // Do we have beats left on the next line?
+      if(((beats_on_line - 1) < curr_chan_i.len) &&
+          !(curr_chan_i.burst == axi_pkg::BURST_FIXED)) begin
+        // in this case we have at least one beat on the next cache line.
+        next_chan_o.addr  = next_line_address;
+        next_chan_o.len   = curr_chan_i.len - beats_on_line;
+        desc_o.a_x_len    = beats_on_line - 1;
+        desc_o.x_last     = 1'b0;
+      end else begin // all remaining beats are on the current cacheline.
+        next_chan_o.addr  = addr_t'(0);
+        next_chan_o.len   = axi_pkg::len_t'(0);
+        desc_o.a_x_len    = curr_chan_i.len;
+        desc_o.x_last     = 1'b1;
+      end
+    end
+  end else begin
+    always_comb begin : proc_cutter
+      // Make sure the outputs are defined to a default.
+      next_chan_o         = curr_chan_i;
+      desc_o              = desc_t'{
+        a_x_id:    curr_chan_i.id,
+        a_x_addr:  curr_chan_i.addr,
+        a_x_size:  curr_chan_i.size,
+        a_x_burst: curr_chan_i.burst,
+        a_x_lock:  curr_chan_i.lock,
+        a_x_prot:  curr_chan_i.prot,
+        a_x_cache: curr_chan_i.cache,
+        x_resp:    axi_pkg::RESP_OKAY,
+        rw:        Write,
+        default: '0
+      };
+
+      // calculate the line address (tag included)
+      this_line_address   = addr_t'(curr_chan_i.addr[LineOffset+:(AxiCfg.AddrWidthFull-LineOffset)]
+                               << LineOffset);
+      // calculate the next line address (tag included)
+      next_line_address   = this_line_address + (addr_t'(1) << LineOffset);
+      // how many bytes are on the line from curr addr to the end
+      bytes_on_line       = next_line_address - curr_chan_i.addr;
+      // how many transaction beats map onto the current line
+      beats_on_line       = axi_pkg::len_t'((bytes_on_line - 1) >> curr_chan_i.size) + 1;
+
+      // Are we making an SPM access?
+      if (rule_valid) begin
+        if (rule_index != '0) begin
+          desc_o.spm     = 1'b1;
+          desc_o.way_ind = indi_t'(1 << (rule_index - 1));
+        end
+      end else begin
+        // make it an spm access on decerror go always onto way 0
+        desc_o.spm     = 1'b1;
+        desc_o.way_ind = indi_t'(1 << 0);
+        desc_o.x_resp  = axi_pkg::RESP_SLVERR;
+      end
+
+      // Do we have beats left on the next line?
+      if(((beats_on_line - 1) < curr_chan_i.len) &&
+          !(curr_chan_i.burst == axi_pkg::BURST_FIXED)) begin
+        // in this case we have at least one beat on the next cache line.
+        next_chan_o.addr  = next_line_address;
+        next_chan_o.len   = curr_chan_i.len - beats_on_line;
+        desc_o.a_x_len    = beats_on_line - 1;
+        desc_o.x_last     = 1'b0;
+      end else begin // all remaining beats are on the current cacheline.
+        next_chan_o.addr  = addr_t'(0);
+        next_chan_o.len   = axi_pkg::len_t'(0);
+        desc_o.a_x_len    = curr_chan_i.len;
+        desc_o.x_last     = 1'b1;
+      end
     end
   end
+endgenerate
 
   addr_decode #(
     .NoIndices ( Cfg.SetAssociativity + 32'd1 ),

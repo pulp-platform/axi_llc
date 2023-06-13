@@ -231,72 +231,72 @@ extern "C" {
 #define AXI_LLC_COMMIT_CFG_COMMIT_BIT 0
 
 // Commit the set partition configuration
-#define AXI_LLC_COMMIT_PARTITION_CFG_REG_OFFSET 0x138
+#define AXI_LLC_COMMIT_PARTITION_CFG_REG_OFFSET 0x120
 #define AXI_LLC_COMMIT_PARTITION_CFG_COMMIT_BIT 0
 
 // Flushed Flag (lower 32 bit)
-#define AXI_LLC_FLUSHED_LOW_REG_OFFSET 0x140
+#define AXI_LLC_FLUSHED_LOW_REG_OFFSET 0x128
 
 // Flushed Flag (upper 32 bit)
-#define AXI_LLC_FLUSHED_HIGH_REG_OFFSET 0x144
+#define AXI_LLC_FLUSHED_HIGH_REG_OFFSET 0x12c
 
 // Tag Storage BIST Result (lower 32 bit)
-#define AXI_LLC_BIST_OUT_LOW_REG_OFFSET 0x148
+#define AXI_LLC_BIST_OUT_LOW_REG_OFFSET 0x130
 
 // Tag Storage BIST Result (upper 32 bit)
-#define AXI_LLC_BIST_OUT_HIGH_REG_OFFSET 0x14c
+#define AXI_LLC_BIST_OUT_HIGH_REG_OFFSET 0x134
 
 // Instantiated Set-Associativity (lower 32 bit)
-#define AXI_LLC_SET_ASSO_LOW_REG_OFFSET 0x150
+#define AXI_LLC_SET_ASSO_LOW_REG_OFFSET 0x138
 
 // Instantiated Set-Associativity (upper 32 bit)
-#define AXI_LLC_SET_ASSO_HIGH_REG_OFFSET 0x154
+#define AXI_LLC_SET_ASSO_HIGH_REG_OFFSET 0x13c
 
 // Instantiated Number of Cache-Lines (lower 32 bit)
-#define AXI_LLC_NUM_LINES_LOW_REG_OFFSET 0x158
+#define AXI_LLC_NUM_LINES_LOW_REG_OFFSET 0x140
 
 // Instantiated Number of Cache-Lines (upper 32 bit)
-#define AXI_LLC_NUM_LINES_HIGH_REG_OFFSET 0x15c
+#define AXI_LLC_NUM_LINES_HIGH_REG_OFFSET 0x144
 
 // Instantiated Number of Blocks (lower 32 bit)
-#define AXI_LLC_NUM_BLOCKS_LOW_REG_OFFSET 0x160
+#define AXI_LLC_NUM_BLOCKS_LOW_REG_OFFSET 0x148
 
 // Instantiated Number of Blocks (upper 32 bit)
-#define AXI_LLC_NUM_BLOCKS_HIGH_REG_OFFSET 0x164
+#define AXI_LLC_NUM_BLOCKS_HIGH_REG_OFFSET 0x14c
 
 // AXI LLC Version (lower 32 bit)
-#define AXI_LLC_VERSION_LOW_REG_OFFSET 0x168
+#define AXI_LLC_VERSION_LOW_REG_OFFSET 0x150
 
 // AXI LLC Version (upper 32 bit)
-#define AXI_LLC_VERSION_HIGH_REG_OFFSET 0x16c
+#define AXI_LLC_VERSION_HIGH_REG_OFFSET 0x154
 
 // Status register of the BIST
-#define AXI_LLC_BIST_STATUS_REG_OFFSET 0x170
+#define AXI_LLC_BIST_STATUS_REG_OFFSET 0x158
 #define AXI_LLC_BIST_STATUS_DONE_BIT 0
 
 // Index-based Flushed Flag [31:0] (lower 32 bit)
-#define AXI_LLC_FLUSHED_SET0_LOW_REG_OFFSET 0x174
+#define AXI_LLC_FLUSHED_SET0_LOW_REG_OFFSET 0x15c
 
 // Index-based Flushed Flag [63:32] (upper 32 bit)
-#define AXI_LLC_FLUSHED_SET0_HIGH_REG_OFFSET 0x178
+#define AXI_LLC_FLUSHED_SET0_HIGH_REG_OFFSET 0x160
 
 // Index-based Flushed Flag [95:64] (lower 32 bit)
-#define AXI_LLC_FLUSHED_SET1_LOW_REG_OFFSET 0x17c
+#define AXI_LLC_FLUSHED_SET1_LOW_REG_OFFSET 0x164
 
 // Index-based Flushed Flag [127:96] (upper 32 bit)
-#define AXI_LLC_FLUSHED_SET1_HIGH_REG_OFFSET 0x180
+#define AXI_LLC_FLUSHED_SET1_HIGH_REG_OFFSET 0x168
 
 // Index-based Flushed Flag [159:128] (lower 32 bit)
-#define AXI_LLC_FLUSHED_SET2_LOW_REG_OFFSET 0x184
+#define AXI_LLC_FLUSHED_SET2_LOW_REG_OFFSET 0x16c
 
 // Index-based Flushed Flag [191:160] (upper 32 bit)
-#define AXI_LLC_FLUSHED_SET2_HIGH_REG_OFFSET 0x188
+#define AXI_LLC_FLUSHED_SET2_HIGH_REG_OFFSET 0x170
 
 // Index-based Flushed Flag [223:192] (lower 32 bit)
-#define AXI_LLC_FLUSHED_SET3_LOW_REG_OFFSET 0x18c
+#define AXI_LLC_FLUSHED_SET3_LOW_REG_OFFSET 0x174
 
 // Index-based Flushed Flag [255:224] (upper 32 bit)
-#define AXI_LLC_FLUSHED_SET3_HIGH_REG_OFFSET 0x190
+#define AXI_LLC_FLUSHED_SET3_HIGH_REG_OFFSET 0x178
 
 #ifdef __cplusplus
 }  // extern "C"

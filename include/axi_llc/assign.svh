@@ -26,6 +26,8 @@
     `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, cfg_flush)      \
     assign regbus.commit_cfg.d = d_struct.commit_cfg;                           \
     assign regbus.commit_cfg.de = d_struct.commit_cfg_en;                       \
+    assign regbus.bist_status.d = d_struct.bist_status_done;                    \
+    assign regbus.bist_status.de = d_struct.bist_status_en;                     \
     assign regbus.commit_partition_cfg.d = d_struct.commit_partition_cfg;       \
     assign regbus.commit_partition_cfg.de = d_struct.commit_partition_cfg_en;   \
     `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, flushed)        \
@@ -34,8 +36,6 @@
     `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, num_lines)      \
     `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, num_blocks)     \
     `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, version)        \
-    assign regbus.bist_status.d = d_struct.bist_status_done;                    \
-    assign regbus.bist_status.de = d_struct.bist_status_en;                     \
 /********************************************     SET BASED CACHE PARTITIONING     ********************************************/  \
     `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, cfg_flush_thread) \
     `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, cfg_set_partition0) \
@@ -75,6 +75,7 @@
     `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, flushed_set2)   \
     `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, flushed_set3)
 /******************************************************************************************************************************/  
+
 
 // Assign the 64-bit q_struct values from the corresponding 32-bit _low and _high
 // REG2HW signals

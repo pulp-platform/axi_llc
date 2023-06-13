@@ -148,6 +148,8 @@ module axi_llc_top #(
   /// Note on restrictions:
   /// The same restriction as of parameter `NumLines` applies.
   parameter int unsigned NumBlocks = 32'd0,
+  /// Cache partitioning enabling parameter
+  parameter logic CachePartition = 1,
   /// Max. number of partitions supported for partitioning:
   /// to currently make it work should set as a integer multiplcation of 8
   /// e.g. MaxThread should be 8 even though we have only 6 threads running 
@@ -266,10 +268,10 @@ module axi_llc_top #(
     NumLines          : NumLines,
     NumBlocks         : NumBlocks,
     BlockSize         : AxiCfg.DataWidthFull,
-    TagLength         : AxiCfg.AddrWidthFull -
-        unsigned'($clog2(NumBlocks)) - unsigned'($clog2(AxiCfg.DataWidthFull / 32'd8)),
-    // TagLength         : AxiCfg.AddrWidthFull - unsigned'($clog2(NumLines)) -
-    //     unsigned'($clog2(NumBlocks)) - unsigned'($clog2(AxiCfg.DataWidthFull / 32'd8)),
+    TagLength         : CachePartition ? (AxiCfg.AddrWidthFull - unsigned'($clog2(NumBlocks)) - 
+                                          unsigned'($clog2(AxiCfg.DataWidthFull / 32'd8))) : 
+                                          AxiCfg.AddrWidthFull - unsigned'($clog2(NumLines)) - 
+                                          unsigned'($clog2(NumBlocks)) - unsigned'($clog2(AxiCfg.DataWidthFull / 32'd8)),
     IndexLength       : unsigned'($clog2(NumLines)),
     BlockOffsetLength : unsigned'($clog2(NumBlocks)),
     ByteOffsetLength  : unsigned'($clog2(AxiCfg.DataWidthFull / 32'd8)),
@@ -427,56 +429,102 @@ module axi_llc_top #(
     spm_addr_rule.end_addr      = spm_start_addr_i + axi_addr_t'(Cfg.SPMLength);
   end
 
-  // configuration, also has control over bypass logic and flush
-  axi_llc_config #(
-    .Cfg            ( Cfg           ),
-    .AxiCfg         ( AxiCfg        ),
-    .RegWidth       ( RegWidth      ),
-    .MaxThread      ( MaxThread     ),
-    .conf_regs_d_t  ( conf_regs_d_t ),
-    .conf_regs_q_t  ( conf_regs_q_t ),
-    .desc_t         ( llc_desc_t    ),
-    .rule_full_t    ( rule_full_t   ),
-    .set_asso_t     ( way_ind_t     ),
-    .set_t          ( set_ind_t     ),
-    .addr_full_t    ( axi_addr_t    ),
-    .thread_id_t    ( axi_user_t    ),
-    .partition_table_t ( partition_table_t ),
-    .PrintLlcCfg    ( PrintLlcCfg   )
-  ) i_llc_config (
-    .clk_i             ( clk_i                                  ),
-    .rst_ni            ( rst_ni                                 ),
-    // Configuration registers
-    .conf_regs_i,
-    .conf_regs_o,
-    .spm_lock_o        ( spm_lock                               ),
-    .flushed_o         ( flushed                                ),
-    .flushed_set_o     ( flushed_set                            ),
-    .desc_o            ( ax_desc[axi_llc_pkg::ConfigUnit]       ),
-    .desc_valid_o      ( ax_desc_valid[axi_llc_pkg::ConfigUnit] ),
-    .desc_ready_i      ( ax_desc_ready[axi_llc_pkg::ConfigUnit] ),
-    // AXI address input from slave port for controlling bypass
-    .slv_aw_addr_i     ( slv_req_i.aw.addr                      ),
-    .slv_aw_thread_id_i ( slv_req_i.aw.user                     ),
-    .slv_ar_addr_i     ( slv_req_i.ar.addr                      ),
-    .slv_ar_thread_id_i ( slv_req_i.ar.user                     ),
-    .mst_aw_bypass_o   ( slv_aw_bypass                          ),
-    .mst_ar_bypass_o   ( slv_ar_bypass                          ),
-    // flush control signals to prevent new data in ax_cutter loading
-    .llc_isolate_o     ( llc_isolate                            ),
-    .llc_isolated_i    ( llc_isolated                           ),
-    .aw_unit_busy_i    ( aw_unit_busy                           ),
-    .ar_unit_busy_i    ( ar_unit_busy                           ),
-    .flush_desc_recv_i ( flush_recv                             ),
-    // BIST input
-    .bist_res_i        ( bist_res                               ),
-    .bist_valid_i      ( bist_valid                             ),
-    // address rules for bypass selection
-    .axi_cached_rule_i ( cached_addr_rule                       ),
-    .axi_spm_rule_i    ( spm_addr_rule                          ),
-    // partition table
-    .partition_table_o ( partition_table                        )
-  );
+generate
+  if (CachePartition) begin
+    // configuration, also has control over bypass logic and flush
+    axi_llc_config_pat #(
+      .Cfg            ( Cfg           ),
+      .AxiCfg         ( AxiCfg        ),
+      .RegWidth       ( RegWidth      ),
+      .MaxThread      ( MaxThread     ),
+      .conf_regs_d_t  ( conf_regs_d_t ),
+      .conf_regs_q_t  ( conf_regs_q_t ),
+      .desc_t         ( llc_desc_t    ),
+      .rule_full_t    ( rule_full_t   ),
+      .set_asso_t     ( way_ind_t     ),
+      .set_t          ( set_ind_t     ),
+      .addr_full_t    ( axi_addr_t    ),
+      .thread_id_t    ( axi_user_t    ),
+      .partition_table_t ( partition_table_t ),
+      .PrintLlcCfg    ( PrintLlcCfg   )
+    ) i_llc_config_pat (
+      .clk_i             ( clk_i                                  ),
+      .rst_ni            ( rst_ni                                 ),
+      // Configuration registers
+      .conf_regs_i,
+      .conf_regs_o,
+      .spm_lock_o        ( spm_lock                               ),
+      .flushed_o         ( flushed                                ),
+      .flushed_set_o     ( flushed_set                            ),
+      .desc_o            ( ax_desc[axi_llc_pkg::ConfigUnit]       ),
+      .desc_valid_o      ( ax_desc_valid[axi_llc_pkg::ConfigUnit] ),
+      .desc_ready_i      ( ax_desc_ready[axi_llc_pkg::ConfigUnit] ),
+      // AXI address input from slave port for controlling bypass
+      .slv_aw_addr_i     ( slv_req_i.aw.addr                      ),
+      .slv_aw_thread_id_i ( slv_req_i.aw.user                     ),
+      .slv_ar_addr_i     ( slv_req_i.ar.addr                      ),
+      .slv_ar_thread_id_i ( slv_req_i.ar.user                     ),
+      .mst_aw_bypass_o   ( slv_aw_bypass                          ),
+      .mst_ar_bypass_o   ( slv_ar_bypass                          ),
+      // flush control signals to prevent new data in ax_cutter loading
+      .llc_isolate_o     ( llc_isolate                            ),
+      .llc_isolated_i    ( llc_isolated                           ),
+      .aw_unit_busy_i    ( aw_unit_busy                           ),
+      .ar_unit_busy_i    ( ar_unit_busy                           ),
+      .flush_desc_recv_i ( flush_recv                             ),
+      // BIST input
+      .bist_res_i        ( bist_res                               ),
+      .bist_valid_i      ( bist_valid                             ),
+      // address rules for bypass selection
+      .axi_cached_rule_i ( cached_addr_rule                       ),
+      .axi_spm_rule_i    ( spm_addr_rule                          ),
+      // partition table
+      .partition_table_o ( partition_table                        )
+    );
+  end else begin
+    // configuration, also has control over bypass logic and flush
+    axi_llc_config_no_pat #(
+      .Cfg            ( Cfg           ),
+      .AxiCfg         ( AxiCfg        ),
+      .RegWidth       ( RegWidth      ),
+      .conf_regs_d_t  ( conf_regs_d_t ),
+      .conf_regs_q_t  ( conf_regs_q_t ),
+      .desc_t         ( llc_desc_t    ),
+      .rule_full_t    ( rule_full_t   ),
+      .set_asso_t     ( way_ind_t     ),
+      .addr_full_t    ( axi_addr_t    ),
+      .PrintLlcCfg    ( PrintLlcCfg   )
+    ) i_llc_config_no_pat (
+      .clk_i             ( clk_i                                  ),
+      .rst_ni            ( rst_ni                                 ),
+      // Configuration registers
+      .conf_regs_i,
+      .conf_regs_o,
+      .spm_lock_o        ( spm_lock                               ),
+      .flushed_o         ( flushed                                ),
+      .desc_o            ( ax_desc[axi_llc_pkg::ConfigUnit]       ),
+      .desc_valid_o      ( ax_desc_valid[axi_llc_pkg::ConfigUnit] ),
+      .desc_ready_i      ( ax_desc_ready[axi_llc_pkg::ConfigUnit] ),
+      // AXI address input from slave port for controlling bypass
+      .slv_aw_addr_i     ( slv_req_i.aw.addr                      ),
+      .slv_ar_addr_i     ( slv_req_i.ar.addr                      ),
+      .mst_aw_bypass_o   ( slv_aw_bypass                          ),
+      .mst_ar_bypass_o   ( slv_ar_bypass                          ),
+      // flush control signals to prevent new data in ax_cutter loading
+      .llc_isolate_o     ( llc_isolate                            ),
+      .llc_isolated_i    ( llc_isolated                           ),
+      .aw_unit_busy_i    ( aw_unit_busy                           ),
+      .ar_unit_busy_i    ( ar_unit_busy                           ),
+      .flush_desc_recv_i ( flush_recv                             ),
+      // BIST input
+      .bist_res_i        ( bist_res                               ),
+      .bist_valid_i      ( bist_valid                             ),
+      // address rules for bypass selection
+      .axi_cached_rule_i ( cached_addr_rule                       ),
+      .axi_spm_rule_i    ( spm_addr_rule                          )
+    );
+  end
+endgenerate
 
   // Isolation module before demux to easy flushing,
   // AXI requests get stalled while flush is active
@@ -532,6 +580,7 @@ module axi_llc_top #(
   axi_llc_chan_splitter #(
     .Cfg    ( Cfg           ),
     .AxiCfg ( AxiCfg        ),
+    .CachePartition ( CachePartition ),
     .MaxThread ( MaxThread  ),
     .chan_t ( slv_aw_chan_t ),
     .Write  ( 1'b1          ),
@@ -558,6 +607,7 @@ module axi_llc_top #(
   axi_llc_chan_splitter #(
     .Cfg    ( Cfg           ),
     .AxiCfg ( AxiCfg        ),
+    .CachePartition ( CachePartition ),
     .MaxThread ( MaxThread  ),
     .chan_t ( slv_ar_chan_t ),
     .Write  ( 1'b0          ),
@@ -615,6 +665,7 @@ module axi_llc_top #(
   axi_llc_hit_miss #(
     .Cfg       ( Cfg        ),
     .AxiCfg    ( AxiCfg     ),
+    .CachePartition ( CachePartition ),
     .desc_t    ( llc_desc_t ),
     .lock_t    ( lock_t     ),
     .cnt_t     ( cnt_t      ),
@@ -651,6 +702,7 @@ module axi_llc_top #(
   axi_llc_evict_unit #(
     .Cfg       ( Cfg           ),
     .AxiCfg    ( AxiCfg        ),
+    .CachePartition ( CachePartition ),
     .desc_t    ( llc_desc_t    ),
     .way_inp_t ( way_inp_t     ),
     .way_oup_t ( way_oup_t     ),
@@ -689,6 +741,7 @@ module axi_llc_top #(
   axi_llc_refill_unit #(
     .Cfg       ( Cfg           ),
     .AxiCfg    ( AxiCfg        ),
+    .CachePartition ( CachePartition ),
     .desc_t    ( llc_desc_t    ),
     .way_inp_t ( way_inp_t     ),
     .ar_chan_t ( slv_ar_chan_t ),
@@ -741,6 +794,7 @@ module axi_llc_top #(
   axi_llc_write_unit #(
     .Cfg       ( Cfg          ),
     .AxiCfg    ( AxiCfg       ),
+    .CachePartition ( CachePartition ),
     .desc_t    ( llc_desc_t   ),
     .way_inp_t ( way_inp_t    ),
     .lock_t    ( lock_t       ),
@@ -771,6 +825,7 @@ module axi_llc_top #(
   axi_llc_read_unit #(
     .Cfg       ( Cfg          ),
     .AxiCfg    ( AxiCfg       ),
+    .CachePartition ( CachePartition ),
     .desc_t    ( llc_desc_t   ),
     .way_inp_t ( way_inp_t    ),
     .way_oup_t ( way_oup_t    ),
@@ -1052,8 +1107,8 @@ module axi_llc_top #(
 
     cfg_num_lines : assert(Cfg.NumLines > 0 && $onehot(Cfg.NumLines)) else
       $fatal(1, "Parameter 'Cfg.NumLines' must be the integer power of 2 to ensure correct function for set based partition!");
-    max_thread    : assert(MaxThread ==0 || $onehot(MaxThread)) else
-      $fatal(1, "Parameter 'MaxThread' must be zero or the integer power of 2 to ensure correct function for set based partition!");
+    max_thread    : assert((MaxThread != 1) && (MaxThread <= Cfg.NumLines)) else
+      $fatal(1, "Parameter 'MaxThread' must not be 1 or larger than number of cache lines to ensure correct function for set based partition!");
 
   end
 `endif
