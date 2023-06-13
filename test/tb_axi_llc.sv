@@ -489,7 +489,7 @@ module tb_axi_llc #(
     $info("Run 10 random RW tests for random PatIDs");
     $info("Random read and write 0");
     axi_master.run(TbNumReads/10, TbNumWrites/10);
-    flush_all(reg_conf_driver);
+    flush_all_set(reg_conf_driver);
     // flush_all_set(reg_conf_driver);
     compare_mems(cpu_scoreboard, mem_scoreboard);
     clear_spm_cpu(cpu_scoreboard);
@@ -562,7 +562,7 @@ module tb_axi_llc #(
     $info("Random read and write 9");
     axi_master.run(TbNumReads/10, TbNumWrites/10);
     // flush_all(reg_conf_driver);
-    flush_all_set(reg_conf_driver);
+    flush_all_set_2(reg_conf_driver);
     compare_mems(cpu_scoreboard, mem_scoreboard);
     clear_spm_cpu(cpu_scoreboard);
 
@@ -578,7 +578,7 @@ module tb_axi_llc #(
     reg_conf_driver.send_write(cfg_addr, cfg_data, cfg_wstrb, cfg_error);
     axi_master.run(TbNumReads, TbNumWrites);
     // flush_all(reg_conf_driver);
-    flush_all_set(reg_conf_driver);
+    flush_all_set_2(reg_conf_driver);
     compare_mems(cpu_scoreboard, mem_scoreboard);
     clear_spm_cpu(cpu_scoreboard);
 
@@ -713,183 +713,8 @@ module tb_axi_llc #(
     automatic logic[31:0] rdata_low;
     automatic logic[31:0] rdata_high;
     $info("Flushing the cache!");
+    
     // flush section 0
-    data = 0;
-    reg_conf_driver.send_write(CfgFlushThreadLow, data[31:0], 4'hF, cfg_error);
-    reg_conf_driver.send_write(CfgFlushThreadHigh, data[63:32], 4'hF, cfg_error);
-    data  = 64'd1;
-    reg_conf_driver.send_write(CommitCfg, data[31:0], 4'hF, cfg_error);
-
-    data  = 64'd0;
-    // poll on the flush config until it is cleared
-    while (data!={64{1'b1}}) begin
-      reg_conf_driver.send_read(CfgFlushThreadLow, rdata_low, cfg_error);
-      reg_conf_driver.send_read(CfgFlushThreadHigh, rdata_high, cfg_error);
-      data = {rdata_high, rdata_low};
-      repeat (5000) @(posedge clk);
-    end
-
-    // flush section 1
-    data = 192;
-    reg_conf_driver.send_write(CfgFlushThreadLow, data[31:0], 4'hF, cfg_error);
-    reg_conf_driver.send_write(CfgFlushThreadHigh, data[63:32], 4'hF, cfg_error);
-    data  = 64'd1;
-    reg_conf_driver.send_write(CommitCfg, data[31:0], 4'hF, cfg_error);
-
-    data  = 64'd0;
-    // poll on the flush config until it is cleared
-    while (data!={64{1'b1}}) begin
-      reg_conf_driver.send_read(CfgFlushThreadLow, rdata_low, cfg_error);
-      reg_conf_driver.send_read(CfgFlushThreadHigh, rdata_high, cfg_error);
-      data = {rdata_high, rdata_low};
-      repeat (5000) @(posedge clk);
-    end
-
-    // flush section 2
-    data = 193;
-    reg_conf_driver.send_write(CfgFlushThreadLow, data[31:0], 4'hF, cfg_error);
-    reg_conf_driver.send_write(CfgFlushThreadHigh, data[63:32], 4'hF, cfg_error);
-    data  = 64'd1;
-    reg_conf_driver.send_write(CommitCfg, data[31:0], 4'hF, cfg_error);
-
-    data  = 64'd0;
-    // poll on the flush config until it is cleared
-    while (data!={64{1'b1}}) begin
-      reg_conf_driver.send_read(CfgFlushThreadLow, rdata_low, cfg_error);
-      reg_conf_driver.send_read(CfgFlushThreadHigh, rdata_high, cfg_error);
-      data = {rdata_high, rdata_low};
-      repeat (5000) @(posedge clk);
-    end
-
-    // flush section 3
-    data = 194;
-    reg_conf_driver.send_write(CfgFlushThreadLow, data[31:0], 4'hF, cfg_error);
-    reg_conf_driver.send_write(CfgFlushThreadHigh, data[63:32], 4'hF, cfg_error);
-    data  = 64'd1;
-    reg_conf_driver.send_write(CommitCfg, data[31:0], 4'hF, cfg_error);
-
-    data  = 64'd0;
-    // poll on the flush config until it is cleared
-    while (data!={64{1'b1}}) begin
-      reg_conf_driver.send_read(CfgFlushThreadLow, rdata_low, cfg_error);
-      reg_conf_driver.send_read(CfgFlushThreadHigh, rdata_high, cfg_error);
-      data = {rdata_high, rdata_low};
-      repeat (5000) @(posedge clk);
-    end
-
-    // flush section 4
-    data = 195;
-    reg_conf_driver.send_write(CfgFlushThreadLow, data[31:0], 4'hF, cfg_error);
-    reg_conf_driver.send_write(CfgFlushThreadHigh, data[63:32], 4'hF, cfg_error);
-    data  = 64'd1;
-    reg_conf_driver.send_write(CommitCfg, data[31:0], 4'hF, cfg_error);
-
-    data  = 64'd0;
-    // poll on the flush config until it is cleared
-    while (data!={64{1'b1}}) begin
-      reg_conf_driver.send_read(CfgFlushThreadLow, rdata_low, cfg_error);
-      reg_conf_driver.send_read(CfgFlushThreadHigh, rdata_high, cfg_error);
-      data = {rdata_high, rdata_low};
-      repeat (5000) @(posedge clk);
-    end
-
-    // flush section 5
-    data = 196;
-    reg_conf_driver.send_write(CfgFlushThreadLow, data[31:0], 4'hF, cfg_error);
-    reg_conf_driver.send_write(CfgFlushThreadHigh, data[63:32], 4'hF, cfg_error);
-    data  = 64'd1;
-    reg_conf_driver.send_write(CommitCfg, data[31:0], 4'hF, cfg_error);
-
-    data  = 64'd0;
-    // poll on the flush config until it is cleared
-    while (data!={64{1'b1}}) begin
-      reg_conf_driver.send_read(CfgFlushThreadLow, rdata_low, cfg_error);
-      reg_conf_driver.send_read(CfgFlushThreadHigh, rdata_high, cfg_error);
-      data = {rdata_high, rdata_low};
-      repeat (5000) @(posedge clk);
-    end
-
-    // flush section 6
-    data = 197;
-    reg_conf_driver.send_write(CfgFlushThreadLow, data[31:0], 4'hF, cfg_error);
-    reg_conf_driver.send_write(CfgFlushThreadHigh, data[63:32], 4'hF, cfg_error);
-    data  = 64'd1;
-    reg_conf_driver.send_write(CommitCfg, data[31:0], 4'hF, cfg_error);
-
-    data  = 64'd0;
-    // poll on the flush config until it is cleared
-    while (data!={64{1'b1}}) begin
-      reg_conf_driver.send_read(CfgFlushThreadLow, rdata_low, cfg_error);
-      reg_conf_driver.send_read(CfgFlushThreadHigh, rdata_high, cfg_error);
-      data = {rdata_high, rdata_low};
-      repeat (5000) @(posedge clk);
-    end
-
-    // flush section 7
-    data = 198;
-    reg_conf_driver.send_write(CfgFlushThreadLow, data[31:0], 4'hF, cfg_error);
-    reg_conf_driver.send_write(CfgFlushThreadHigh, data[63:32], 4'hF, cfg_error);
-    data  = 64'd1;
-    reg_conf_driver.send_write(CommitCfg, data[31:0], 4'hF, cfg_error);
-
-    data  = 64'd0;
-    // poll on the flush config until it is cleared
-    while (data!={64{1'b1}}) begin
-      reg_conf_driver.send_read(CfgFlushThreadLow, rdata_low, cfg_error);
-      reg_conf_driver.send_read(CfgFlushThreadHigh, rdata_high, cfg_error);
-      data = {rdata_high, rdata_low};
-      repeat (5000) @(posedge clk);
-    end
-
-    // flush section 8
-    data = 199;
-    reg_conf_driver.send_write(CfgFlushThreadLow, data[31:0], 4'hF, cfg_error);
-    reg_conf_driver.send_write(CfgFlushThreadHigh, data[63:32], 4'hF, cfg_error);
-    data  = 64'd1;
-    reg_conf_driver.send_write(CommitCfg, data[31:0], 4'hF, cfg_error);
-
-    data  = 64'd0;
-    // poll on the flush config until it is cleared
-    while (data!={64{1'b1}}) begin
-      reg_conf_driver.send_read(CfgFlushThreadLow, rdata_low, cfg_error);
-      reg_conf_driver.send_read(CfgFlushThreadHigh, rdata_high, cfg_error);
-      data = {rdata_high, rdata_low};
-      repeat (5000) @(posedge clk);
-    end
-
-    // flush section 9
-    data = 200;
-    reg_conf_driver.send_write(CfgFlushThreadLow, data[31:0], 4'hF, cfg_error);
-    reg_conf_driver.send_write(CfgFlushThreadHigh, data[63:32], 4'hF, cfg_error);
-    data  = 64'd1;
-    reg_conf_driver.send_write(CommitCfg, data[31:0], 4'hF, cfg_error);
-
-    data  = 64'd0;
-    // poll on the flush config until it is cleared
-    while (data!={64{1'b1}}) begin
-      reg_conf_driver.send_read(CfgFlushThreadLow, rdata_low, cfg_error);
-      reg_conf_driver.send_read(CfgFlushThreadHigh, rdata_high, cfg_error);
-      data = {rdata_high, rdata_low};
-      repeat (5000) @(posedge clk);
-    end
-
-    // flush section 10
-    data = 201;
-    reg_conf_driver.send_write(CfgFlushThreadLow, data[31:0], 4'hF, cfg_error);
-    reg_conf_driver.send_write(CfgFlushThreadHigh, data[63:32], 4'hF, cfg_error);
-    data  = 64'd1;
-    reg_conf_driver.send_write(CommitCfg, data[31:0], 4'hF, cfg_error);
-
-    data  = 64'd0;
-    // poll on the flush config until it is cleared
-    while (data!={64{1'b1}}) begin
-      reg_conf_driver.send_read(CfgFlushThreadLow, rdata_low, cfg_error);
-      reg_conf_driver.send_read(CfgFlushThreadHigh, rdata_high, cfg_error);
-      data = {rdata_high, rdata_low};
-      repeat (5000) @(posedge clk);
-    end
-
-    // flush section 11
     data = 202;
     reg_conf_driver.send_write(CfgFlushThreadLow, data[31:0], 4'hF, cfg_error);
     reg_conf_driver.send_write(CfgFlushThreadHigh, data[63:32], 4'hF, cfg_error);
@@ -905,101 +730,21 @@ module tb_axi_llc #(
       repeat (5000) @(posedge clk);
     end
 
-    // flush section 12
-    data = 203;
-    reg_conf_driver.send_write(CfgFlushThreadLow, data[31:0], 4'hF, cfg_error);
-    reg_conf_driver.send_write(CfgFlushThreadHigh, data[63:32], 4'hF, cfg_error);
-    data  = 64'd1;
-    reg_conf_driver.send_write(CommitCfg, data[31:0], 4'hF, cfg_error);
+    // // flush section 2
+    // data = TbMaxThread;
+    // reg_conf_driver.send_write(CfgFlushThreadLow, data[31:0], 4'hF, cfg_error);
+    // reg_conf_driver.send_write(CfgFlushThreadHigh, data[63:32], 4'hF, cfg_error);
+    // data  = 64'd1;
+    // reg_conf_driver.send_write(CommitCfg, data[31:0], 4'hF, cfg_error);
 
-    data  = 64'd0;
-    // poll on the flush config until it is cleared
-    while (data!={64{1'b1}}) begin
-      reg_conf_driver.send_read(CfgFlushThreadLow, rdata_low, cfg_error);
-      reg_conf_driver.send_read(CfgFlushThreadHigh, rdata_high, cfg_error);
-      data = {rdata_high, rdata_low};
-      repeat (5000) @(posedge clk);
-    end
-
-    // flush section 13
-    data = 204;
-    reg_conf_driver.send_write(CfgFlushThreadLow, data[31:0], 4'hF, cfg_error);
-    reg_conf_driver.send_write(CfgFlushThreadHigh, data[63:32], 4'hF, cfg_error);
-    data  = 64'd1;
-    reg_conf_driver.send_write(CommitCfg, data[31:0], 4'hF, cfg_error);
-
-    data  = 64'd0;
-    // poll on the flush config until it is cleared
-    while (data!={64{1'b1}}) begin
-      reg_conf_driver.send_read(CfgFlushThreadLow, rdata_low, cfg_error);
-      reg_conf_driver.send_read(CfgFlushThreadHigh, rdata_high, cfg_error);
-      data = {rdata_high, rdata_low};
-      repeat (5000) @(posedge clk);
-    end
-
-    // flush section 14
-    data = 205;
-    reg_conf_driver.send_write(CfgFlushThreadLow, data[31:0], 4'hF, cfg_error);
-    reg_conf_driver.send_write(CfgFlushThreadHigh, data[63:32], 4'hF, cfg_error);
-    data  = 64'd1;
-    reg_conf_driver.send_write(CommitCfg, data[31:0], 4'hF, cfg_error);
-
-    data  = 64'd0;
-    // poll on the flush config until it is cleared
-    while (data!={64{1'b1}}) begin
-      reg_conf_driver.send_read(CfgFlushThreadLow, rdata_low, cfg_error);
-      reg_conf_driver.send_read(CfgFlushThreadHigh, rdata_high, cfg_error);
-      data = {rdata_high, rdata_low};
-      repeat (5000) @(posedge clk);
-    end
-
-    // flush section 15
-    data = 206;
-    reg_conf_driver.send_write(CfgFlushThreadLow, data[31:0], 4'hF, cfg_error);
-    reg_conf_driver.send_write(CfgFlushThreadHigh, data[63:32], 4'hF, cfg_error);
-    data  = 64'd1;
-    reg_conf_driver.send_write(CommitCfg, data[31:0], 4'hF, cfg_error);
-
-    data  = 64'd0;
-    // poll on the flush config until it is cleared
-    while (data!={64{1'b1}}) begin
-      reg_conf_driver.send_read(CfgFlushThreadLow, rdata_low, cfg_error);
-      reg_conf_driver.send_read(CfgFlushThreadHigh, rdata_high, cfg_error);
-      data = {rdata_high, rdata_low};
-      repeat (5000) @(posedge clk);
-    end
-
-    // flush section 16
-    data = 207;
-    reg_conf_driver.send_write(CfgFlushThreadLow, data[31:0], 4'hF, cfg_error);
-    reg_conf_driver.send_write(CfgFlushThreadHigh, data[63:32], 4'hF, cfg_error);
-    data  = 64'd1;
-    reg_conf_driver.send_write(CommitCfg, data[31:0], 4'hF, cfg_error);
-
-    data  = 64'd0;
-    // poll on the flush config until it is cleared
-    while (data!={64{1'b1}}) begin
-      reg_conf_driver.send_read(CfgFlushThreadLow, rdata_low, cfg_error);
-      reg_conf_driver.send_read(CfgFlushThreadHigh, rdata_high, cfg_error);
-      data = {rdata_high, rdata_low};
-      repeat (5000) @(posedge clk);
-    end
-
-    // flush section 17
-    data = TbMaxThread;
-    reg_conf_driver.send_write(CfgFlushThreadLow, data[31:0], 4'hF, cfg_error);
-    reg_conf_driver.send_write(CfgFlushThreadHigh, data[63:32], 4'hF, cfg_error);
-    data  = 64'd1;
-    reg_conf_driver.send_write(CommitCfg, data[31:0], 4'hF, cfg_error);
-
-    data  = 64'd0;
-    // poll on the flush config until it is cleared
-    while (data!={64{1'b1}}) begin
-      reg_conf_driver.send_read(CfgFlushThreadLow, rdata_low, cfg_error);
-      reg_conf_driver.send_read(CfgFlushThreadHigh, rdata_high, cfg_error);
-      data = {rdata_high, rdata_low};
-      repeat (5000) @(posedge clk);
-    end
+    // data  = 64'd0;
+    // // poll on the flush config until it is cleared
+    // while (data!={64{1'b1}}) begin
+    //   reg_conf_driver.send_read(CfgFlushThreadLow, rdata_low, cfg_error);
+    //   reg_conf_driver.send_read(CfgFlushThreadHigh, rdata_high, cfg_error);
+    //   data = {rdata_high, rdata_low};
+    //   repeat (5000) @(posedge clk);
+    // end
 
     $info("Finished flushing the cache set!");
   endtask : flush_all_set

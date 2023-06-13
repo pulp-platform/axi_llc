@@ -205,6 +205,8 @@ module axi_llc_config #(
   /// the address field of the AXI4+ATOP slave and master port.
   parameter type addr_full_t = logic,
   parameter type thread_id_t = logic,
+  /// Whether to print config of LLC
+  parameter bit  PrintLlcCfg = 0,
   /// Type for partition table
   parameter type partition_table_t = logic
 ) (
@@ -981,42 +983,44 @@ module axi_llc_config #(
                              Cfg.SetAssociativity, RegWidth));
   end
 
-  initial begin : proc_llc_hello
-    @(posedge rst_ni);
-    $display("###############################################################################");
-    $display("###############################################################################");
-    $display("AXI LLC module instantiated:");
-    $display("%m");
-    $display("###############################################################################");
-    $display("Cache Size parameters:");
-    $display("Max Cache/SPM size:                (decimal): %d KiB", Cfg.SPMLength/1024);
-    $display("SetAssociativity (Number of Ways)  (decimal): %d", Cfg.SetAssociativity  );
-    $display("Number of Cache Lines per Set      (decimal): %d", Cfg.NumLines          );
-    $display("Number of Blocks per Cache Line    (decimal): %d", Cfg.NumBlocks         );
-    $display("Block Size in Bits                 (decimal): %d", Cfg.BlockSize         );
-    $display("Tag Length of AXI Address          (decimal): %d", Cfg.TagLength         );
-    $display("Index Length of AXI Address        (decimal): %d", Cfg.IndexLength       );
-    $display("Block Offset Length of AXI Address (decimal): %d", Cfg.BlockOffsetLength );
-    $display("Byte Offset Length of AXI Address  (decimal): %d", Cfg.ByteOffsetLength  );
-    $display("###############################################################################");
-    $display("AXI4 Port parameters:");
-    $display("Slave port (CPU):");
-    $display("ID   width (decimal): %d", AxiCfg.SlvPortIdWidth );
-    $display("ADDR width (decimal): %d", AxiCfg.AddrWidthFull  );
-    $display("DATA width (decimal): %d", AxiCfg.DataWidthFull  );
-    $display("STRB width (decimal): %d", AxiCfg.DataWidthFull/8);
-    $display("Master port (memory):");
-    $display("ID   width (decimal): %d", AxiCfg.SlvPortIdWidth + 1);
-    $display("ADDR width (decimal): %d", AxiCfg.AddrWidthFull     );
-    $display("DATA width (decimal): %d", AxiCfg.DataWidthFull     );
-    $display("STRB width (decimal): %d", AxiCfg.DataWidthFull/8   );
-    $display("Address mapping information:");
-    $display("Cached region Start address (hex): %h", axi_cached_rule_i.start_addr );
-    $display("Cached region End   address (hex): %h", axi_cached_rule_i.end_addr   );
-    $display("SPM    region Start address (hex): %h", axi_spm_rule_i.start_addr    );
-    $display("SPM    region End   address (hex): %h", axi_spm_rule_i.end_addr      );
-    $display("###############################################################################");
-    $display("###############################################################################");
+  if (PrintLlcCfg) begin : gen_llc_hello
+    initial begin : proc_llc_hello
+      @(posedge rst_ni);
+      $display("###############################################################################");
+      $display("###############################################################################");
+      $display("AXI LLC module instantiated:");
+      $display("%m");
+      $display("###############################################################################");
+      $display("Cache Size parameters:");
+      $display("Max Cache/SPM size:                (decimal): %d KiB", Cfg.SPMLength/1024);
+      $display("SetAssociativity (Number of Ways)  (decimal): %d", Cfg.SetAssociativity  );
+      $display("Number of Cache Lines per Set      (decimal): %d", Cfg.NumLines          );
+      $display("Number of Blocks per Cache Line    (decimal): %d", Cfg.NumBlocks         );
+      $display("Block Size in Bits                 (decimal): %d", Cfg.BlockSize         );
+      $display("Tag Length of AXI Address          (decimal): %d", Cfg.TagLength         );
+      $display("Index Length of AXI Address        (decimal): %d", Cfg.IndexLength       );
+      $display("Block Offset Length of AXI Address (decimal): %d", Cfg.BlockOffsetLength );
+      $display("Byte Offset Length of AXI Address  (decimal): %d", Cfg.ByteOffsetLength  );
+      $display("###############################################################################");
+      $display("AXI4 Port parameters:");
+      $display("Slave port (CPU):");
+      $display("ID   width (decimal): %d", AxiCfg.SlvPortIdWidth );
+      $display("ADDR width (decimal): %d", AxiCfg.AddrWidthFull  );
+      $display("DATA width (decimal): %d", AxiCfg.DataWidthFull  );
+      $display("STRB width (decimal): %d", AxiCfg.DataWidthFull/8);
+      $display("Master port (memory):");
+      $display("ID   width (decimal): %d", AxiCfg.SlvPortIdWidth + 1);
+      $display("ADDR width (decimal): %d", AxiCfg.AddrWidthFull     );
+      $display("DATA width (decimal): %d", AxiCfg.DataWidthFull     );
+      $display("STRB width (decimal): %d", AxiCfg.DataWidthFull/8   );
+      $display("Address mapping information:");
+      $display("Cached region Start address (hex): %h", axi_cached_rule_i.start_addr );
+      $display("Cached region End   address (hex): %h", axi_cached_rule_i.end_addr   );
+      $display("SPM    region Start address (hex): %h", axi_spm_rule_i.start_addr    );
+      $display("SPM    region End   address (hex): %h", axi_spm_rule_i.end_addr      );
+      $display("###############################################################################");
+      $display("###############################################################################");
+    end
   end
 `endif
 // pragma translate_on

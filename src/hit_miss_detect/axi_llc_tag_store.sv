@@ -276,66 +276,47 @@ module axi_llc_tag_store #(
     tag_data_t ram_rdata;    // read data from the sram
     tag_data_t ram_compared; // comparison result of tags
 
-    // tc_sram #(
-    //   .NumWords    ( Cfg.NumLines                 ),
-    //   .DataWidth   ( TagDataLen                   ),
-    //   .ByteWidth   ( TagDataLen                   ),
-    //   .NumPorts    ( 32'd1                        ),
-    //   .Latency     ( axi_llc_pkg::TagMacroLatency ),
-    //   .SimInit     ( "none"                       ),
-    //   .PrintSimCfg ( 1'b1                         )
-    // ) i_tag_store (
-    //   .clk_i,
-    //   .rst_ni,
-    //   .req_i   ( ram_req[i] ),
-    //   .we_i    ( ram_we[i]  ),
-    //   .addr_i  ( ram_index  ),
-    //   .wdata_i ( ram_wdata  ),
-    //   .be_i    ( ram_we[i]  ),
-    //   .rdata_o ( ram_rdata  )
-    // );
-
-    // // For functional test
-    // axi_llc_sram_tag #(
-    //   .NumWords    ( Cfg.NumLines                 ),
-    //   .DataWidth   ( SRAMDataWidth                ),
-    //   .ByteWidth   ( SRAMDataWidth                ),
-    //   .NumPorts    ( 32'd1                        ),
-    //   .Latency     ( axi_llc_pkg::TagMacroLatency ),
-    //   .SimInit     ( "none"                       ),
-    //   .PrintSimCfg ( 1'b1                         )
-    // ) i_tag_store (
-    //   .clk_i,
-    //   .rst_ni,
-    //   .req_i   ( ram_req[i] ),
-    //   .we_i    ( ram_we[i]  ),
-    //   .addr_i  ( ram_index  ),
-    //   .wdata_i ( sram_wdata ),
-    //   .be_i    ( ram_we[i]  ),
-    //   .rdata_o ( sram_rdata )
-    // );
-
-    // For synthesis
-    axi_llc_sram_tag_fpga #(
+    // For functional test
+    axi_llc_sram_tag #(
       .NumWords    ( Cfg.NumLines                 ),
       .DataWidth   ( SRAMDataWidth                ),
       .ByteWidth   ( SRAMDataWidth                ),
       .NumPorts    ( 32'd1                        ),
       .Latency     ( axi_llc_pkg::TagMacroLatency ),
       .SimInit     ( "none"                       ),
-      .PrintSimCfg ( 1'b1                         ),
-      .NumLines    ( Cfg.NumLines                 ),
-      .PrintSimCfg ( PrintSramCfg                 )
+      .PrintSimCfg ( 1'b1                         )
     ) i_tag_store (
       .clk_i,
       .rst_ni,
       .req_i   ( ram_req[i] ),
       .we_i    ( ram_we[i]  ),
       .addr_i  ( ram_index  ),
-      .wdata_i ( sram_wdata  ),
+      .wdata_i ( sram_wdata ),
       .be_i    ( ram_we[i]  ),
-      .rdata_o ( sram_rdata  )
+      .rdata_o ( sram_rdata )
     );
+
+    // // For synthesis
+    // axi_llc_sram_tag_fpga #(
+    //   .NumWords    ( Cfg.NumLines                 ),
+    //   .DataWidth   ( SRAMDataWidth                ),
+    //   .ByteWidth   ( SRAMDataWidth                ),
+    //   .NumPorts    ( 32'd1                        ),
+    //   .Latency     ( axi_llc_pkg::TagMacroLatency ),
+    //   .SimInit     ( "none"                       ),
+    //   .PrintSimCfg ( 1'b1                         ),
+    //   .NumLines    ( Cfg.NumLines                 ),
+    //   .PrintSimCfg ( PrintSramCfg                 )
+    // ) i_tag_store (
+    //   .clk_i,
+    //   .rst_ni,
+    //   .req_i   ( ram_req[i] ),
+    //   .we_i    ( ram_we[i]  ),
+    //   .addr_i  ( ram_index  ),
+    //   .wdata_i ( sram_wdata  ),
+    //   .be_i    ( ram_we[i]  ),
+    //   .rdata_o ( sram_rdata  )
+    // );
 
     assign ram_rdata = sram_rdata[TagDataLen-1:0];
 
