@@ -124,7 +124,7 @@ module axi_llc_data_way #(
     .NumPorts   ( 32'd1                        ),
     .Latency    ( 32'd1                        ),
     .SimInit    ( "none"                       ),
-    .PrintSimCfg( 1'b1                         )
+    .PrintSimCfg( PrintSramCfg                 )
   ) i_data_sram (
     .clk_i,
     .rst_ni,

@@ -605,6 +605,7 @@ module axi_llc_config #(
   assign conf_regs_o.bist_status_en = 1'b1;
 
   logic [flushed_set_length-1:0] conf_regs_o_flushed_set;
+  logic [RegWidth-1:0] flushed_set0, flushed_set1, flushed_set2, flushed_set3;
 
   always_comb begin : proc_axi_llc_cfg
     // Default assignments
@@ -809,10 +810,14 @@ module axi_llc_config #(
             // there are still cache lines to flush
             flush_state_d = FsmInitFlush;
             conf_regs_o_flushed_set = conf_regs_i_flushed_set | flush_set_ind;
-            conf_regs_o.flushed_set0 = conf_regs_o_flushed_set[1*RegWidth-1:0*RegWidth];
-            conf_regs_o.flushed_set1 = conf_regs_o_flushed_set[2*RegWidth-1:1*RegWidth];
-            conf_regs_o.flushed_set2 = conf_regs_o_flushed_set[3*RegWidth-1:2*RegWidth];
-            conf_regs_o.flushed_set3 = conf_regs_o_flushed_set[4*RegWidth-1:3*RegWidth];
+            flushed_set0 = (conf_regs_i_flushed_set | flush_set_ind) >> (0*RegWidth);
+            flushed_set1 = (conf_regs_i_flushed_set | flush_set_ind) >> (1*RegWidth);
+            flushed_set2 = (conf_regs_i_flushed_set | flush_set_ind) >> (2*RegWidth);
+            flushed_set3 = (conf_regs_i_flushed_set | flush_set_ind) >> (3*RegWidth);
+            conf_regs_o.flushed_set0 = flushed_set0;
+            conf_regs_o.flushed_set1 = flushed_set1;
+            conf_regs_o.flushed_set2 = flushed_set2;
+            conf_regs_o.flushed_set3 = flushed_set3;
             conf_regs_o.flushed_set0_en = 1'b1;
             conf_regs_o.flushed_set1_en = 1'b1;
             conf_regs_o.flushed_set2_en = 1'b1;

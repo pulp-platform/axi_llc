@@ -148,7 +148,7 @@ module axi_llc_top #(
   /// Note on restrictions:
   /// The same restriction as of parameter `NumLines` applies.
   parameter int unsigned NumBlocks = 32'd0,
-  /// Max. number of threads supported for partitioning:
+  /// Max. number of partitions supported for partitioning:
   /// to currently make it work should set as a integer multiplcation of 8
   /// e.g. MaxThread should be 8 even though we have only 6 threads running 
   /// (this is for the sake of the compliance of partition tabe size).

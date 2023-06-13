@@ -284,7 +284,7 @@ module axi_llc_tag_store #(
       .NumPorts    ( 32'd1                        ),
       .Latency     ( axi_llc_pkg::TagMacroLatency ),
       .SimInit     ( "none"                       ),
-      .PrintSimCfg ( 1'b1                         )
+      .PrintSimCfg ( PrintSramCfg                 )
     ) i_tag_store (
       .clk_i,
       .rst_ni,
