@@ -49,6 +49,119 @@
         {bits: "31:0", name: "high", desc: "upper 32 bit"}
       ]
     },
+    { name: "COMMIT_CFG",
+      desc: "Commit the configuration",
+      swaccess: "rw1s",
+      hwaccess: "hrw",
+      fields: [
+        {bits: "0", name: "commit", desc: "commit configuration"}
+      ]
+    },
+    {skipto: "0x18"}
+    { name: "FLUSHED_LOW",
+      desc: "Flushed Flag (lower 32 bit)",
+      swaccess: "ro",
+      hwaccess: "hrw",
+      fields: [
+        {bits: "31:0", name: "low", desc: "lower 32 bit"}
+      ]
+    },
+    { name: "FLUSHED_HIGH",
+      desc: "Flushed Flag (upper 32 bit)",
+      swaccess: "ro",
+      hwaccess: "hrw",
+      fields: [
+        {bits: "31:0", name: "high", desc: "upper 32 bit"}
+      ]
+    },
+    { name: "BIST_OUT_LOW",
+      desc: "Tag Storage BIST Result (lower 32 bit)",
+      swaccess: "ro",
+      hwaccess: "hwo",
+      fields: [
+        {bits: "31:0", name: "low", desc: "lower 32 bit"}
+      ]
+    },
+    { name: "BIST_OUT_HIGH",
+      desc: "Tag Storage BIST Result (upper 32 bit)",
+      swaccess: "ro",
+      hwaccess: "hwo",
+      fields: [
+        {bits: "31:0", name: "high", desc: "upper 32 bit"}
+      ]
+    },
+    { name: "SET_ASSO_LOW",
+      desc: "Instantiated Set-Associativity (lower 32 bit)",
+      swaccess: "ro",
+      hwaccess: "hwo",
+      fields: [
+        {bits: "31:0", name: "low", desc: "lower 32 bit"}
+      ]
+    },
+    { name: "SET_ASSO_HIGH",
+      desc: "Instantiated Set-Associativity (upper 32 bit)",
+      swaccess: "ro",
+      hwaccess: "hwo",
+      fields: [
+        {bits: "31:0", name: "high", desc: "upper 32 bit"}
+      ]
+    },
+    { name: "NUM_LINES_LOW",
+      desc: "Instantiated Number of Cache-Lines (lower 32 bit)",
+      swaccess: "ro",
+      hwaccess: "hwo",
+      fields: [
+        {bits: "31:0", name: "low", desc: "lower 32 bit"}
+      ]
+    },
+    { name: "NUM_LINES_HIGH",
+      desc: "Instantiated Number of Cache-Lines (upper 32 bit)",
+      swaccess: "ro",
+      hwaccess: "hwo",
+      fields: [
+        {bits: "31:0", name: "high", desc: "upper 32 bit"}
+      ]
+    },
+    { name: "NUM_BLOCKS_LOW",
+      desc: "Instantiated Number of Blocks (lower 32 bit)",
+      swaccess: "ro",
+      hwaccess: "hwo",
+      fields: [
+        {bits: "31:0", name: "low", desc: "lower 32 bit"}
+      ]
+    },
+    { name: "NUM_BLOCKS_HIGH",
+      desc: "Instantiated Number of Blocks (upper 32 bit)",
+      swaccess: "ro",
+      hwaccess: "hwo",
+      fields: [
+        {bits: "31:0", name: "high", desc: "upper 32 bit"}
+      ]
+    },
+    { name: "VERSION_LOW",
+      desc: "AXI LLC Version (lower 32 bit)",
+      swaccess: "ro",
+      hwaccess: "hwo",
+      fields: [
+        {bits: "31:0", name: "low", desc: "lower 32 bit"}
+      ]
+    },
+    { name: "VERSION_HIGH",
+      desc: "AXI LLC Version (upper 32 bit)",
+      swaccess: "ro",
+      hwaccess: "hwo",
+      fields: [
+        {bits: "31:0", name: "high", desc: "upper 32 bit"}
+      ]
+    },
+    { name: "BIST_STATUS",
+      desc: "Status register of the BIST",
+      swaccess: "ro",
+      hwaccess: "hwo",
+      fields: [
+        {bits: "0:0", name: "done", desc: "BIST successfully completed"}
+      ]
+    },
     { name: "CFG_FLUSH_THREAD_LOW",
       desc: "Index-based Thread Flush Configuration [31:0] (lower 32 bit)",
       swaccess: "rw",
@@ -577,15 +690,6 @@
         {bits: "31:0", name: "high", desc: "upper 32 bit"}
       ]
     },
-    { name: "COMMIT_CFG",
-      desc: "Commit the configuration",
-      swaccess: "rw1s",
-      hwaccess: "hrw",
-      fields: [
-        {bits: "0", name: "commit", desc: "commit configuration"}
-      ]
-    },
-    {skipto: "0x120"}
     { name: "COMMIT_PARTITION_CFG",
       desc: "Commit the set partition configuration",
       swaccess: "rw1s",
@@ -594,111 +698,7 @@
         {bits: "0", name: "commit", desc: "commit set partition configuration"}
       ]
     },
-    {skipto: "0x128"}
-    { name: "FLUSHED_LOW",
-      desc: "Flushed Flag (lower 32 bit)",
-      swaccess: "ro",
-      hwaccess: "hrw",
-      fields: [
-        {bits: "31:0", name: "low", desc: "lower 32 bit"}
-      ]
-    },
-    { name: "FLUSHED_HIGH",
-      desc: "Flushed Flag (upper 32 bit)",
-      swaccess: "ro",
-      hwaccess: "hrw",
-      fields: [
-        {bits: "31:0", name: "high", desc: "upper 32 bit"}
-      ]
-    },
-    { name: "BIST_OUT_LOW",
-      desc: "Tag Storage BIST Result (lower 32 bit)",
-      swaccess: "ro",
-      hwaccess: "hwo",
-      fields: [
-        {bits: "31:0", name: "low", desc: "lower 32 bit"}
-      ]
-    },
-    { name: "BIST_OUT_HIGH",
-      desc: "Tag Storage BIST Result (upper 32 bit)",
-      swaccess: "ro",
-      hwaccess: "hwo",
-      fields: [
-        {bits: "31:0", name: "high", desc: "upper 32 bit"}
-      ]
-    },
-    { name: "SET_ASSO_LOW",
-      desc: "Instantiated Set-Associativity (lower 32 bit)",
-      swaccess: "ro",
-      hwaccess: "hwo",
-      fields: [
-        {bits: "31:0", name: "low", desc: "lower 32 bit"}
-      ]
-    },
-    { name: "SET_ASSO_HIGH",
-      desc: "Instantiated Set-Associativity (upper 32 bit)",
-      swaccess: "ro",
-      hwaccess: "hwo",
-      fields: [
-        {bits: "31:0", name: "high", desc: "upper 32 bit"}
-      ]
-    },
-    { name: "NUM_LINES_LOW",
-      desc: "Instantiated Number of Cache-Lines (lower 32 bit)",
-      swaccess: "ro",
-      hwaccess: "hwo",
-      fields: [
-        {bits: "31:0", name: "low", desc: "lower 32 bit"}
-      ]
-    },
-    { name: "NUM_LINES_HIGH",
-      desc: "Instantiated Number of Cache-Lines (upper 32 bit)",
-      swaccess: "ro",
-      hwaccess: "hwo",
-      fields: [
-        {bits: "31:0", name: "high", desc: "upper 32 bit"}
-      ]
-    },
-    { name: "NUM_BLOCKS_LOW",
-      desc: "Instantiated Number of Blocks (lower 32 bit)",
-      swaccess: "ro",
-      hwaccess: "hwo",
-      fields: [
-        {bits: "31:0", name: "low", desc: "lower 32 bit"}
-      ]
-    },
-    { name: "NUM_BLOCKS_HIGH",
-      desc: "Instantiated Number of Blocks (upper 32 bit)",
-      swaccess: "ro",
-      hwaccess: "hwo",
-      fields: [
-        {bits: "31:0", name: "high", desc: "upper 32 bit"}
-      ]
-    },
-    { name: "VERSION_LOW",
-      desc: "AXI LLC Version (lower 32 bit)",
-      swaccess: "ro",
-      hwaccess: "hwo",
-      fields: [
-        {bits: "31:0", name: "low", desc: "lower 32 bit"}
-      ]
-    },
-    { name: "VERSION_HIGH",
-      desc: "AXI LLC Version (upper 32 bit)",
-      swaccess: "ro",
-      hwaccess: "hwo",
-      fields: [
-        {bits: "31:0", name: "high", desc: "upper 32 bit"}
-      ]
-    },
-    { name: "BIST_STATUS",
-      desc: "Status register of the BIST",
-      swaccess: "ro",
-      hwaccess: "hwo",
-      fields: [
-        {bits: "0:0", name: "done", desc: "BIST successfully completed"}
-      ]
-    },
+    {skipto: "0x15c"},
     { name: "FLUSHED_SET0_LOW",
       desc: "Index-based Flushed Flag [31:0] (lower 32 bit)",
       swaccess: "ro",

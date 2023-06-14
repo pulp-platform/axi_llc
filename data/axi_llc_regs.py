@@ -11,7 +11,7 @@ IndexLength = math.ceil(math.log2(NumLines))  # Same as "Cfg.IndexLength" in sv
 num_setflushreg = math.ceil(NumLines / RegWidth)
 num_parreg  = math.ceil(MaxThread / math.floor(RegWidth / IndexLength))  # The number of configuration registers used for set partitioning.
 valid_reg_bit = math.floor(RegWidth / IndexLength) * IndexLength
-reg_before_commit = 4
+reg_after_commit = 15
 
 with open('data/axi_llc_regs.hjson', 'w') as f:
     f.write('// Copyright 2018-2021 ETH Zurich and University of Bologna.\n\
@@ -64,75 +64,19 @@ with open('data/axi_llc_regs.hjson', 'w') as f:
       fields: [\n\
         {bits: "31:0", name: "high", desc: "upper 32 bit"}\n\
       ]\n\
-    },')
-    if CachePartition != 0: 
-      f.write('\n\
-    { name: "CFG_FLUSH_THREAD_LOW",\n\
-      desc: "Index-based Thread Flush Configuration [31:0] (lower 32 bit)",\n\
-      swaccess: "rw",\n\
+    },\n\
+    { name: "COMMIT_CFG",\n\
+      desc: "Commit the configuration",\n\
+      swaccess: "rw1s",\n\
       hwaccess: "hrw",\n\
       fields: [\n\
-        {bits: "31:0", resval: 4294967295, name: "low", desc: "lower 32 bit"}\n\
+        {bits: "0", name: "commit", desc: "commit configuration"}\n\
       ]\n\
     },\n\
-    { name: "CFG_FLUSH_THREAD_HIGH",\n\
-      desc: "Index-based Thread Flush Configuration [63:32] (upper 32 bit)",\n\
-      swaccess: "rw",\n\
-      hwaccess: "hrw",\n\
-      fields: [\n\
-        {bits: "31:0", resval: 4294967295, name: "high", desc: "upper 32 bit"}\n\
-      ]\n\
-    },')
-      reg_before_commit = reg_before_commit + 2
-
-    if CachePartition != 0:
-      for i in range(num_parreg):
-          f.write(f'''
-    {{ name: "CFG_SET_PARTITION{i}_LOW",
-       desc: "Index-based Partition Configuration [31:0] (lower 32 bit)",
-       swaccess: "rw",
-       hwaccess: "hrw",
-       fields: [
-        {{bits: "31:0", name: "low", desc: "lower 32 bit"}}
-      ]
-    }},
-    {{ name: "CFG_SET_PARTITION{i}_HIGH",
-       desc: "Index-based Partition Configuration [63:32] (upper 32 bit)",
-       swaccess: "rw",
-       hwaccess: "hrw",
-       fields: [
-        {{bits: "31:0", name: "high", desc: "upper 32 bit"}}
-      ]
-    }},''')
-
-    if CachePartition == 0:
-      num_parreg = 0
+    {skipto: "0x18"}')
 
     f.write(f'''
-    {{ name: "COMMIT_CFG",
-      desc: "Commit the configuration",
-      swaccess: "rw1s",
-      hwaccess: "hrw",
-      fields: [
-        {{bits: "0", name: "commit", desc: "commit configuration"}}
-      ]
-    }},
-    {{skipto: "{hex(reg_before_commit * 4 + (num_parreg + 1) * 0x08)}"}}
-''')
-
-    if CachePartition != 0:
-      f.write(f'''    {{ name: "COMMIT_PARTITION_CFG",
-      desc: "Commit the set partition configuration",
-      swaccess: "rw1s",
-      hwaccess: "hrw",
-      fields: [
-        {{bits: "0", name: "commit", desc: "commit set partition configuration"}}
-      ]
-    }},
-    {{skipto: "{hex(reg_before_commit * 4 + (num_parreg + 2) * 0x08)}"}}
-''')
-
-    f.write(f'''    {{ name: "FLUSHED_LOW",
+    {{ name: "FLUSHED_LOW",
       desc: "Flushed Flag (lower 32 bit)",
       swaccess: "ro",
       hwaccess: "hrw",
@@ -236,6 +180,57 @@ with open('data/axi_llc_regs.hjson', 'w') as f:
         {{bits: "0:0", name: "done", desc: "BIST successfully completed"}}
       ]
     }}''')
+
+    if CachePartition != 0: 
+      f.write(',\n\
+    { name: "CFG_FLUSH_THREAD_LOW",\n\
+      desc: "Index-based Thread Flush Configuration [31:0] (lower 32 bit)",\n\
+      swaccess: "rw",\n\
+      hwaccess: "hrw",\n\
+      fields: [\n\
+        {bits: "31:0", resval: 4294967295, name: "low", desc: "lower 32 bit"}\n\
+      ]\n\
+    },\n\
+    { name: "CFG_FLUSH_THREAD_HIGH",\n\
+      desc: "Index-based Thread Flush Configuration [63:32] (upper 32 bit)",\n\
+      swaccess: "rw",\n\
+      hwaccess: "hrw",\n\
+      fields: [\n\
+        {bits: "31:0", resval: 4294967295, name: "high", desc: "upper 32 bit"}\n\
+      ]\n\
+    },')
+
+    if CachePartition != 0:
+      for i in range(num_parreg):
+          f.write(f'''
+    {{ name: "CFG_SET_PARTITION{i}_LOW",
+       desc: "Index-based Partition Configuration [31:0] (lower 32 bit)",
+       swaccess: "rw",
+       hwaccess: "hrw",
+       fields: [
+        {{bits: "31:0", name: "low", desc: "lower 32 bit"}}
+      ]
+    }},
+    {{ name: "CFG_SET_PARTITION{i}_HIGH",
+       desc: "Index-based Partition Configuration [63:32] (upper 32 bit)",
+       swaccess: "rw",
+       hwaccess: "hrw",
+       fields: [
+        {{bits: "31:0", name: "high", desc: "upper 32 bit"}}
+      ]
+    }},''')
+
+    if CachePartition != 0:
+      f.write(f'''
+    {{ name: "COMMIT_PARTITION_CFG",
+      desc: "Commit the set partition configuration",
+      swaccess: "rw1s",
+      hwaccess: "hrw",
+      fields: [
+        {{bits: "0", name: "commit", desc: "commit set partition configuration"}}
+      ]
+    }},
+    {{skipto: "{hex(0x18 + reg_after_commit * 4 + (num_parreg + 1) * 0x08)}"}}''')
 
     if CachePartition != 0:
       f.write(',\n')
