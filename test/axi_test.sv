@@ -1264,8 +1264,6 @@ package axi_test;
       fork
         // Cache-Partition: randomize the patid
         automatic user_t user = rand_user(MAXTHREAD);
-        // rand_user(32);
-        // automatic user_t user = 511;
         begin
           send_ars(n_reads, user);
           ar_done = 1'b1;
