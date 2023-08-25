@@ -157,9 +157,9 @@ module axi_llc_reg_wrap #(
   parameter logic CachePartition = 1,
   /// Max. number of threads supported for partitioning:
   /// to currently make it work should set as a integer multiplcation of 8
-  /// e.g. MaxThread should be 8 even though we have only 6 threads running 
+  /// e.g. MaxPartition should be 8 even though we have only 6 threads running 
   /// (this is for the sake of the compliance of partition tabe size).
-  parameter int unsigned MaxThread = 32'd0,
+  parameter int unsigned MaxPartition = 32'd0,
   /// AXI4+ATOP ID field width of the slave port.
   /// The ID field width of the master port is this parameter + 1.
   parameter int unsigned AxiIdWidth = 32'd0,
@@ -169,6 +169,9 @@ module axi_llc_reg_wrap #(
   parameter int unsigned AxiDataWidth = 32'd0,
   /// AXI4+ATOP user field width of both the slave and the master port.
   parameter int unsigned AxiUserWidth = 32'd0,
+  /// User signal offset
+  parameter int unsigned AxiUserIdMsb  = 7,
+  parameter int unsigned AxiUserIdLsb  = 0,
   /// AXI4+ATOP request type on the slave port.
   /// Expected format can be defined using `AXI_TYPEDEF_REQ_T.
   parameter type slv_req_t      = logic,
@@ -270,11 +273,13 @@ module axi_llc_reg_wrap #(
     .NumLines         ( NumLines              ),
     .NumBlocks        ( NumBlocks             ),
     .CachePartition   ( CachePartition        ),
-    .MaxThread        ( MaxThread             ),
+    .MaxPartition     ( MaxPartition          ),
     .AxiIdWidth       ( AxiIdWidth            ),
     .AxiAddrWidth     ( AxiAddrWidth          ),
     .AxiDataWidth     ( AxiDataWidth          ),
     .AxiUserWidth     ( AxiUserWidth          ),
+    .AxiUserIdMsb     ( AxiUserIdMsb          ),
+    .AxiUserIdLsb     ( AxiUserIdLsb          ),
     .RegWidth         ( 32'd64                ),
     .conf_regs_d_t    ( axi_llc_cfg_regs_d_t  ),
     .conf_regs_q_t    ( axi_llc_cfg_regs_q_t  ),

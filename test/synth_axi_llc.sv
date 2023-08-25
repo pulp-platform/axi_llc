@@ -6,7 +6,7 @@ module synth_axi_llc import axi_pkg::*; #(
   /// Number of Blocks per cache line
   parameter int unsigned NumBlocks        = 32'd8,
   /// Max. number of threads supported for partitioning
-  parameter int unsigned MaxThread        = 32'd256,
+  parameter int unsigned MaxPartition        = 32'd256,
   /// ID width of the Full AXI slave port, master port has ID `AxiIdWidthFull + 32'd1`
   parameter int unsigned AxiIdWidth       = 32'd6,
   /// Address width of the full AXI bus
@@ -353,7 +353,7 @@ module synth_axi_llc import axi_pkg::*; #(
     .SetAssociativity ( SetAssociativity ),
     .NumLines         ( NumLines         ),
     .NumBlocks        ( NumBlocks        ),
-    .MaxThread        ( MaxThread        ),
+    .MaxPartition        ( MaxPartition        ),
     .AxiIdWidth       ( AxiIdWidth         ),
     .AxiAddrWidth     ( AxiAddrWidth       ),
     .AxiDataWidth     ( AxiDataWidth       ),

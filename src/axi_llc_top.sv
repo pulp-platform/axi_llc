@@ -94,25 +94,27 @@
 /// Part of the descriptor uses directly types defined in `axi_pkg`.
 /// The other fields get defined when instantiating the design.
 ///
-/// | Name        | Type               | Function |
-/// |:----------- |:------------------ |:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-/// | `a_x_id`    | `axi_slv_id_t`     | The AXI4+ATOP ID of the burst entering through the slave port of the design. It has the same width as the slave port AXI ID.                                                                                                                                                                                |
-/// | `a_x_addr`  | `axi_addr_t`       | The address of the descriptor. Aligned to the corresponding cache block.                                                                                                                                                                                                                                    |
-/// | `a_x_len`   | `axi_pkg::len_t`   | AXI4+ATOP burst length field. Corresponds to the number of beats which map onto the cache line accessed by this descriptor. Gets set in the splitting unit which does the mapping onto the cache line.                                                                                                      |
-/// | `a_x_size`  | `axi_pkg::size_t`  | AXI4+ATOP size field. This is important for the write and read unit to find the exact block and byte offset. Used for calculating the block location in the data storage.                                                                                                                                   |
-/// | `a_x_burst` | `axi_pkg::burst_t` | AXI4+ATOP burst type. This is important for the splitter unit as well as the read and write unit. It determines the descriptor field `a_x_addr`.                                                                                                                                                            |
-/// | `a_x_lock`  | `logic`            | AXI4+ATOP lock signal. Passed further in the miss pipeline when the line gets evicted or refilled.                                                                                                                                                                                                          |
-/// | `a_x_cache` | `axi_pkg::cache_t` | AXI4+ATOP cache signal. The cache only supports write back mode.                                                                                                                                                                                                                                            |
-/// | `a_x_prot`  | `axi_pkg::prot_t`  | AXI4+ATOP protection signal. Passed further in the miss pipeline.                                                                                                                                                                                                                                           |
-/// | `x_resp`    | `axi_pkg::resp_t`  | AXI4+ATOP response signal. This tells if we try to make un-allowed accesses onto address regions which are not mapped to either SPM nor cache. When this signal gets set somewhere in the pipeline, all following modules will pass the descriptor along and absorb the corresponding beats from the ports. |
-/// | `x_last`    | `logic`            | AXI4+ATOP last flag. Defines if the read or write unit send back the response.                                                                                                                                                                                                                              |
-/// | `spm`       | `logic`            | This field signals that the descriptor is of type SPM. It will not make a lookup in the hit/miss detection and utilize the hit bypass if applicable.                                                                                                                                                        |
-/// | `rw`        | `logic`            | This field determines if the descriptor makes a write access `1'b1` or read access `1'b0`.                                                                                                                                                                                                                  |
-/// | `way_ind`   | `logic`            | The way indicator. Is a vector of width equal of the set-associativity. Decodes the index of the cache set where the descriptor should make an access.                                                                                                                                                      |
-/// | `evict`     | `logic`            | The eviction flag. The descriptor missed and the line at the position was determined dirty by the detection. The evict unit will write back the dirty cache-line to the main memory.                                                                                                                        |
-/// | `evict_tag` | `logic`            | The eviction tag. As the field `a_x_addr` has the new tag in it, it is used to send back the right address to the main memory during eviction.                                                                                                                                                              |
-/// | `refill`    | `logic`            | The refill flag. The descriptor will trigger a read transaction to the main memory, refilling the cache-line.                                                                                                                                                                                               |
-/// | `flush`     | `logic`            | The flush flag. This only gets set when a way should be flushed. It gets only set by descriptors coming from the configuration module.                                                                                                                                                                      |
+/// | Name              | Type               | Function |
+/// |:----------------- |:------------------ |:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+/// | `a_x_id`          | `axi_slv_id_t`     | The AXI4+ATOP ID of the burst entering through the slave port of the design. It has the same width as the slave port AXI ID.                                                                                                                                                                                |
+/// | `a_x_addr`        | `axi_addr_t`       | The address of the descriptor. Aligned to the corresponding cache block.                                                                                                                                                                                                                                    |
+/// | `a_x_len`         | `axi_pkg::len_t`   | AXI4+ATOP burst length field. Corresponds to the number of beats which map onto the cache line accessed by this descriptor. Gets set in the splitting unit which does the mapping onto the cache line.                                                                                                      |
+/// | `a_x_size`        | `axi_pkg::size_t`  | AXI4+ATOP size field. This is important for the write and read unit to find the exact block and byte offset. Used for calculating the block location in the data storage.                                                                                                                                   |
+/// | `a_x_burst`       | `axi_pkg::burst_t` | AXI4+ATOP burst type. This is important for the splitter unit as well as the read and write unit. It determines the descriptor field `a_x_addr`.                                                                                                                                                            |
+/// | `a_x_lock`        | `logic`            | AXI4+ATOP lock signal. Passed further in the miss pipeline when the line gets evicted or refilled.                                                                                                                                                                                                          |
+/// | `a_x_cache`       | `axi_pkg::cache_t` | AXI4+ATOP cache signal. The cache only supports write back mode.                                                                                                                                                                                                                                            |
+/// | `a_x_prot`        | `axi_pkg::prot_t`  | AXI4+ATOP protection signal. Passed further in the miss pipeline.                                                                                                                                                                                                                                           |
+/// | `x_resp`          | `axi_pkg::resp_t`  | AXI4+ATOP response signal. This tells if we try to make un-allowed accesses onto address regions which are not mapped to either SPM nor cache. When this signal gets set somewhere in the pipeline, all following modules will pass the descriptor along and absorb the corresponding beats from the ports. |
+/// | `x_last`          | `logic`            | AXI4+ATOP last flag. Defines if the read or write unit send back the response.                                                                                                                                                                                                                              |
+/// | `spm`             | `logic`            | This field signals that the descriptor is of type SPM. It will not make a lookup in the hit/miss detection and utilize the hit bypass if applicable.                                                                                                                                                        |
+/// | `rw`              | `logic`            | This field determines if the descriptor makes a write access `1'b1` or read access `1'b0`.                                                                                                                                                                                                                  |
+/// | `way_ind`         | `logic`            | The way indicator. Is a vector of width equal of the set-associativity. Decodes the index of the cache set where the descriptor should make an access.                                                                                                                                                      |
+/// | `evict`           | `logic`            | The eviction flag. The descriptor missed and the line at the position was determined dirty by the detection. The evict unit will write back the dirty cache-line to the main memory.                                                                                                                        |
+/// | `evict_tag`       | `logic`            | The eviction tag. As the field `a_x_addr` has the new tag in it, it is used to send back the right address to the main memory during eviction.                                                                                                                                                              |
+/// | `refill`          | `logic`            | The refill flag. The descriptor will trigger a read transaction to the main memory, refilling the cache-line.                                                                                                                                                                                               |
+/// | `flush`           | `logic`            | The flush flag. This only gets set when a way should be flushed. It gets only set by descriptors coming from the configuration module.                                                                                                                                                                      |
+/// | `patid`           | `logic`            | The partition ID. This indicates the current visited partition. It gets filled in burst cutter by reading from the AXI AW/AR user signals.                                                                                                                                                                  |
+/// | `index_partition  | `logic`            | The remapped index for cache partitioning. This will be calculated based on index bits from input address and partition's information.                                                                                                                                                                      |
 module axi_llc_top #(
   /// The set-associativity of the LLC.
   ///
@@ -148,13 +150,17 @@ module axi_llc_top #(
   /// Note on restrictions:
   /// The same restriction as of parameter `NumLines` applies.
   parameter int unsigned NumBlocks = 32'd0,
-  /// Cache partitioning enabling parameter
+  /// Cache partitioning enabling parameter, bool type.
   parameter logic CachePartition = 1,
-  /// Max. number of partitions supported for partitioning:
-  /// to currently make it work should set as a integer multiplcation of 8
-  /// e.g. MaxThread should be 8 even though we have only 6 threads running 
-  /// (this is for the sake of the compliance of partition tabe size).
-  parameter int unsigned MaxThread = 32'd0,
+  /// Max. number of partitions supported for partitioning.
+  ///
+  /// Restrictions:
+  /// * Minimum value: 32'd2
+  ///
+  /// Note on restrictions:
+  /// The reason is the doubld-sided calculation for filling the partition table. The calculation needs
+  /// two partition: one on each side to correctly configure the partitions.
+  parameter int unsigned MaxPartition = 32'd0,
   /// AXI4+ATOP ID field width of the slave port.
   /// The ID field width of the master port is this parameter + 1.
   parameter int unsigned AxiIdWidth = 32'd0,
@@ -171,6 +177,9 @@ module axi_llc_top #(
                                                // running is 256, so AxiUserWidth should be 8.
   /// Internal register width
   parameter int unsigned RegWidth = 64,
+  /// AXI4 User signal offset
+  parameter int unsigned AxiUserIdMsb  = 7,
+  parameter int unsigned AxiUserIdLsb  = 0,
   /// Register type for HW -> Register direction
   parameter type conf_regs_d_t  = logic,
   /// Register type for Register -> HW direction
@@ -337,20 +346,20 @@ module axi_llc_top #(
   } partition_table_t;
 
   /// Partition table which tells the range of index assigned to each thread:
-  /// The number of entry in partition_table is one more than Maxthread because it needs to hold 
+  /// The number of entry in partition_table is one more than MaxPartition because it needs to hold 
   /// the remaining part as shared region for any other thread that has not been allocated.
   /// if the corresponding entry for PID_x is 0, then it means that that thread uses the shared 
   /// region of cache. When we process data access of such thread, we should turn to 
-  /// partition_table_o[MaxThread] for hit/miss information.
-  partition_table_t [MaxThread:0] partition_table;
+  /// partition_table_o[MaxPartition] for hit/miss information.
+  partition_table_t [MaxPartition:0] partition_table;
 
   // slave requests, that go into the bypass `axi_demux` from the config module
   // `index` for the axi_mux and axi_demux: bypass: 1, llc: 0
   logic slv_aw_bypass, slv_ar_bypass;
 
   // bypass channels and llc connection to the axi_demux and axi_mux
-  slv_req_t     to_demux_req,  bypass_req,   to_llc_req,   from_llc_req;
-  slv_resp_t    to_demux_resp, bypass_resp,  to_llc_resp,  from_llc_resp;
+  slv_req_t     to_isolate_req, to_demux_req,  bypass_req,   to_llc_req,   from_llc_req;
+  slv_resp_t    to_isolate_resp, to_demux_resp, bypass_resp,  to_llc_resp,  from_llc_resp;
 
   // signals between channel splitters and rw_arb_tree
   llc_desc_t [2:0]      ax_desc;
@@ -429,6 +438,16 @@ module axi_llc_top #(
     spm_addr_rule.end_addr      = spm_start_addr_i + axi_addr_t'(Cfg.SPMLength);
   end
 
+  always_comb begin
+    to_isolate_req = slv_req_i;
+    slv_resp_o = to_isolate_resp;
+
+    to_isolate_req.aw.user = '0;
+    to_isolate_req.aw.user[AxiUserIdMsb-AxiUserIdLsb:0] = slv_req_i.aw.user[AxiUserIdMsb:AxiUserIdLsb];
+    to_isolate_req.ar.user = '0;
+    to_isolate_req.ar.user[AxiUserIdMsb-AxiUserIdLsb:0] = slv_req_i.ar.user[AxiUserIdMsb:AxiUserIdLsb];
+  end
+
 generate
   if (CachePartition) begin
     // configuration, also has control over bypass logic and flush
@@ -436,7 +455,7 @@ generate
       .Cfg            ( Cfg           ),
       .AxiCfg         ( AxiCfg        ),
       .RegWidth       ( RegWidth      ),
-      .MaxThread      ( MaxThread     ),
+      .MaxPartition   ( MaxPartition  ),
       .conf_regs_d_t  ( conf_regs_d_t ),
       .conf_regs_q_t  ( conf_regs_q_t ),
       .desc_t         ( llc_desc_t    ),
@@ -460,10 +479,10 @@ generate
       .desc_valid_o      ( ax_desc_valid[axi_llc_pkg::ConfigUnit] ),
       .desc_ready_i      ( ax_desc_ready[axi_llc_pkg::ConfigUnit] ),
       // AXI address input from slave port for controlling bypass
-      .slv_aw_addr_i     ( slv_req_i.aw.addr                      ),
-      .slv_aw_thread_id_i ( slv_req_i.aw.user                     ),
-      .slv_ar_addr_i     ( slv_req_i.ar.addr                      ),
-      .slv_ar_thread_id_i ( slv_req_i.ar.user                     ),
+      .slv_aw_addr_i     ( to_isolate_req.aw.addr                 ),
+      .slv_aw_thread_id_i ( to_isolate_req.aw.user                ),
+      .slv_ar_addr_i     ( to_isolate_req.ar.addr                 ),
+      .slv_ar_thread_id_i ( to_isolate_req.ar.user                ),
       .mst_aw_bypass_o   ( slv_aw_bypass                          ),
       .mst_ar_bypass_o   ( slv_ar_bypass                          ),
       // flush control signals to prevent new data in ax_cutter loading
@@ -525,6 +544,7 @@ generate
     );
   end
 endgenerate
+  
 
   // Isolation module before demux to easy flushing,
   // AXI requests get stalled while flush is active
@@ -539,8 +559,8 @@ endgenerate
   ) i_axi_isolate_flush (
     .clk_i,
     .rst_ni,
-    .slv_req_i,  // Slave port request
-    .slv_resp_o, // Slave port response
+    .slv_req_i  ( to_isolate_req  ),  // Slave port request
+    .slv_resp_o ( to_isolate_resp ), // Slave port response
     .mst_req_o  ( to_demux_req  ),
     .mst_resp_i ( to_demux_resp ),
     .isolate_i  ( llc_isolate   ),
@@ -581,7 +601,7 @@ endgenerate
     .Cfg    ( Cfg           ),
     .AxiCfg ( AxiCfg        ),
     .CachePartition ( CachePartition ),
-    .MaxThread ( MaxThread  ),
+    .MaxPartition ( MaxPartition  ),
     .chan_t ( slv_aw_chan_t ),
     .Write  ( 1'b1          ),
     .desc_t ( llc_desc_t    ),
@@ -608,7 +628,7 @@ endgenerate
     .Cfg    ( Cfg           ),
     .AxiCfg ( AxiCfg        ),
     .CachePartition ( CachePartition ),
-    .MaxThread ( MaxThread  ),
+    .MaxPartition ( MaxPartition  ),
     .chan_t ( slv_ar_chan_t ),
     .Write  ( 1'b0          ),
     .desc_t ( llc_desc_t    ),
@@ -1107,8 +1127,8 @@ endgenerate
 
     cfg_num_lines : assert(Cfg.NumLines > 0 && $onehot(Cfg.NumLines)) else
       $fatal(1, "Parameter 'Cfg.NumLines' must be the integer power of 2 to ensure correct function for set based partition!");
-    max_thread    : assert((MaxThread != 1) && (MaxThread <= Cfg.NumLines)) else
-      $fatal(1, "Parameter 'MaxThread' must not be 1 or larger than number of cache lines to ensure correct function for set based partition!");
+    max_thread    : assert((MaxPartition != 1) && (MaxPartition <= Cfg.NumLines)) else
+      $fatal(1, "Parameter 'MaxPartition' must not be 1 or larger than number of cache lines to ensure correct function for set based partition!");
 
   end
 `endif

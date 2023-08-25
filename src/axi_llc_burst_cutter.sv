@@ -19,7 +19,7 @@ module axi_llc_burst_cutter #(
   parameter axi_llc_pkg::llc_axi_cfg_t AxiCfg = axi_llc_pkg::llc_axi_cfg_t'{default: '0},
   /// Cache partitioning enabling parameter
   parameter logic CachePartition              = 1,
-  parameter int unsigned MaxThread            = 0,
+  parameter int unsigned MaxPartition            = 0,
   /// AXI AW or AR channel struct definition.
   parameter type                       chan_t = logic,
   /// The type of channel, how the write bit in the descriptor should be set.
@@ -53,7 +53,7 @@ module axi_llc_burst_cutter #(
   /// one for each cache way.
   input  rule_t spm_rule_i, 
   /// partition table for cache partitioning
-  input  partition_table_t [MaxThread:0] partition_table_i
+  input  partition_table_t [MaxPartition:0] partition_table_i
   );
 
   // typedefs for casting
@@ -99,10 +99,10 @@ generate
     partision_size_t pat_size, share_size;
     index_t          start_index, share_index, index_partition;
 
-    assign share_size  =  partition_table_i[MaxThread].NumIndex;
-    assign share_index =  partition_table_i[MaxThread].StartIndex;
-    assign pat_size    =  (curr_chan_i.user <= MaxThread) ? partition_table_i[curr_chan_i.user].NumIndex : share_size;
-    assign start_index =  (curr_chan_i.user <= MaxThread) ? partition_table_i[curr_chan_i.user].StartIndex : share_index;
+    assign share_size  =  partition_table_i[MaxPartition].NumIndex;
+    assign share_index =  partition_table_i[MaxPartition].StartIndex;
+    assign pat_size    =  (curr_chan_i.user <= MaxPartition) ? partition_table_i[curr_chan_i.user].NumIndex : share_size;
+    assign start_index =  (curr_chan_i.user <= MaxPartition) ? partition_table_i[curr_chan_i.user].StartIndex : share_index;
 
     axi_llc_index_assigner #(
       .Cfg              ( Cfg              ),
@@ -137,7 +137,7 @@ generate
         x_resp:    axi_pkg::RESP_OKAY,
         rw:        Write,
         // If the patid is larger than the table supported, assign it to the shared region
-        patid:     (curr_chan_i.user <= MaxThread) ? curr_chan_i.user : MaxThread,
+        patid:     (curr_chan_i.user <= MaxPartition) ? curr_chan_i.user : MaxPartition,
         index_partition: index_partition,
         default: '0
       };

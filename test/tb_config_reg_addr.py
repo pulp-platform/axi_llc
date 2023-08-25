@@ -6,11 +6,11 @@ import sys
 # all variables below are just for verification
 RegWidth    = int(sys.argv[1]) # 64 Same as "RegWidth" in sv
 NumLines    = int(sys.argv[2]) # 256 Same as "Sfg.NumLines in sv
-MaxThread   = int(sys.argv[3]) # 256 Same as "MaxThread" in sv
+MaxPartition   = int(sys.argv[3]) # 256 Same as "MaxPartition" in sv
 IndexLength = math.ceil(math.log2(NumLines))  # Same as "Cfg.IndexLength" in sv
 num_setflushreg = math.ceil(NumLines / RegWidth)
 num_setflushthread = 1
-num_parreg  = math.ceil(MaxThread / math.floor(RegWidth / IndexLength))  # The number of configuration registers used for set partitioning.
+num_parreg  = math.ceil(MaxPartition / math.floor(RegWidth / IndexLength))  # The number of configuration registers used for set partitioning.
 valid_reg_bit = math.floor(RegWidth / IndexLength) * IndexLength
 
 

@@ -19,7 +19,7 @@ module tb_axi_llc #(
   parameter logic TbCachePartition          = 32'd1,
   /// Max. number of threads supported for partitioning
   /// Useless when "TbCachePartition" is set as 0, i.e. the cache partitioning feature is disabled
-  parameter int unsigned TbMaxThread        = 32'd256,
+  parameter int unsigned TbMaxPartition        = 32'd256,
   /// ID width of the Full AXI slave port, master port has ID `AxiIdWidthFull + 32'd1`
   parameter int unsigned TbAxiIdWidthFull   = 32'd6,
   /// Address width of the full AXI bus
@@ -32,6 +32,8 @@ module tb_axi_llc #(
   parameter int unsigned TbNumWrites        = 32'd1100,
   /// Number of random read transactions in a testblock.
   parameter int unsigned TbNumReads         = 32'd1500,
+  parameter int unsigned TbAxiUserIdMsb     = 32'd7,
+  parameter int unsigned TbAxiUserIdLsb     = 32'd0,
   /// Cycle time for the TB clock generator
   parameter time         TbCyclTime         = 10ns,
   /// Application time to the DUT
@@ -48,7 +50,7 @@ module tb_axi_llc #(
   `include "register_interface/assign.svh"
 
   localparam int unsigned TbAxiStrbWidthFull = TbAxiDataWidthFull / 32'd8;
-  localparam int unsigned TbAxiUserWidthFull = $clog2(TbMaxThread);
+  localparam int unsigned TbAxiUserWidthFull = $clog2(TbMaxPartition);
 
 
 
@@ -334,7 +336,7 @@ module tb_axi_llc #(
     .AXI_BURST_FIXED      ( 1'b0               ),
     .AXI_BURST_INCR       ( 1'b1               ),
     .AXI_BURST_WRAP       ( 1'b0               ),
-    .MAXTHREAD            ( TbMaxThread        )
+    .MAXTHREAD           ( TbMaxPartition        )
   ) axi_rand_master_t;
 
   typedef axi_test::axi_rand_slave #(
@@ -745,7 +747,7 @@ module tb_axi_llc #(
 
   task flush_all_set(regbus_conf_driver_t reg_conf_driver);
     automatic logic       cfg_error;
-    automatic logic[63:0] data = TbMaxThread+1;
+    automatic logic[63:0] data = TbMaxPartition+1;
     automatic logic[31:0] rdata_low;
     automatic logic[31:0] rdata_high;
     $info("Flushing all the cache set!");
@@ -858,7 +860,7 @@ module tb_axi_llc #(
     reg_conf_driver.send_write(CfgSetPartition30Low, zeros[31:0], 4'hF, cfg_error);
     reg_conf_driver.send_write(CfgSetPartition30High, zeros[63:32], 4'hF, cfg_error);
     reg_conf_driver.send_write(CfgSetPartition31Low, zeros[31:0], 4'hF, cfg_error);
-    reg_conf_driver.send_write(CfgSetPartition31High, zeros[63:32], 4'hF, cfg_error);
+    reg_conf_driver.send_write(CfgSetPartition31High, 32'b00000010_00001010_00000011_00000010, 4'hF, cfg_error);
     data  = 64'd1;
     reg_conf_driver.send_write(CommitPartitionCfg, data[31:0], 4'hF, cfg_error);
     $info("Finished partition configuration!");
@@ -880,11 +882,13 @@ module tb_axi_llc #(
     .NumLines         ( TbNumLines         ),
     .NumBlocks        ( TbNumBlocks        ),
     .CachePartition   ( TbCachePartition   ),
-    .MaxThread        ( TbMaxThread        ),
+    .MaxPartition     ( TbMaxPartition     ),
     .AxiIdWidth       ( TbAxiIdWidthFull   ),
     .AxiAddrWidth     ( TbAxiAddrWidthFull ),
     .AxiDataWidth     ( TbAxiDataWidthFull ),
     .AxiUserWidth     ( TbAxiUserWidthFull ),
+    .AxiUserIdMsb     ( TbAxiUserIdMsb     ),
+    .AxiUserIdLsb     ( TbAxiUserIdLsb     ),
     .slv_req_t        ( axi_slv_req_t      ),
     .slv_resp_t       ( axi_slv_resp_t     ),
     .mst_req_t        ( axi_mst_req_t      ),
