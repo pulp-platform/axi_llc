@@ -36,6 +36,12 @@ with open('include/axi_llc/assign.svh', 'w') as f:
     assign regbus.member``_high.d = d_struct.member >> 32; \\\n\
     assign regbus.member``_high.de = d_struct.member``_en;\n\
 \n\
+`define AXI_LLC_ASSIGN_REGBUS_FROM_MREGS_D_MEMBER(regbus, d_struct, member, offset) \\\n\
+    assign regbus.member``_low[offset].d = d_struct.member[offset]; \\\n\
+    assign regbus.member``_low[offset].de = d_struct.member``_en[offset]; \\\n\
+    assign regbus.member``_high[offset].d = d_struct.member[offset] >> 32; \\\n\
+    assign regbus.member``_high[offset].de = d_struct.member``_en[offset];\n\
+\n\
 // Assign the regtool RegBus HW2REG struct from a d_struct\n\
 `define AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D(regbus, d_struct)                     \\\n\
     `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, cfg_spm)        \\\n\
@@ -66,12 +72,8 @@ with open('include/axi_llc/assign.svh', 'w') as f:
 /********************************************     SET BASED CACHE PARTITIONING     ********************************************/  \\\n\
     `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, cfg_flush_thread) \\\n")
 
-        for i in range(num_parreg):
-            f.write(f'''    `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, cfg_set_partition{i}) \\
-''')
-
         for i in range(num_setflushreg):
-            f.write(f'''    `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, flushed_set{i})''')
+            f.write(f'''    `AXI_LLC_ASSIGN_REGBUS_FROM_MREGS_D_MEMBER(regbus, d_struct, flushed_set, {i})''')
             if (i != num_setflushreg-1): 
                 f.write('   \\\n')
             else: 
@@ -98,10 +100,10 @@ with open('include/axi_llc/assign.svh', 'w') as f:
 /********************************************     SET BASED CACHE PARTITIONING     ********************************************/  \\\n")
 
         for i in range(num_setflushreg):
-            f.write(f'''    assign q_struct.flushed_set{i} = {{regbus.flushed_set{i}_high.q, regbus.flushed_set{i}_low.q}}; \\
+            f.write(f'''    assign q_struct.flushed_set[{i}] = {{regbus.flushed_set_high[{i}].q, regbus.flushed_set_low[{i}].q}}; \\
 ''')
         for i in range(num_parreg):
-            f.write(f'''    assign q_struct.cfg_set_partition{i} = {{regbus.cfg_set_partition{i}_high.q, regbus.cfg_set_partition{i}_low.q}}; \\
+            f.write(f'''    assign q_struct.cfg_set_partition[{i}] = {{regbus.cfg_set_partition_high[{i}].q, regbus.cfg_set_partition_low[{i}].q}}; \\
 ''')
         for i in range(num_setflushthread):
             f.write(f'''    assign q_struct.cfg_flush_thread = {{regbus.cfg_flush_thread_high.q, regbus.cfg_flush_thread_low.q}};''')

@@ -88,14 +88,12 @@ with open('include/axi_llc/typedef.svh', 'w') as f:
     logic       cfg_flush_thread_en;                                    \\\n\
 ")
 
-        for i in range(num_parreg):
-            f.write(f'''    reg_data_t  cfg_set_partition{i};                                     \\
-    logic       cfg_set_partition{i}_en;                                  \\
+        (f'''    reg_data_t [{num_parreg-1}:0] cfg_set_partition;                                     \\
+    logic [{num_parreg-1}:0]      cfg_set_partition_en;                                  \\
 ''')
 
-        for i in range(num_setflushreg):
-            f.write(f'''    reg_data_t  flushed_set{i};                                           \\
-    logic       flushed_set{i}_en;                                        \\
+        f.write(f'''    reg_data_t [{num_setflushreg-1}:0] flushed_set;                                           \\
+    logic [{num_setflushreg-1}:0]      flushed_set_en;                                        \\
 ''')
 
         f.write("/******************************************************************************************************************************/  \\\n")
@@ -124,12 +122,10 @@ with open('include/axi_llc/typedef.svh', 'w') as f:
 /********************************************     SET BASED CACHE PARTITIONING     ********************************************/  \\\n\
     reg_data_t  cfg_flush_thread;                                       \\\n")
 
-        for i in range(num_parreg):
-            f.write(f'''    reg_data_t  cfg_set_partition{i};                                     \\
+        f.write(f'''    reg_data_t [{num_parreg-1}:0] cfg_set_partition;                                     \\
 ''')
 
-        for i in range(num_setflushreg):
-            f.write(f'''    reg_data_t  flushed_set{i};                                           \\
+        f.write(f'''    reg_data_t [{num_setflushreg-1}:0] flushed_set;                                           \\
 ''')
 
         f.write("/******************************************************************************************************************************/  \\\n")

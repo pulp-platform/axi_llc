@@ -234,8 +234,11 @@ module axi_llc_reg_wrap #(
   output axi_llc_pkg::events_t axi_llc_events_o
 );
 
+  localparam int unsigned RegWidth = 64;
+  typedef logic [RegWidth-1:0] reg_length_t;
+
   // Define 64-bit register types for the AXI_LLC toplevel
-  `AXI_LLC_TYPEDEF_ALL(axi_llc, logic [63:0], way_ind_t)
+  `AXI_LLC_TYPEDEF_ALL(axi_llc, reg_length_t, way_ind_t)
 
   // Generated register file interface variables
   axi_llc_reg_pkg::axi_llc_reg2hw_t config_reg2hw;

@@ -320,10 +320,15 @@ module axi_llc_config_pat #(
   assign num_unvalid_bit_flush_set = flushed_set_length - Cfg.NumLines;
   logic       [flushed_set_length-1:0] raw_flushed_set, mask_flush_set;
 /********************************************     SET BASED CACHE PARTITIONING     ********************************************/
-  assign raw_flushed_set = {conf_regs_i.flushed_set3,
-                            conf_regs_i.flushed_set2,
-                            conf_regs_i.flushed_set1,
-                            conf_regs_i.flushed_set0};
+  localparam int unsigned num_parreg  = ($ceil(MaxPartition / $floor(RegWidth / Cfg.IndexLength))==0) ? 
+                                        1 : $ceil(MaxPartition / $floor(RegWidth / Cfg.IndexLength));
+
+generate
+  for (genvar i = 0; unsigned'(i) < num_set_flush_reg; i++) begin : gen_raw_flushed_set
+    assign raw_flushed_set[((i+1)*RegWidth-1) -: RegWidth] = conf_regs_i.flushed_set[i];
+  end
+endgenerate
+
 // If the user set the flush bit position of conf_regs_i.flushed_set* which is beyond the number of cache lines, those bits are ignored
   always_comb begin
     conf_regs_i_cfg_flush_set = '0;
@@ -363,38 +368,11 @@ module axi_llc_config_pat #(
   logic [MaxPartition * Cfg.IndexLength - 1 : 0] conf_regs_i_cfg_set_partition;
 
 /********************************************     SET BASED CACHE PARTITIONING     ********************************************/
-  assign conf_regs_i_cfg_set_partition = {conf_regs_i.cfg_set_partition31[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition30[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition29[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition28[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition27[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition26[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition25[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition24[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition23[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition22[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition21[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition20[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition19[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition18[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition17[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition16[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition15[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition14[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition13[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition12[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition11[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition10[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition9[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition8[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition7[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition6[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition5[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition4[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition3[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition2[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition1[valid_reg_bit-1:0], 
-                                          conf_regs_i.cfg_set_partition0[valid_reg_bit-1:0]};
+generate
+  for (genvar i = 0; unsigned'(i) < num_parreg; i++) begin : gen_conf_regs_i_cfg_set_partition
+    assign conf_regs_i_cfg_set_partition[(((i+1)*valid_reg_bit)-1) : (i*valid_reg_bit)] = conf_regs_i.cfg_set_partition[i][valid_reg_bit-1:0];
+  end
+endgenerate
 /******************************************************************************************************************************/
 
   logic partition_table_valid_d, partition_table_valid_q;
@@ -416,6 +394,7 @@ module axi_llc_config_pat #(
                     (flush_set_thread_q == (MaxPartition + 1));
 
   always_comb begin : proc_partition_table
+    conf_regs_o.commit_partition_cfg = conf_regs_i.commit_partition_cfg;
     conf_regs_o.commit_partition_cfg_en = 1'b0;
     partition_table_valid_d = partition_table_valid_q;
     if (conf_regs_i.commit_partition_cfg) begin
@@ -491,9 +470,17 @@ module axi_llc_config_pat #(
         // end
       end
 
-      partition_table_o[MaxPartition].StartIndex = partition_table_o[MaxPartition-2].StartIndex + partition_table_o[MaxPartition-2].NumIndex;
-      partition_table_o[MaxPartition].NumIndex = start_addr_valid ? partition_table_o[MaxPartition-1].StartIndex - partition_table_o[MaxPartition].StartIndex : 
-                                              partition_table_o[MaxPartition-1].StartIndex - partition_table_o[MaxPartition].StartIndex + 1;
+      if (!(MaxPartition % 2)) begin
+        partition_table_o[MaxPartition].StartIndex = partition_table_o[MaxPartition-2].StartIndex + partition_table_o[MaxPartition-2].NumIndex;
+
+        partition_table_o[MaxPartition].NumIndex = start_addr_valid ? partition_table_o[MaxPartition-1].StartIndex - partition_table_o[MaxPartition].StartIndex : 
+                                                partition_table_o[MaxPartition-1].StartIndex - partition_table_o[MaxPartition].StartIndex + 1;
+      end else begin
+        partition_table_o[MaxPartition].StartIndex = partition_table_o[MaxPartition-1].StartIndex + partition_table_o[MaxPartition-1].NumIndex;
+
+        partition_table_o[MaxPartition].NumIndex = start_addr_valid ? partition_table_o[MaxPartition-2].StartIndex - partition_table_o[MaxPartition].StartIndex : 
+                                                partition_table_o[MaxPartition-2].StartIndex - partition_table_o[MaxPartition].StartIndex + 1;
+      end
 
       // if (partition_table_o[MaxPartition].StartIndex >= Cfg.NumLines) begin
       //   $error("Partition Configuration Error!");
@@ -605,7 +592,9 @@ module axi_llc_config_pat #(
   assign conf_regs_o.bist_status_en = 1'b1;
 
   logic [flushed_set_length-1:0] conf_regs_o_flushed_set;
-  logic [RegWidth-1:0] flushed_set0, flushed_set1, flushed_set2, flushed_set3;
+  
+  typedef logic [RegWidth-1:0] flushed_set_t;
+  flushed_set_t [num_set_flush_reg-1:0] flushed_set;
 
   always_comb begin : proc_axi_llc_cfg
     // Default assignments
@@ -616,20 +605,21 @@ module axi_llc_config_pat #(
     conf_regs_o.cfg_flush_thread = conf_regs_i.cfg_flush_thread;
     conf_regs_o.commit_cfg    = conf_regs_i.commit_cfg;
     conf_regs_o.flushed       = conf_regs_i.flushed;
-    conf_regs_o.flushed_set0   = conf_regs_i.flushed_set0;
-    conf_regs_o.flushed_set1   = conf_regs_i.flushed_set1;
-    conf_regs_o.flushed_set2   = conf_regs_i.flushed_set2;
-    conf_regs_o.flushed_set3   = conf_regs_i.flushed_set3;
+
+    for (int unsigned i = 0; i < num_set_flush_reg; i++) begin
+      conf_regs_o.flushed_set[i]   = conf_regs_i.flushed_set[i];
+    end
+
     // Register enables
     conf_regs_o.cfg_spm_en    = 1'b1;   // default one
     conf_regs_o.cfg_flush_en  = 1'b1;   // default one
     conf_regs_o.cfg_flush_thread_en = 1'b1;
     conf_regs_o.commit_cfg_en = 1'b0;   // default disabled
     conf_regs_o.flushed_en    = 1'b0;   // default disabled
-    conf_regs_o.flushed_set0_en  = 1'b0;
-    conf_regs_o.flushed_set1_en  = 1'b0;
-    conf_regs_o.flushed_set2_en  = 1'b0;
-    conf_regs_o.flushed_set3_en  = 1'b0;
+
+    for (int unsigned i = 0; i < num_set_flush_reg; i++) begin
+      conf_regs_o.flushed_set_en[i]  = 1'b0;
+    end
 /******************************************************************************************************************************/
 
     // Flush state machine
@@ -795,14 +785,10 @@ module axi_llc_config_pat #(
             // index_based_flush_d = 1'b0; // reset flush type
             // reset the flushed register to SPM as new requests can enter the cache
 /********************************************     SET BASED CACHE PARTITIONING     ********************************************/
-            conf_regs_o.flushed_set0    = 64'b0; /**************** temperarily not used since SPM is way-based ****************/ 
-            conf_regs_o.flushed_set1    = 64'b0; /**************** temperarily not used since SPM is way-based ****************/ 
-            conf_regs_o.flushed_set2    = 64'b0; /**************** temperarily not used since SPM is way-based ****************/ 
-            conf_regs_o.flushed_set3    = 64'b0; /**************** temperarily not used since SPM is way-based ****************/ 
-            conf_regs_o.flushed_set0_en = 1'b1; 
-            conf_regs_o.flushed_set1_en = 1'b1; 
-            conf_regs_o.flushed_set2_en = 1'b1; 
-            conf_regs_o.flushed_set3_en = 1'b1; 
+            for (int unsigned i = 0; i < num_set_flush_reg; i++) begin
+                conf_regs_o.flushed_set[i]    = 64'b0;
+                conf_regs_o.flushed_set_en[i] = 1'b1; 
+            end
             to_flush_set_d              = set_t'(1'b0);
             // Reset the `CfgFlushTherad` register, load enable is default '1
             conf_regs_o.cfg_flush_thread  = -1;
@@ -810,18 +796,17 @@ module axi_llc_config_pat #(
             // there are still cache lines to flush
             flush_state_d = FsmInitFlush;
             conf_regs_o_flushed_set = conf_regs_i_flushed_set | flush_set_ind;
-            flushed_set0 = conf_regs_o_flushed_set >> (0*RegWidth);
-            flushed_set1 = conf_regs_o_flushed_set >> (1*RegWidth);
-            flushed_set2 = conf_regs_o_flushed_set >> (2*RegWidth);
-            flushed_set3 = conf_regs_o_flushed_set >> (3*RegWidth);
-            conf_regs_o.flushed_set0 = flushed_set0;
-            conf_regs_o.flushed_set1 = flushed_set1;
-            conf_regs_o.flushed_set2 = flushed_set2;
-            conf_regs_o.flushed_set3 = flushed_set3;
-            conf_regs_o.flushed_set0_en = 1'b1;
-            conf_regs_o.flushed_set1_en = 1'b1;
-            conf_regs_o.flushed_set2_en = 1'b1;
-            conf_regs_o.flushed_set3_en = 1'b1;
+            for (int unsigned i = 0; i < num_set_flush_reg; i++) begin
+                flushed_set[i] = conf_regs_o_flushed_set >> (i*RegWidth);
+            end
+
+            for (int unsigned i = 0; i < num_set_flush_reg; i++) begin
+                conf_regs_o.flushed_set[i] = flushed_set[i];
+            end
+
+            for (int unsigned i = 0; i < num_set_flush_reg; i++) begin
+                conf_regs_o.flushed_set_en[i] = 1'b1;
+            end
 /******************************************************************************************************************************/
           end
         end else begin

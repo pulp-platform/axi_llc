@@ -201,24 +201,29 @@ with open('data/axi_llc_regs.hjson', 'w') as f:
     },')
 
     if CachePartition != 0:
-      for i in range(num_parreg):
-          f.write(f'''
-    {{ name: "CFG_SET_PARTITION{i}_LOW",
-       desc: "Index-based Partition Configuration [31:0] (lower 32 bit)",
-       swaccess: "rw",
-       hwaccess: "hrw",
-       fields: [
-        {{bits: "31:0", name: "low", desc: "lower 32 bit"}}
+      f.write(f'''
+    {{ multireg: {{
+         name: "CFG_SET_PARTITION_LOW",
+         desc: "Index-based Partition Configuration [31:0] (lower 32 bit)",
+         count: "{num_parreg}",
+         cname: "AXI_LLC"
+         swaccess: "rw",
+         hwaccess: "hrw",
+         fields: [
+         {{bits: "31:0", name: "low", desc: "lower 32 bit"}}
       ]
-    }},
-    {{ name: "CFG_SET_PARTITION{i}_HIGH",
-       desc: "Index-based Partition Configuration [63:32] (upper 32 bit)",
-       swaccess: "rw",
-       hwaccess: "hrw",
-       fields: [
-        {{bits: "31:0", name: "high", desc: "upper 32 bit"}}
+    }}}},
+    {{ multireg: {{
+         name: "CFG_SET_PARTITION_HIGH",
+         desc: "Index-based Partition Configuration [63:32] (higher 32 bit)",
+         count: "{num_parreg}",
+         cname: "AXI_LLC"
+         swaccess: "rw",
+         hwaccess: "hrw",
+         fields: [
+         {{bits: "31:0", name: "high", desc: "higher 32 bit"}}
       ]
-    }},''')
+    }}}},''')
 
     if CachePartition != 0:
       f.write(f'''
@@ -238,27 +243,30 @@ with open('data/axi_llc_regs.hjson', 'w') as f:
       f.write('\n')
 
     if CachePartition != 0:
-      for i in range(num_setflushreg):
-          f.write(f'''    {{ name: "FLUSHED_SET{i}_LOW",
-      desc: "Index-based Flushed Flag [{(2*i+1)*32-1}:{2*i*32}] (lower 32 bit)",
+      f.write(f'''    {{ multireg: {{
+      name: "FLUSHED_SET_LOW",
+      desc: "Index-based Flushed Flag (lower 32 bit)",
+      count: "{num_setflushreg}",
+      cname: "AXI_LLC"
       swaccess: "ro",
       hwaccess: "hrw",
       fields: [
         {{bits: "31:0", name: "low", desc: "lower 32 bit"}}
       ]
-    }},
-    {{ name: "FLUSHED_SET{i}_HIGH",
-      desc: "Index-based Flushed Flag [{2*(i+1)*32-1}:{(2*i+1)*32}] (upper 32 bit)",
+    }}}},
+    {{ multireg: {{
+      name: "FLUSHED_SET_HIGH",
+      desc: "Index-based Flushed Flag (upper 32 bit)",
+      count: "{num_setflushreg}",
+      cname: "AXI_LLC"
       swaccess: "ro",
       hwaccess: "hrw",
       fields: [
         {{bits: "31:0", name: "high", desc: "upper 32 bit"}}
       ]
-    }}''')
-          if (i != num_setflushreg-1):
-            f.write(',\n')
-          else: 
-            f.write('\n')
+    }}}}''')
+            
+    f.write('\n')
 
     f.write('  ]\n}\n')
 

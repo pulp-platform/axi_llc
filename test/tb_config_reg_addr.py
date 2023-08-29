@@ -42,16 +42,24 @@ with open('test/tb_config_reg_addr.hjson', 'w') as f:
     CfgFlushThreadHigh   = 32'h{hex(0x50 + i * 0x08)[2:]},
 ''')
     for i in range(num_parreg):
-        f.write(f'''    CfgSetPartition{i}Low  = 32'h{hex(0x54 + i * 0x08)[2:]},
-    CfgSetPartition{i}High = 32'h{hex(0x58 + i * 0x08)[2:]},
+        f.write(f'''    CfgSetPartitionLow{i}  = 32'h{hex(0x54 + i * 0x04)[2:]},
+''')
+    temp = 0x54 + i * 0x04
+    for i in range(num_parreg):
+        f.write(f'''    CfgSetPartitionHigh{i} = 32'h{hex(temp + 0x04 + i * 0x04)[2:]},
 ''')
     f.write(f'''    CommitPartitionCfg     = 32'h{hex(0x58 + (num_parreg - 1) * 0x08 + 0x04)[2:]},
     CommitPartitionPadding = 32'h{hex(0x58 + (num_parreg - 1) * 0x08 + 0x08)[2:]},
 ''')
 
     for i in range(num_setflushreg):
-        f.write(f'''    FlushedSet{i}Low   = 32'h{hex(0x58 + num_parreg * 0x08  + 0x04 + i * 0x08)[2:]},
-    FlushedSet{i}High  = 32'h{hex(0x58 + num_parreg * 0x08  + 0x08 + i * 0x08)[2:]}''')
+        f.write(f'''    FlushedSetLow{i}   = 32'h{hex(0x58 + num_parreg * 0x08  + 0x04 + i * 0x04)[2:]},
+''')
+
+    temp = 0x58 + num_parreg * 0x08  + 0x04 + i * 0x04
+
+    for i in range(num_setflushreg):
+        f.write(f'''    FlushedSetHigh{i}  = 32'h{hex(temp  + 0x04 + i * 0x04)[2:]}''')
         if (i != num_setflushreg-1):
             f.write(',\n')
         else: 
