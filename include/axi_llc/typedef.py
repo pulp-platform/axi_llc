@@ -88,7 +88,7 @@ with open('include/axi_llc/typedef.svh', 'w') as f:
     logic       cfg_flush_thread_en;                                    \\\n\
 ")
 
-        (f'''    reg_data_t [{num_parreg-1}:0] cfg_set_partition;                                     \\
+        f.write(f'''    reg_data_t [{num_parreg-1}:0] cfg_set_partition;                                     \\
     logic [{num_parreg-1}:0]      cfg_set_partition_en;                                  \\
 ''')
 

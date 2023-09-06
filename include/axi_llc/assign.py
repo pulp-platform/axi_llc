@@ -72,6 +72,9 @@ with open('include/axi_llc/assign.svh', 'w') as f:
 /********************************************     SET BASED CACHE PARTITIONING     ********************************************/  \\\n\
     `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, cfg_flush_thread) \\\n")
 
+        for i in range(num_parreg):
+            f.write(f'''    `AXI_LLC_ASSIGN_REGBUS_FROM_MREGS_D_MEMBER(regbus, d_struct, cfg_set_partition, {i})   \\\n''')
+
         for i in range(num_setflushreg):
             f.write(f'''    `AXI_LLC_ASSIGN_REGBUS_FROM_MREGS_D_MEMBER(regbus, d_struct, flushed_set, {i})''')
             if (i != num_setflushreg-1): 

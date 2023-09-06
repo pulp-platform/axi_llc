@@ -312,7 +312,9 @@ module axi_llc_config_pat #(
   ////////////////////////
   // local address maps for bypass 1:Bypass 0:LLC
   rule_full_t [1:0] axi_addr_map_ar, axi_addr_map_aw;
-  localparam int unsigned num_set_flush_reg = ((Cfg.NumLines/RegWidth)==0) ? 1 : $ceil(Cfg.NumLines / RegWidth);
+  localparam int unsigned num_set_flush_reg = (Cfg.NumLines % RegWidth == 0) ?
+                                              Cfg.NumLines / RegWidth : Cfg.NumLines / RegWidth + 1;
+
   localparam int unsigned flushed_set_length = num_set_flush_reg * RegWidth;
   logic       [flushed_set_length-1:0] conf_regs_i_flushed_set;
   logic       [flushed_set_length-1:0] conf_regs_i_cfg_flush_set;
@@ -320,14 +322,16 @@ module axi_llc_config_pat #(
   assign num_unvalid_bit_flush_set = flushed_set_length - Cfg.NumLines;
   logic       [flushed_set_length-1:0] raw_flushed_set, mask_flush_set;
 /********************************************     SET BASED CACHE PARTITIONING     ********************************************/
-  localparam int unsigned num_parreg  = ($ceil(MaxPartition / $floor(RegWidth / Cfg.IndexLength))==0) ? 
-                                        1 : $ceil(MaxPartition / $floor(RegWidth / Cfg.IndexLength));
+  localparam int unsigned num_parreg  = (MaxPartition % (RegWidth / Cfg.IndexLength) == 0) ? 
+                                        (MaxPartition / (RegWidth / Cfg.IndexLength)) :
+                                        (MaxPartition / (RegWidth / Cfg.IndexLength)) + 1;
 
-generate
-  for (genvar i = 0; unsigned'(i) < num_set_flush_reg; i++) begin : gen_raw_flushed_set
-    assign raw_flushed_set[((i+1)*RegWidth-1) -: RegWidth] = conf_regs_i.flushed_set[i];
+  always_comb begin
+    for (int unsigned i = 0; i < num_set_flush_reg; i++) begin
+      raw_flushed_set[((i+1)*RegWidth-1) -: RegWidth] = conf_regs_i.flushed_set[i];
+    end
   end
-endgenerate
+
 
 // If the user set the flush bit position of conf_regs_i.flushed_set* which is beyond the number of cache lines, those bits are ignored
   always_comb begin
@@ -368,11 +372,11 @@ endgenerate
   logic [MaxPartition * Cfg.IndexLength - 1 : 0] conf_regs_i_cfg_set_partition;
 
 /********************************************     SET BASED CACHE PARTITIONING     ********************************************/
-generate
-  for (genvar i = 0; unsigned'(i) < num_parreg; i++) begin : gen_conf_regs_i_cfg_set_partition
-    assign conf_regs_i_cfg_set_partition[(((i+1)*valid_reg_bit)-1) : (i*valid_reg_bit)] = conf_regs_i.cfg_set_partition[i][valid_reg_bit-1:0];
+  always_comb begin
+    for (int unsigned i = 0; i < num_parreg; i++) begin
+      conf_regs_i_cfg_set_partition[(((i+1)*valid_reg_bit)-1) -: valid_reg_bit] = conf_regs_i.cfg_set_partition[i][valid_reg_bit-1:0];
+    end
   end
-endgenerate
 /******************************************************************************************************************************/
 
   logic partition_table_valid_d, partition_table_valid_q;
@@ -393,9 +397,12 @@ endgenerate
                     ((!partition_table_o[slv_ar_thread_id_i].NumIndex) && (flush_set_thread_q == MaxPartition)) || 
                     (flush_set_thread_q == (MaxPartition + 1));
 
+  assign conf_regs_o.cfg_set_partition = conf_regs_i.cfg_set_partition;
+
   always_comb begin : proc_partition_table
-    conf_regs_o.commit_partition_cfg = conf_regs_i.commit_partition_cfg;
     conf_regs_o.commit_partition_cfg_en = 1'b0;
+    conf_regs_o.commit_partition_cfg = conf_regs_i.commit_partition_cfg;
+    conf_regs_o.cfg_set_partition_en = 1'b0;
     partition_table_valid_d = partition_table_valid_q;
     if (conf_regs_i.commit_partition_cfg) begin
       partition_table_valid_d = 0;
@@ -488,12 +495,14 @@ endgenerate
 /*********************************************************************************************************/
 
       partition_table_valid_d = 1'b1;
+      conf_regs_o.cfg_set_partition_en = 1'b1;
     end
 
     if (!partition_table_valid_d) begin // default partition table when not configued
       partition_table_o = '0;
       partition_table_o[MaxPartition].StartIndex = partition_table_o[MaxPartition-1].StartIndex + partition_table_o[MaxPartition-1].NumIndex;
       partition_table_o[MaxPartition].NumIndex = Cfg.NumLines - partition_table_o[MaxPartition].StartIndex;
+      conf_regs_o.cfg_set_partition_en = 1'b1;
     end
 
     axi_addr_map_aw[0] = axi_spm_rule_i;

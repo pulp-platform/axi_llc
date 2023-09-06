@@ -44,6 +44,8 @@
     `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, version)        \
 /********************************************     SET BASED CACHE PARTITIONING     ********************************************/  \
     `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D_MEMBER(regbus, d_struct, cfg_flush_thread) \
+    `AXI_LLC_ASSIGN_REGBUS_FROM_MREGS_D_MEMBER(regbus, d_struct, cfg_set_partition, 0)   \
+    `AXI_LLC_ASSIGN_REGBUS_FROM_MREGS_D_MEMBER(regbus, d_struct, cfg_set_partition, 1)   \
     `AXI_LLC_ASSIGN_REGBUS_FROM_MREGS_D_MEMBER(regbus, d_struct, flushed_set, 0)   \
     `AXI_LLC_ASSIGN_REGBUS_FROM_MREGS_D_MEMBER(regbus, d_struct, flushed_set, 1)   \
     `AXI_LLC_ASSIGN_REGBUS_FROM_MREGS_D_MEMBER(regbus, d_struct, flushed_set, 2)   \

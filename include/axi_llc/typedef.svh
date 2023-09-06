@@ -63,6 +63,8 @@
 /********************************************     SET BASED CACHE PARTITIONING     ********************************************/  \
     reg_data_t  cfg_flush_thread;                                       \
     logic       cfg_flush_thread_en;                                    \
+    reg_data_t [1:0] cfg_set_partition;                                     \
+    logic [1:0]      cfg_set_partition_en;                                  \
     reg_data_t [3:0] flushed_set;                                           \
     logic [3:0]      flushed_set_en;                                        \
 /******************************************************************************************************************************/  \

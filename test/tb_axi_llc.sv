@@ -762,6 +762,8 @@ module tb_axi_llc #(
     reg_conf_driver.send_write(CfgSetPartitionHigh0, 32'b00000000_00000000_00000000_00000000, 4'hF, cfg_error);
     reg_conf_driver.send_write(CfgSetPartitionLow1, 32'b00000000_00000000_00000000_00000000, 4'hF, cfg_error);
     reg_conf_driver.send_write(CfgSetPartitionHigh1, 32'b00000000_00000000_00000000_00000000, 4'hF, cfg_error);
+    data  = 64'd1;
+    reg_conf_driver.send_write(CommitPartitionCfg, data[31:0], 4'hF, cfg_error);
     $info("Finished partition configuration!");
   endtask : cache_partition
 
