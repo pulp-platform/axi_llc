@@ -1,15 +1,23 @@
-# This file is used to automatecally generate 'set_partition_reggen.hjson'
+# Copyright 2023 ETH Zurich and University of Bologna.
+# Solderpad Hardware License, Version 0.51, see LICENSE for details.
+# SPDX-License-Identifier: SHL-0.51
+#
+# Authors:
+# - Hong Pang <hongpang@ethz.ch>
+# Date:   01.03.2023
+
+# This file is used to automatecally generate 'axi_llc_regs.hjson'
 
 import math
 import sys
 # all variables below are just for verification
 RegWidth    = int(sys.argv[1]) # 64 Same as "RegWidth" in sv
 NumLines    = int(sys.argv[2]) # 256 Same as "Sfg.NumLines in sv
-MaxThread   = int(sys.argv[3]) # 256 Same as "MaxThread" in sv
+MaxPartition   = int(sys.argv[3]) # 256 Same as "MaxPartition" in sv
 CachePartition = int(sys.argv[4]) # Signals whether cache partitioning is enabled or disabled, 1 means "enable"
 IndexLength = math.ceil(math.log2(NumLines))  # Same as "Cfg.IndexLength" in sv
 num_setflushreg = math.ceil(NumLines / RegWidth)
-num_parreg  = math.ceil(MaxThread / math.floor(RegWidth / IndexLength))  # The number of configuration registers used for set partitioning.
+num_parreg  = math.ceil(MaxPartition / math.floor(RegWidth / IndexLength))  # The number of configuration registers used for set partitioning.
 valid_reg_bit = math.floor(RegWidth / IndexLength) * IndexLength
 reg_after_commit = 15
 
@@ -183,16 +191,16 @@ with open('data/axi_llc_regs.hjson', 'w') as f:
 
     if CachePartition != 0: 
       f.write(',\n\
-    { name: "CFG_FLUSH_THREAD_LOW",\n\
-      desc: "Index-based Thread Flush Configuration [31:0] (lower 32 bit)",\n\
+    { name: "CFG_FLUSH_PARTITION_LOW",\n\
+      desc: "Index-based Partition Flush Configuration [31:0] (lower 32 bit)",\n\
       swaccess: "rw",\n\
       hwaccess: "hrw",\n\
       fields: [\n\
         {bits: "31:0", resval: 4294967295, name: "low", desc: "lower 32 bit"}\n\
       ]\n\
     },\n\
-    { name: "CFG_FLUSH_THREAD_HIGH",\n\
-      desc: "Index-based Thread Flush Configuration [63:32] (upper 32 bit)",\n\
+    { name: "CFG_FLUSH_PARTITION_HIGH",\n\
+      desc: "Index-based Partition Flush Configuration [63:32] (upper 32 bit)",\n\
       swaccess: "rw",\n\
       hwaccess: "hrw",\n\
       fields: [\n\

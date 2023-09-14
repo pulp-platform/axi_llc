@@ -1,13 +1,12 @@
-// Copyright 2022 ETH Zurich and University of Bologna.
+// Copyright 2023 ETH Zurich and University of Bologna.
 // Solderpad Hardware License, Version 0.51, see LICENSE for details.
 // SPDX-License-Identifier: SHL-0.51
 //
 // Authors:
+// - Hong Pang <hongpang@ethz.ch>
 // - Wolfgang Roenninger <wroennin@iis.ee.ethz.ch>
 // - Nicole Narr <narrn@ethz.ch>
 // - Christopher Reinwardt <creinwar@ethz.ch>
-// - Hong Pang <hongpang@ethz.ch>
-// - Diyou Shen <dishen@ethz.ch>
 // Date:   17.06.2019
 // Last changed: 03.04.2023
 
@@ -19,17 +18,21 @@
 ///
 /// Detailed descriptions of the individual registers can be found below.
 ///
-/// | Name        | read/write | Description                                      |
-/// |:-----------:|:----------:|:------------------------------------------------:|
-/// | `CfgSpm`    | read-write | [SPM Configuration](###CfgSpm)                   |
-/// | `CfgFlush`  | read-write | [Flush Configuration](###CfgFlush)               |
-/// | `CommitCfg` | read-write | [Configuration Commit](###CommitCfg)             |
-/// | `Flushed`   | read-only  | [Flushed Flag](###Flushed)                       |
-/// | `BistOut`   | read-only  | [Tag Storage BIST Result](###BistOut)            |
-/// | `SetAsso`   | read-only  | [Instantiated Set-Associativity](###SetAsso)     |
-/// | `NumLines`  | read-only  | [Instantiated Number of Cache-Lines](###NumLines)|
-/// | `NumBlocks` | read-only  | [Instantiated Number of Blocks](###NumBlocks)    |
-/// | `Version`   | read-only  | [AXI LLC Version](###Version)                    |
+/// | Name                | read/write | Description                                          |
+/// |:-------------------:|:----------:|:----------------------------------------------------:|
+/// | `CfgSpm`            | read-write | [SPM Configuration](###CfgSpm)                       |
+/// | `CfgFlush`          | read-write | [Way-Based Flush Configuration](###CfgFlush)         |
+/// | `CommitCfg`         | read-write | [Configuration Commit](###CommitCfg)                 |
+/// | `Flushed`           | read-only  | [Flushed Flag (for Way)](###Flushed)                 |
+/// | `BistOut`           | read-only  | [Tag Storage BIST Result](###BistOut)                |
+/// | `SetAsso`           | read-only  | [Instantiated Set-Associativity](###SetAsso)         |
+/// | `NumLines`          | read-only  | [Instantiated Number of Cache-Lines](###NumLines)    |
+/// | `NumBlocks`         | read-only  | [Instantiated Number of Blocks](###NumBlocks)        |
+/// | `Version`           | read-only  | [AXI LLC Version](###Version)                        |
+/// | `CfgFlushPartition` | read-write | [Partition-based Flushing](###CfgFlushPartition)     |
+/// | `CfgSetPartition`   | read-write | [Partition Configuration](###CfgSetPartition)        |
+/// | `CommitPartition`   | read-write | [Partition Configuration Commit](###CfgSetPartition) |
+/// | `FlushedSet`        | read-only  | [Flushed Flag (for Index)](###FlushedSet)            |
 ///
 /// ### CfgSpm
 ///
@@ -46,7 +49,7 @@
 ///
 /// ### CfgFlush
 ///
-/// Flush configuration register.
+/// Way-Based Flush configuration register.
 /// This register is read and writable from software.
 ///
 /// This register enables flushing of individual cache sets.
@@ -158,6 +161,77 @@
 /// |:--------:|:-----------------------------:|:---------------------------:|
 /// | `[63:0]` | `axi_llc_pkg::AxiLlcVersion`  | Shows the `axi_llc_version` |
 ///
+///
+/// ### `CfgFlushPartition`
+///
+/// Partition-Based Flush configuration register.
+/// This register is read and writable from software.
+///
+/// This register enables flushing of a single cache partition.
+///
+/// Register Bit Map:
+/// | Bits                           | Reset Value | Function                                                    |
+/// |:------------------------------:|:-----------:|:-----------------------------------------------------------:|
+/// | `[$clog(MaxPartition):0]`      | `-1`        | Flush Trigger Partition ID                                  |
+/// | `[63:($clog(MaxPartition)+1)]` | `-1`        | Should be set as 0 when configuring partition to be flushed |
+///
+///
+/// ### `CfgSetPartition`
+///
+/// Partition configuration register.
+/// This register is read and writable from software.
+///
+/// This register enables cache partition size configuration.
+///
+/// Depending on `MaxPartition` value, there may be multiple registers forming an array, i.e. CfgSetPartition[i]
+/// For each partition, the number of bits used for patition size configuration is $clog(Cfg.NumLines)-1. The 
+/// last few remaining bits which are not enough to configure a partition size are not used.
+///
+/// For example, if MaxPartition=12 and Cfg.NumLines=512, CfgSetPartition[0][8:0] defines pat0 size, 
+/// CfgSetPartition[0][17:9] defines pat1 size, ...,  CfgSetPartition[0][62:54] defines pat6 size, 
+/// CfgSetPartition[0][63] is reserved. CfgSetPartition[1][8:0] defines pat7 size, ..., CfgSetPartition[1][44:36] 
+/// defines pat11 size, CfgSetPartition[1][63:37] is reserved.
+///
+/// Register Bit Map:
+/// | Bits                                                  | Reset Value | Function                       |
+/// |:-----------------------------------------------------:|:-----------:|:------------------------------:|
+/// | `[(i+1)*$clog(Cfg.NumLines)-1:i*$clog(Cfg.NumLines)]` | `0`         | Configure Size for Partition i |
+///
+///
+/// ### CommitPartitionCfg
+///
+/// Commit partition configuration registers
+/// This register is read and writable from software.
+///
+/// This register notifies the hardware that the configuration registers
+/// now hold their intended value. This register must be written once after
+/// writing to CfgSetPartition.
+///
+/// Register Bit Map:
+/// | Bits                    | Reset Value | Function                       |
+/// |:-----------------------:|:-----------:|:------------------------------:|
+/// | `[0]`                   | `1'b0`      | Partition Commit configuration |
+///
+///
+/// ### FlushedSet
+///
+/// Flushed status of the individual cache Indice.
+/// This register is read only for software.
+///
+/// These bits are set, if the corresponding set is in a flushed state.
+///
+/// Depending on `Cfg.NumLines` value, there may be multiple registers forming an array, i.e. FlushedSet[i].
+///
+/// For example, if Cfg.NumLines=256, FlushedSet[0] is responsible for set #0-63, FlushedSet[1] is responsible
+/// for set 64-127, FlushedSet[2] is responsible for set 128-191, FlushedSet[3] is responsible for set 192-255. 
+///
+/// Register Bit Map:
+/// | Bits                    | Reset Value | Function                      |
+/// |:-----------------------:|:-----------:|:-----------------------------:|
+/// | `[0]`                   | `1'b0`      | Flushed Status Index-0          |
+/// | ...                     | ...         | ...                           |
+/// | `[X]`                   | `1'b0`      | Flushed Status Index-(64*i+X)   |
+///
 module axi_llc_config_pat #(
   /// Static AXI LLC configuration.
   parameter axi_llc_pkg::llc_cfg_t Cfg = axi_llc_pkg::llc_cfg_t'{default: '0},
@@ -168,7 +242,7 @@ module axi_llc_config_pat #(
   parameter axi_llc_pkg::llc_axi_cfg_t AxiCfg = axi_llc_pkg::llc_axi_cfg_t'{default: '0},
   /// Register Width
   parameter int unsigned RegWidth = 64,
-  /// Max. number of threads supported for partitioning
+  /// Max. number of partition supported in LLC
   parameter int unsigned MaxPartition = 32,
   /// Register type for HW -> Register direction
   parameter type conf_regs_d_t  = logic,
@@ -187,7 +261,8 @@ module axi_llc_config_pat #(
   /// Address type for the memory regions defined for caching and SPM. The same width as
   /// the address field of the AXI4+ATOP slave and master port.
   parameter type addr_full_t = logic,
-  parameter type thread_id_t = logic,
+  /// Type for indicating the partition ID
+  parameter type partition_id_t = logic,
   /// Whether to print config of LLC
   parameter bit  PrintLlcCfg = 0,
   /// Type for partition table
@@ -210,7 +285,7 @@ module axi_llc_config_pat #(
   /// This signal defines all ways which are flushed and have no valid tags in them.
   /// Tags are not looked up in the ways which are flushed.
   output set_asso_t flushed_o,
-  /// Flushed set flag.
+  /// Flushed set (index) flag.
   output set_t flushed_set_o,
   /// Flush descriptor output.
   ///
@@ -225,14 +300,14 @@ module axi_llc_config_pat #(
   ///
   /// This is for controlling the bypass multiplexer.
   input addr_full_t slv_aw_addr_i,
-  /// This is for controlling the bypass multiplexer.
-  input thread_id_t slv_aw_thread_id_i,
+  /// Partition ID of the incoming read request. This is for controlling the bypass multiplexer.
+  input partition_id_t slv_aw_partition_id_i,
   /// AXI4 AR address from AXI4 slave port.
   ///
   /// This is for controlling the bypass multiplexer.
   input addr_full_t slv_ar_addr_i,
-  /// This is for controlling the bypass multiplexer.
-  input thread_id_t slv_ar_thread_id_i,
+  /// Partition ID of the incoming read request. This is for controlling the bypass multiplexer.
+  input partition_id_t slv_ar_partition_id_i,
   /// Bypass selection for the AXI AW channel.
   output logic mst_aw_bypass_o,
   /// Bypass selection for the AXI AR channel.
@@ -275,12 +350,12 @@ module axi_llc_config_pat #(
   ///
   /// Accesses are only successful, if the corresponding way is mapped as SPM
   input  rule_full_t axi_spm_rule_i,
-  /// Partition table which tells the range of index assigned to each thread:
+  /// Partition table which tells the range of indice assigned to each partition:
   /// The number of entry in partition_table is one more than MaxPartition because it needs to hold 
-  /// the remaining part as shared region for any other thread that has not been allocated.
-  /// if the corresponding entry for PID_x is 0, then it means that that thread uses the shared 
-  /// region of cache. When we process data access of such thread, we should turn to 
-  /// partition_table_o[MaxPartition] for hit/miss information.
+  /// the remaining part as shared region for any other partition that has not been allocated.
+  /// If the entry is 0, then it means that the partition uses the shared region of cache. 
+  /// When we process data access of such partition, we should look up partition_table_o[MaxPartition]
+  /// for hit/miss information.
   output partition_table_t [MaxPartition:0] partition_table_o
 );
   // register macros from `common_cells`
@@ -310,21 +385,31 @@ module axi_llc_config_pat #(
   ////////////////////////
   // AXI Bypass control //
   ////////////////////////
-  // local address maps for bypass 1:Bypass 0:LLC
-  rule_full_t [1:0] axi_addr_map_ar, axi_addr_map_aw;
+  // # of registers signaling the sets in one-hot fashion
   localparam int unsigned num_set_flush_reg = (Cfg.NumLines % RegWidth == 0) ?
                                               Cfg.NumLines / RegWidth : Cfg.NumLines / RegWidth + 1;
-
-  localparam int unsigned flushed_set_length = num_set_flush_reg * RegWidth;
-  logic       [flushed_set_length-1:0] conf_regs_i_flushed_set;
-  logic       [flushed_set_length-1:0] conf_regs_i_cfg_flush_set;
-  logic       [Cfg.IndexLength-1:0] num_unvalid_bit_flush_set;
-  assign num_unvalid_bit_flush_set = flushed_set_length - Cfg.NumLines;
-  logic       [flushed_set_length-1:0] raw_flushed_set, mask_flush_set;
-/********************************************     SET BASED CACHE PARTITIONING     ********************************************/
+  // # of registers needed for partition (size) configuration
   localparam int unsigned num_parreg  = (MaxPartition % (RegWidth / Cfg.IndexLength) == 0) ? 
                                         (MaxPartition / (RegWidth / Cfg.IndexLength)) :
                                         (MaxPartition / (RegWidth / Cfg.IndexLength)) + 1;
+  // Length of one-hot set flushing signals concated together
+  localparam int unsigned flushed_set_length = num_set_flush_reg * RegWidth;
+
+  // local address maps for bypass 1:Bypass, 0:LLC
+  rule_full_t [1:0] axi_addr_map_ar, axi_addr_map_aw;
+  logic       [flushed_set_length-1:0] conf_regs_i_flushed_set;
+  logic       [flushed_set_length-1:0] conf_regs_i_cfg_flush_set;
+  logic       [flushed_set_length-1:0] raw_flushed_set, mask_flush_set;
+
+  localparam int unsigned valid_reg_bit = $floor(RegWidth / Cfg.IndexLength) * Cfg.IndexLength;
+
+  logic [MaxPartition * Cfg.IndexLength - 1 : 0] conf_regs_i_cfg_set_partition;
+
+  always_comb begin
+    for (int unsigned i = 0; i < num_parreg; i++) begin
+      conf_regs_i_cfg_set_partition[(((i+1)*valid_reg_bit)-1) -: valid_reg_bit] = conf_regs_i.cfg_set_partition[i][valid_reg_bit-1:0];
+    end
+  end
 
   always_comb begin
     for (int unsigned i = 0; i < num_set_flush_reg; i++) begin
@@ -332,19 +417,19 @@ module axi_llc_config_pat #(
     end
   end
 
-
-// If the user set the flush bit position of conf_regs_i.flushed_set* which is beyond the number of cache lines, those bits are ignored
+  // If the user set the flush bit position of conf_regs_i.flushed_set[x] which is 
+  // beyond the number of cache lines, those bits are ignored
   always_comb begin
     conf_regs_i_cfg_flush_set = '0;
-    if (conf_regs_i.cfg_flush_thread == (MaxPartition + 1)) begin
+    if (conf_regs_i.cfg_flush_partition == (MaxPartition + 1)) begin
       conf_regs_i_cfg_flush_set = {Cfg.NumLines{1'b1}};
-    end else if (partition_table_o[conf_regs_i.cfg_flush_thread].NumIndex) begin
+    end else if (partition_table_o[conf_regs_i.cfg_flush_partition].NumIndex) begin
       for (int unsigned k=0; k < Cfg.NumLines; k++) begin
-        if ((k >= partition_table_o[conf_regs_i.cfg_flush_thread].StartIndex) && (k < (partition_table_o[conf_regs_i.cfg_flush_thread].StartIndex + partition_table_o[conf_regs_i.cfg_flush_thread].NumIndex))) begin
+        if ((k >= partition_table_o[conf_regs_i.cfg_flush_partition].StartIndex) && (k < (partition_table_o[conf_regs_i.cfg_flush_partition].StartIndex + partition_table_o[conf_regs_i.cfg_flush_partition].NumIndex))) begin
           conf_regs_i_cfg_flush_set[k] = 1'b1;
         end
       end
-    end else if (partition_table_o[conf_regs_i.cfg_flush_thread].NumIndex == 0) begin
+    end else if (partition_table_o[conf_regs_i.cfg_flush_partition].NumIndex == 0) begin
       for (int unsigned k=0; k < Cfg.NumLines; k++) begin
         if ((k >= partition_table_o[MaxPartition].StartIndex) && (k < (partition_table_o[MaxPartition].StartIndex + partition_table_o[MaxPartition].NumIndex))) begin
           conf_regs_i_cfg_flush_set[k] = 1'b1;
@@ -352,50 +437,33 @@ module axi_llc_config_pat #(
       end
     end
   end
-/******************************************************************************************************************************/
 
   assign mask_flush_set = {Cfg.NumLines{1'b1}};
   assign conf_regs_i_flushed_set = raw_flushed_set & mask_flush_set;
 
-  localparam int unsigned IndexBase = Cfg.ByteOffsetLength + Cfg.BlockOffsetLength;
-
   // "index_based_flush_d" tells whether the flush operation is index-based or way-based (1: index-based   0: way-based) 
-  logic       index_based_flush_d, index_based_flush_q;
-  logic       load_index_based_flush;
-
+  logic index_based_flush_d, index_based_flush_q;
+  logic load_index_based_flush;
   assign load_index_based_flush = (index_based_flush_d != index_based_flush_q);
-
   `FFLARN(index_based_flush_q, index_based_flush_d, load_index_based_flush, '0, clk_i, rst_ni)
-  
-  localparam int unsigned valid_reg_bit = $floor(RegWidth / Cfg.IndexLength) * Cfg.IndexLength;
-
-  logic [MaxPartition * Cfg.IndexLength - 1 : 0] conf_regs_i_cfg_set_partition;
-
-/********************************************     SET BASED CACHE PARTITIONING     ********************************************/
-  always_comb begin
-    for (int unsigned i = 0; i < num_parreg; i++) begin
-      conf_regs_i_cfg_set_partition[(((i+1)*valid_reg_bit)-1) -: valid_reg_bit] = conf_regs_i.cfg_set_partition[i][valid_reg_bit-1:0];
-    end
-  end
-/******************************************************************************************************************************/
 
   logic partition_table_valid_d, partition_table_valid_q;
   `FFLARN(partition_table_valid_q, partition_table_valid_d, 1'b1, 1'b0, clk_i, rst_ni)
 
-  logic [$clog2(MaxPartition):0] flush_set_thread_d, flush_set_thread_q; 
-  logic load_flush_set_thread;
-  `FFLARN(flush_set_thread_q, flush_set_thread_d, load_flush_set_thread, -1, clk_i, rst_ni)
-  assign load_flush_set_thread = (flush_set_thread_d != flush_set_thread_q);
+  logic [$clog2(MaxPartition):0] flush_set_partition_d, flush_set_partition_q; 
+  logic load_flush_set_partition;
+  `FFLARN(flush_set_partition_q, flush_set_partition_d, load_flush_set_partition, -1, clk_i, rst_ni)
+  assign load_flush_set_partition = (flush_set_partition_d != flush_set_partition_q);
 
   logic start_addr_valid;
 
   logic ar_bypass, aw_bypass;
-  assign aw_bypass = (slv_aw_thread_id_i == flush_set_thread_q) || 
-                    ((!partition_table_o[slv_aw_thread_id_i].NumIndex) && (flush_set_thread_q == MaxPartition)) ||
-                    (flush_set_thread_q == (MaxPartition + 1));
-  assign ar_bypass = (slv_ar_thread_id_i == flush_set_thread_q) || 
-                    ((!partition_table_o[slv_ar_thread_id_i].NumIndex) && (flush_set_thread_q == MaxPartition)) || 
-                    (flush_set_thread_q == (MaxPartition + 1));
+  assign aw_bypass = (slv_aw_partition_id_i == flush_set_partition_q) || 
+                    ((!partition_table_o[slv_aw_partition_id_i].NumIndex) && (flush_set_partition_q == MaxPartition)) ||
+                    (flush_set_partition_q == (MaxPartition + 1));
+  assign ar_bypass = (slv_ar_partition_id_i == flush_set_partition_q) || 
+                    ((!partition_table_o[slv_ar_partition_id_i].NumIndex) && (flush_set_partition_q == MaxPartition)) || 
+                    (flush_set_partition_q == (MaxPartition + 1));
 
   assign conf_regs_o.cfg_set_partition = conf_regs_i.cfg_set_partition;
 
@@ -409,7 +477,7 @@ module axi_llc_config_pat #(
       conf_regs_o.commit_partition_cfg      = 1'b0;   // Clear the commit configuration flag
       conf_regs_o.commit_partition_cfg_en   = 1'b1;
 
-/*1 For loop****************************************************************************************************/
+/* Way #1 Single-side partition table ********************************************************************/
       // partition_table_o[0].NumIndex = conf_regs_i_cfg_set_partition[Cfg.IndexLength-1:0];
       // partition_table_o[0].StartIndex = 0;
 
@@ -432,36 +500,21 @@ module axi_llc_config_pat #(
       // // if (partition_table_o[MaxPartition].StartIndex >= Cfg.NumLines) begin
       // //   $error("Partition Configuration Error!");
       // // end
-/*********************************************************************************************************/
+/* Way #1 END**********************************************************************************************/
 
 
-
-
-
-/*2 For loop****************************************************************************************************/
+/* Way #2 Dual-side partition table **********************************************************************/
       partition_table_o[0].NumIndex = conf_regs_i_cfg_set_partition[Cfg.IndexLength-1:0];
       partition_table_o[0].StartIndex = 0;
-
-      // if (partition_table_o[0].NumIndex >= Cfg.NumLines) begin
-      //   $error("The partition size must not be larger than number of cache lines!");
-      // end
 
       start_addr_valid = conf_regs_i_cfg_set_partition[(Cfg.IndexLength<<1)-1:Cfg.IndexLength] ? 1 : 0;
       partition_table_o[1].NumIndex = conf_regs_i_cfg_set_partition[(Cfg.IndexLength<<1)-1:Cfg.IndexLength];
       partition_table_o[1].StartIndex = conf_regs_i_cfg_set_partition[(Cfg.IndexLength<<1)-1:Cfg.IndexLength] ? 
                                         (Cfg.NumLines-conf_regs_i_cfg_set_partition[(Cfg.IndexLength<<1)-1:Cfg.IndexLength]) : (Cfg.NumLines-1);
 
-      // if (partition_table_o[1].NumIndex >= Cfg.NumLines) begin
-      //   $error("The partition size must not be larger than number of cache lines!");
-      // end
-
       for (int unsigned i = 1; i < (MaxPartition-(MaxPartition>>1)); i++) begin : gen_partition_table_odd_number
         partition_table_o[i<<1].StartIndex = partition_table_o[(i<<1)-2].StartIndex + partition_table_o[(i<<1)-2].NumIndex;
         partition_table_o[i<<1].NumIndex = conf_regs_i_cfg_set_partition[((i<<1)+1)*Cfg.IndexLength-1 -: Cfg.IndexLength];
-
-        // if ((partition_table_o[i].NumIndex >= Cfg.NumLines) || (partition_table_o[i].StartIndex >= Cfg.NumLines)) begin
-        //   $error("The set partition configuration overflows the total cache size! ---odd");
-        // end
       end
 
       for (int unsigned j = 1; j < (MaxPartition>>1); j++) begin : gen_partition_table_even_number
@@ -470,29 +523,19 @@ module axi_llc_config_pat #(
                                                  (conf_regs_i_cfg_set_partition[((j<<1)+2)*Cfg.IndexLength-1 -: Cfg.IndexLength] == 0 ? (Cfg.NumLines-1) : 
                                                   partition_table_o[(j<<1)-1].StartIndex - conf_regs_i_cfg_set_partition[((j<<1)+2)*Cfg.IndexLength-1 -: Cfg.IndexLength] + 1);
         partition_table_o[(j<<1)+1].NumIndex = conf_regs_i_cfg_set_partition[((j<<1)+2)*Cfg.IndexLength-1 -: Cfg.IndexLength];
-
         start_addr_valid |= (conf_regs_i_cfg_set_partition[((j<<1)+2)*Cfg.IndexLength-1 -: Cfg.IndexLength] != 0);
-        // if ((partition_table_o[j].NumIndex >= Cfg.NumLines) || (partition_table_o[j].StartIndex >= Cfg.NumLines)) begin
-        //   $error("The set partition configuration overflows the total cache size! ---even");
-        // end
       end
 
       if (!(MaxPartition % 2)) begin
         partition_table_o[MaxPartition].StartIndex = partition_table_o[MaxPartition-2].StartIndex + partition_table_o[MaxPartition-2].NumIndex;
-
         partition_table_o[MaxPartition].NumIndex = start_addr_valid ? partition_table_o[MaxPartition-1].StartIndex - partition_table_o[MaxPartition].StartIndex : 
                                                 partition_table_o[MaxPartition-1].StartIndex - partition_table_o[MaxPartition].StartIndex + 1;
       end else begin
         partition_table_o[MaxPartition].StartIndex = partition_table_o[MaxPartition-1].StartIndex + partition_table_o[MaxPartition-1].NumIndex;
-
         partition_table_o[MaxPartition].NumIndex = start_addr_valid ? partition_table_o[MaxPartition-2].StartIndex - partition_table_o[MaxPartition].StartIndex : 
                                                 partition_table_o[MaxPartition-2].StartIndex - partition_table_o[MaxPartition].StartIndex + 1;
       end
-
-      // if (partition_table_o[MaxPartition].StartIndex >= Cfg.NumLines) begin
-      //   $error("Partition Configuration Error!");
-      // end
-/*********************************************************************************************************/
+/* Way #2 END**********************************************************************************************/
 
       partition_table_valid_d = 1'b1;
       conf_regs_o.cfg_set_partition_en = 1'b1;
@@ -610,8 +653,7 @@ module axi_llc_config_pat #(
     // Registers
     conf_regs_o.cfg_spm       = conf_regs_i.cfg_spm;
     conf_regs_o.cfg_flush     = conf_regs_i.cfg_flush;
-/********************************************     SET BASED CACHE PARTITIONING     ********************************************/
-    conf_regs_o.cfg_flush_thread = conf_regs_i.cfg_flush_thread;
+    conf_regs_o.cfg_flush_partition = conf_regs_i.cfg_flush_partition;
     conf_regs_o.commit_cfg    = conf_regs_i.commit_cfg;
     conf_regs_o.flushed       = conf_regs_i.flushed;
 
@@ -622,14 +664,13 @@ module axi_llc_config_pat #(
     // Register enables
     conf_regs_o.cfg_spm_en    = 1'b1;   // default one
     conf_regs_o.cfg_flush_en  = 1'b1;   // default one
-    conf_regs_o.cfg_flush_thread_en = 1'b1;
+    conf_regs_o.cfg_flush_partition_en = 1'b1;
     conf_regs_o.commit_cfg_en = 1'b0;   // default disabled
     conf_regs_o.flushed_en    = 1'b0;   // default disabled
 
     for (int unsigned i = 0; i < num_set_flush_reg; i++) begin
       conf_regs_o.flushed_set_en[i]  = 1'b0;
     end
-/******************************************************************************************************************************/
 
     // Flush state machine
     flush_state_d  = flush_state_q;
@@ -637,9 +678,12 @@ module axi_llc_config_pat #(
     llc_isolate_o  = 1'b1;
     // To flush register, holds the ways which have to be flushed.
     to_flush_d     = to_flush_q;
+    // To flush register, holds the indice which have to be flushed.
     to_flush_set_d = to_flush_set_q;
+    // Flushing type, 1:flush index    0:flush way
     index_based_flush_d = index_based_flush_q;
-    flush_set_thread_d = flush_set_thread_q;
+    // Partition region that should be flushed
+    flush_set_partition_d = flush_set_partition_q;
     // Emit flush descriptors.
     desc_valid_o   = 1'b0;
     // Default signal definitions for the descriptor send and receive counter control.
@@ -655,15 +699,13 @@ module axi_llc_config_pat #(
     // FSM for controlling the AW AR input to the cache and flush control
     unique case (flush_state_q)
       FsmIdle:  begin
-        // this state is normal operation, allow Cfg editing of the fields `CfgSpm` and `CfgFlush`
+        // this state is normal operation, allow Cfg editing of the fields `CfgSpm`, `CfgFlush` and `CfgFlushPartition`
         // and do not isolate main AXI
         conf_regs_o.cfg_spm_en    = 1'b0;
         conf_regs_o.cfg_flush_en  = 1'b0;
-/********************************************     SET BASED CACHE PARTITIONING     ********************************************/
-        conf_regs_o.cfg_flush_thread_en = 1'b0;
-/******************************************************************************************************************************/
+        conf_regs_o.cfg_flush_partition_en = 1'b0;
         llc_isolate_o             = 1'b0;
-        flush_set_thread_d        = -1;
+        flush_set_partition_d        = -1;
         // Change state, if there is a flush request, i.e. CommitCfg was set
         if (conf_regs_i.commit_cfg) begin
           conf_regs_o.commit_cfg      = 1'b0;   // Clear the commit configuration flag
@@ -684,25 +726,23 @@ module axi_llc_config_pat #(
         end
       end
       FsmInitFlush: begin
-        // this state determines which cache line should be flushed
-        if (conf_regs_i.cfg_flush_thread != -1) begin
+        // this state determines the index-to-be-flushed
+        if (conf_regs_i.cfg_flush_partition != -1) begin
           to_flush_set_d          = conf_regs_i_cfg_flush_set & ~conf_regs_i_flushed_set;
-          index_based_flush_d = 1'b1; //meaning that the current flush operation is index-based
-          flush_set_thread_d  = partition_table_o[conf_regs_i.cfg_flush_thread].NumIndex ? conf_regs_i.cfg_flush_thread : MaxPartition;
+          index_based_flush_d = 1'b1; // meaning that the current flush operation is index-based
+          // If the input partition that is to be flushed has size 0, then flush shared region
+          flush_set_partition_d  = partition_table_o[conf_regs_i.cfg_flush_partition].NumIndex ? conf_regs_i.cfg_flush_partition : MaxPartition;
           if (to_flush_set_d == '0) begin
-            // nothing to flush, go to idle
+            // nothing to flush, go to idle, reset flushing type and partition flushing ID signal
             flush_state_d = FsmIdle;
             index_based_flush_d = 1'b0;
-            flush_set_thread_d = -1;
-
-/********************************************     SET BASED CACHE PARTITIONING     ********************************************/
-            conf_regs_o.cfg_flush_thread = -1;
-/******************************************************************************************************************************/
+            flush_set_partition_d = -1;
+            conf_regs_o.cfg_flush_partition = -1;
           end else begin
             flush_state_d = FsmSendFlush;
             load_cnt_set      = 1'b1;
           end
-        // this state determines which cache way should be flushed
+        // This state determines which cache way should be flushed
         // it also sets up the counters for state-keeping how far
         // the flush operation has progressed
         // define if the user requested a flush       
@@ -742,7 +782,7 @@ module axi_llc_config_pat #(
           // determine the type of flush operation (index-based or way-based)
           // index-based flush
           if (index_based_flush_q == 1'b1) begin
-            // last flush descriptor for this cache line?
+            // last flush descriptor for this index?
             if (flush_way == {FlushIdxWidth{1'b1}}) begin
               flush_state_d = FsmWaitFlush;
             end else begin
@@ -790,17 +830,16 @@ module axi_llc_config_pat #(
         if (index_based_flush_q == 1'b1) begin
           clear_cnt_set = 1'b1;
           if (to_flush_set_q == flush_set_ind) begin
+            // No pending set to be flushed
             flush_state_d = FsmIdle;
-            // index_based_flush_d = 1'b0; // reset flush type
             // reset the flushed register to SPM as new requests can enter the cache
-/********************************************     SET BASED CACHE PARTITIONING     ********************************************/
             for (int unsigned i = 0; i < num_set_flush_reg; i++) begin
                 conf_regs_o.flushed_set[i]    = 64'b0;
                 conf_regs_o.flushed_set_en[i] = 1'b1; 
             end
             to_flush_set_d              = set_t'(1'b0);
-            // Reset the `CfgFlushTherad` register, load enable is default '1
-            conf_regs_o.cfg_flush_thread  = -1;
+            // Reset the `CfgFlushPartition` register to -1, load enable is default '1
+            conf_regs_o.cfg_flush_partition  = -1;
           end else begin
             // there are still cache lines to flush
             flush_state_d = FsmInitFlush;
@@ -816,7 +855,6 @@ module axi_llc_config_pat #(
             for (int unsigned i = 0; i < num_set_flush_reg; i++) begin
                 conf_regs_o.flushed_set_en[i] = 1'b1;
             end
-/******************************************************************************************************************************/
           end
         end else begin
           clear_cnt = 1'b1;
@@ -865,6 +903,7 @@ module axi_llc_config_pat #(
 
   always_comb begin
     if (index_based_flush_q == 1'b1) begin
+      // index-based flushing desc
       desc_o           = '0;
       desc_o.a_x_addr  = addr_full_t'(to_flush_set_nub) << FlushAddrShift;
       desc_o.a_x_len   = axi_pkg::len_t'(Cfg.NumBlocks - 32'd1);
@@ -874,6 +913,7 @@ module axi_llc_config_pat #(
       desc_o.way_ind   = flush_way_onehot;
       desc_o.flush     = 1'b1;
     end else begin
+      // way-based flushing desc
       desc_o           = '0;
       desc_o.a_x_addr  = addr_full_t'(flush_addr) << FlushAddrShift;
       desc_o.a_x_len   = axi_pkg::len_t'(Cfg.NumBlocks - 32'd1);
@@ -891,7 +931,7 @@ module axi_llc_config_pat #(
   assign flushed_set_o = conf_regs_i_flushed_set;
 
   // This trailing zero counter determines which way should be flushed next.
-  // Dtermining next cache line to flush (for index-based flush)
+  // Determining next cache line to flush (for index-based flush)
    lzc #(
     .WIDTH ( Cfg.NumLines ),
     .MODE  ( 1'b0         )
@@ -901,7 +941,7 @@ module axi_llc_config_pat #(
     .empty_o ( lzc_empty_set    )
   );
 
-  // Dtermining next way to flush (for way-based flush)
+  // Determining next way to flush (for way-based flush)
   lzc #(
     .WIDTH ( Cfg.SetAssociativity ),
     .MODE  ( 1'b0                 )
@@ -911,13 +951,14 @@ module axi_llc_config_pat #(
     .empty_o ( lzc_empty    )
   );
   // Decode flush way indicator from binary to one-hot signal.
-  assign flush_way_ind = (lzc_empty) ? set_asso_t'(1'b0) : set_asso_t'(64'd1) << to_flush_nub;
-  assign flush_set_ind = (lzc_empty_set) ? set_t'(1'b0) : set_t'(256'd1) << to_flush_set_nub;
+  assign flush_way_ind = (lzc_empty)     ? set_asso_t'(1'b0) : set_asso_t'(64'd1) << to_flush_nub;
+  // Decode flush index indicator from binary to one-hot signal.
+  assign flush_set_ind = (lzc_empty_set) ? set_t'(1'b0)      : set_t'(256'd1) << to_flush_set_nub;
 
   ///////////////////////////////
   // Counter for flush control //
   ///////////////////////////////
-  // This counts how many flush descriptors have been sent.
+  // This counts how many flush descriptors have been sent. (For way-based flushing)
   counter #(
     .WIDTH ( Cfg.IndexLength )
   ) i_flush_send_counter (
@@ -932,7 +973,7 @@ module axi_llc_config_pat #(
     .overflow_o ( /*not used*/            )
   );
 
-  // This counts how many flush descriptors are not done flushing.
+  // This counts how many flush descriptors are not done flushing. (For way-based flushing)
   counter #(
     .WIDTH ( Cfg.IndexLength )
   ) i_flush_recv_counter (
@@ -946,6 +987,8 @@ module axi_llc_config_pat #(
     .q_o        ( to_recieve              ),
     .overflow_o ( /*not used*/            )
   );
+
+  // This counts how many flush descriptors have been sent. (For index-based flushing)
   counter #(
     .WIDTH ( FlushIdxWidth )
   ) i_flush_set_send_counter (
@@ -960,7 +1003,7 @@ module axi_llc_config_pat #(
     .overflow_o ( /*not used*/            )
   );
 
-  // This counts how many flush descriptors are not done flushing.
+  // This counts how many flush descriptors are not done flushing. (For index-based flushing)
   counter #(
     .WIDTH ( FlushIdxWidth )
   ) i_flush_set_recv_counter (

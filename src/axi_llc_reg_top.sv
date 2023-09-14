@@ -96,12 +96,12 @@ module axi_llc_reg_top #(
   logic [31:0] version_low_qs;
   logic [31:0] version_high_qs;
   logic bist_status_qs;
-  logic [31:0] cfg_flush_thread_low_qs;
-  logic [31:0] cfg_flush_thread_low_wd;
-  logic cfg_flush_thread_low_we;
-  logic [31:0] cfg_flush_thread_high_qs;
-  logic [31:0] cfg_flush_thread_high_wd;
-  logic cfg_flush_thread_high_we;
+  logic [31:0] cfg_flush_partition_low_qs;
+  logic [31:0] cfg_flush_partition_low_wd;
+  logic cfg_flush_partition_low_we;
+  logic [31:0] cfg_flush_partition_high_qs;
+  logic [31:0] cfg_flush_partition_high_wd;
+  logic cfg_flush_partition_high_we;
   logic [31:0] cfg_set_partition_low_0_qs;
   logic [31:0] cfg_set_partition_low_0_wd;
   logic cfg_set_partition_low_0_we;
@@ -600,57 +600,57 @@ module axi_llc_reg_top #(
   );
 
 
-  // R[cfg_flush_thread_low]: V(False)
+  // R[cfg_flush_partition_low]: V(False)
 
   prim_subreg #(
     .DW      (32),
     .SWACCESS("RW"),
     .RESVAL  (32'hffffffff)
-  ) u_cfg_flush_thread_low (
+  ) u_cfg_flush_partition_low (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
 
     // from register interface
-    .we     (cfg_flush_thread_low_we),
-    .wd     (cfg_flush_thread_low_wd),
+    .we     (cfg_flush_partition_low_we),
+    .wd     (cfg_flush_partition_low_wd),
 
     // from internal hardware
-    .de     (hw2reg.cfg_flush_thread_low.de),
-    .d      (hw2reg.cfg_flush_thread_low.d ),
+    .de     (hw2reg.cfg_flush_partition_low.de),
+    .d      (hw2reg.cfg_flush_partition_low.d ),
 
     // to internal hardware
     .qe     (),
-    .q      (reg2hw.cfg_flush_thread_low.q ),
+    .q      (reg2hw.cfg_flush_partition_low.q ),
 
     // to register interface (read)
-    .qs     (cfg_flush_thread_low_qs)
+    .qs     (cfg_flush_partition_low_qs)
   );
 
 
-  // R[cfg_flush_thread_high]: V(False)
+  // R[cfg_flush_partition_high]: V(False)
 
   prim_subreg #(
     .DW      (32),
     .SWACCESS("RW"),
     .RESVAL  (32'hffffffff)
-  ) u_cfg_flush_thread_high (
+  ) u_cfg_flush_partition_high (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
 
     // from register interface
-    .we     (cfg_flush_thread_high_we),
-    .wd     (cfg_flush_thread_high_wd),
+    .we     (cfg_flush_partition_high_we),
+    .wd     (cfg_flush_partition_high_wd),
 
     // from internal hardware
-    .de     (hw2reg.cfg_flush_thread_high.de),
-    .d      (hw2reg.cfg_flush_thread_high.d ),
+    .de     (hw2reg.cfg_flush_partition_high.de),
+    .d      (hw2reg.cfg_flush_partition_high.d ),
 
     // to internal hardware
     .qe     (),
-    .q      (reg2hw.cfg_flush_thread_high.q ),
+    .q      (reg2hw.cfg_flush_partition_high.q ),
 
     // to register interface (read)
-    .qs     (cfg_flush_thread_high_qs)
+    .qs     (cfg_flush_partition_high_qs)
   );
 
 
@@ -1028,8 +1028,8 @@ module axi_llc_reg_top #(
     addr_hit[15] = (reg_addr == AXI_LLC_VERSION_LOW_OFFSET);
     addr_hit[16] = (reg_addr == AXI_LLC_VERSION_HIGH_OFFSET);
     addr_hit[17] = (reg_addr == AXI_LLC_BIST_STATUS_OFFSET);
-    addr_hit[18] = (reg_addr == AXI_LLC_CFG_FLUSH_THREAD_LOW_OFFSET);
-    addr_hit[19] = (reg_addr == AXI_LLC_CFG_FLUSH_THREAD_HIGH_OFFSET);
+    addr_hit[18] = (reg_addr == AXI_LLC_CFG_FLUSH_PARTITION_LOW_OFFSET);
+    addr_hit[19] = (reg_addr == AXI_LLC_CFG_FLUSH_PARTITION_HIGH_OFFSET);
     addr_hit[20] = (reg_addr == AXI_LLC_CFG_SET_PARTITION_LOW_0_OFFSET);
     addr_hit[21] = (reg_addr == AXI_LLC_CFG_SET_PARTITION_LOW_1_OFFSET);
     addr_hit[22] = (reg_addr == AXI_LLC_CFG_SET_PARTITION_HIGH_0_OFFSET);
@@ -1100,11 +1100,11 @@ module axi_llc_reg_top #(
   assign commit_cfg_we = addr_hit[4] & reg_we & !reg_error;
   assign commit_cfg_wd = reg_wdata[0];
 
-  assign cfg_flush_thread_low_we = addr_hit[18] & reg_we & !reg_error;
-  assign cfg_flush_thread_low_wd = reg_wdata[31:0];
+  assign cfg_flush_partition_low_we = addr_hit[18] & reg_we & !reg_error;
+  assign cfg_flush_partition_low_wd = reg_wdata[31:0];
 
-  assign cfg_flush_thread_high_we = addr_hit[19] & reg_we & !reg_error;
-  assign cfg_flush_thread_high_wd = reg_wdata[31:0];
+  assign cfg_flush_partition_high_we = addr_hit[19] & reg_we & !reg_error;
+  assign cfg_flush_partition_high_wd = reg_wdata[31:0];
 
   assign cfg_set_partition_low_0_we = addr_hit[20] & reg_we & !reg_error;
   assign cfg_set_partition_low_0_wd = reg_wdata[31:0];
@@ -1198,11 +1198,11 @@ module axi_llc_reg_top #(
       end
 
       addr_hit[18]: begin
-        reg_rdata_next[31:0] = cfg_flush_thread_low_qs;
+        reg_rdata_next[31:0] = cfg_flush_partition_low_qs;
       end
 
       addr_hit[19]: begin
-        reg_rdata_next[31:0] = cfg_flush_thread_high_qs;
+        reg_rdata_next[31:0] = cfg_flush_partition_high_qs;
       end
 
       addr_hit[20]: begin

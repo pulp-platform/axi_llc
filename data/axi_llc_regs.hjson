@@ -162,16 +162,16 @@
         {bits: "0:0", name: "done", desc: "BIST successfully completed"}
       ]
     },
-    { name: "CFG_FLUSH_THREAD_LOW",
-      desc: "Index-based Thread Flush Configuration [31:0] (lower 32 bit)",
+    { name: "CFG_FLUSH_PARTITION_LOW",
+      desc: "Index-based Partition Flush Configuration [31:0] (lower 32 bit)",
       swaccess: "rw",
       hwaccess: "hrw",
       fields: [
         {bits: "31:0", resval: 4294967295, name: "low", desc: "lower 32 bit"}
       ]
     },
-    { name: "CFG_FLUSH_THREAD_HIGH",
-      desc: "Index-based Thread Flush Configuration [63:32] (upper 32 bit)",
+    { name: "CFG_FLUSH_PARTITION_HIGH",
+      desc: "Index-based Partition Flush Configuration [63:32] (upper 32 bit)",
       swaccess: "rw",
       hwaccess: "hrw",
       fields: [

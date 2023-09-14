@@ -1,3 +1,11 @@
+# Copyright 2023 ETH Zurich and University of Bologna.
+# Solderpad Hardware License, Version 0.51, see LICENSE for details.
+# SPDX-License-Identifier: SHL-0.51
+#
+# Authors:
+# - Hong Pang <hongpang@ethz.ch>
+# Date:   01.03.2023
+
 # This file is used to automatecally generate 'typedef.svh'
 
 import math
@@ -5,11 +13,11 @@ import sys
 # all variables below are just for verification
 RegWidth    = int(sys.argv[1]) # 64 Same as "RegWidth" in sv
 NumLines    = int(sys.argv[2]) # 256 Same as "Sfg.NumLines in sv
-MaxThread   = int(sys.argv[3]) # 256 Same as "MaxThread" in sv
+MaxPartition   = int(sys.argv[3]) # 256 Same as "MaxPartition" in sv
 CachePartition = int(sys.argv[4]) # Signals whether cache partitioning is enabled or disabled, 1 means "enable"
 IndexLength = math.ceil(math.log2(NumLines))  # Same as "Cfg.IndexLength" in sv
 num_setflushreg = math.ceil(NumLines / RegWidth)
-num_parreg  = math.ceil(MaxThread / math.floor(RegWidth / IndexLength))  # The number of configuration registers used for set partitioning.
+num_parreg  = math.ceil(MaxPartition / math.floor(RegWidth / IndexLength))  # The number of configuration registers used for set partitioning.
 valid_reg_bit = math.floor(RegWidth / IndexLength) * IndexLength
 
 with open('include/axi_llc/typedef.svh', 'w') as f:
@@ -83,20 +91,18 @@ with open('include/axi_llc/typedef.svh', 'w') as f:
 
     if CachePartition != 0: 
         f.write("\
-/********************************************     SET BASED CACHE PARTITIONING     ********************************************/  \\\n\
-    reg_data_t  cfg_flush_thread;                                       \\\n\
-    logic       cfg_flush_thread_en;                                    \\\n\
+    reg_data_t  cfg_flush_partition;                                    \\\n\
+    logic       cfg_flush_partition_en;                                 \\\n\
 ")
 
-        f.write(f'''    reg_data_t [{num_parreg-1}:0] cfg_set_partition;                                     \\
-    logic [{num_parreg-1}:0]      cfg_set_partition_en;                                  \\
+        f.write(f'''    reg_data_t [{num_parreg-1}:0] cfg_set_partition;                                 \\
+    logic [{num_parreg-1}:0]      cfg_set_partition_en;                              \\
 ''')
 
-        f.write(f'''    reg_data_t [{num_setflushreg-1}:0] flushed_set;                                           \\
-    logic [{num_setflushreg-1}:0]      flushed_set_en;                                        \\
+        f.write(f'''    reg_data_t [{num_setflushreg-1}:0] flushed_set;                                       \\
+    logic [{num_setflushreg-1}:0]      flushed_set_en;                                    \\
 ''')
 
-        f.write("/******************************************************************************************************************************/  \\\n")
     f.write("  } cfg_regs_d_t;\n\
 \n\
 // Registers -> HW\n\
@@ -119,16 +125,14 @@ with open('include/axi_llc/typedef.svh', 'w') as f:
 
     if CachePartition != 0: 
         f.write("\
-/********************************************     SET BASED CACHE PARTITIONING     ********************************************/  \\\n\
-    reg_data_t  cfg_flush_thread;                                       \\\n")
+    reg_data_t  cfg_flush_partition;                                    \\\n")
 
-        f.write(f'''    reg_data_t [{num_parreg-1}:0] cfg_set_partition;                                     \\
+        f.write(f'''    reg_data_t [{num_parreg-1}:0] cfg_set_partition;                                 \\
 ''')
 
-        f.write(f'''    reg_data_t [{num_setflushreg-1}:0] flushed_set;                                           \\
+        f.write(f'''    reg_data_t [{num_setflushreg-1}:0] flushed_set;                                       \\
 ''')
 
-        f.write("/******************************************************************************************************************************/  \\\n")
     f.write("  } cfg_regs_q_t;\n\
 \n\
 ////////////////////////////////////////////////////////////////////////////////////////////////////\n\

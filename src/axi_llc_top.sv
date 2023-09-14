@@ -3,6 +3,8 @@
 // SPDX-License-Identifier: SHL-0.51
 //
 // Author: Wolfgang Roenninger <wroennin@iis.ee.ethz.ch>
+// - Hong Pang <hongpang@ethz.ch>
+// - Diyou Shen <dishen@ethz.ch>
 // Date:   30.04.2019
 
 /// Contains the top_level of the axi_llc with structs as AXI connections.
@@ -169,12 +171,12 @@ module axi_llc_top #(
   /// AXI4+ATOP data field width of both the slave and the master port.
   parameter int unsigned AxiDataWidth = 32'd0,
   /// AXI4+ATOP user field width of both the slave and the master port.
-  parameter int unsigned AxiUserWidth = 32'd0, // Here, "user" data part of AXI channel is used for 
-                                               // signaling the id of each thread from which the data 
-                                               // access is issued. AxiUserWidth should be equal to 
-                                               // PIDWidth, which signals the id of the thread. For current 
-                                               // system, the upper bound of the number of threads
-                                               // running is 256, so AxiUserWidth should be 8.
+  /// Here, "user" data part of AXI channel is used for signaling the
+  /// partition ID from which the data access is issued. AxiUserWidth 
+  /// should be equal to PIDWidth, which signals the partition ID. 
+  /// For current system, the upper bound of the number of partition
+  /// running is 256, so AxiUserWidth should be 8.
+  parameter int unsigned AxiUserWidth = 32'd0, 
   /// Internal register width
   parameter int unsigned RegWidth = 64,
   /// AXI4 User signal offset
@@ -289,26 +291,26 @@ module axi_llc_top #(
 
   typedef struct packed {
     // AXI4+ATOP specific descriptor signals
-    axi_slv_id_t                     a_x_id;   // AXI ID from slave port
-    axi_addr_t                       a_x_addr; // memory address
-    axi_pkg::len_t                   a_x_len;  // AXI burst length
-    axi_pkg::size_t                  a_x_size; // AXI burst size
-    axi_pkg::burst_t                 a_x_burst;// AXI burst type
-    logic                            a_x_lock; // AXI lock signal
-    axi_pkg::cache_t                 a_x_cache;// AXI cache signal
-    axi_pkg::prot_t                  a_x_prot; // AXI protection signal
-    axi_pkg::resp_t                  x_resp;   // AXI response signal, for error propagation
-    logic                            x_last;   // Last descriptor of a burst
+    axi_slv_id_t                     a_x_id;          // AXI ID from slave port
+    axi_addr_t                       a_x_addr;        // memory address
+    axi_pkg::len_t                   a_x_len;         // AXI burst length
+    axi_pkg::size_t                  a_x_size;        // AXI burst size
+    axi_pkg::burst_t                 a_x_burst;       // AXI burst type
+    logic                            a_x_lock;        // AXI lock signal
+    axi_pkg::cache_t                 a_x_cache;       // AXI cache signal
+    axi_pkg::prot_t                  a_x_prot;        // AXI protection signal
+    axi_pkg::resp_t                  x_resp;          // AXI response signal, for error propagation
+    logic                            x_last;          // Last descriptor of a burst
     // Cache specific descriptor signals
-    logic                            spm;      // this descriptor targets a SPM region in the cache
-    logic                            rw;       // this descriptor is a read:0 or write:1 access
-    logic [Cfg.SetAssociativity-1:0] way_ind;  // way we have to perform an operation on
-    logic                            evict;    // evict what is standing in the line
-    logic [Cfg.TagLength -1:0]       evict_tag;// tag for evicting a line
-    logic                            refill;   // refill the cache line
-    logic                            flush;    // flush this line, comes from config
-    logic [AxiUserWidth-1:0]         patid;
-    logic [Cfg.IndexLength-1:0]      index_partition; // index for storage after set partition
+    logic                            spm;             // this descriptor targets a SPM region in the cache
+    logic                            rw;              // this descriptor is a read:0 or write:1 access
+    logic [Cfg.SetAssociativity-1:0] way_ind;         // way we have to perform an operation on
+    logic                            evict;           // evict what is standing in the line
+    logic [Cfg.TagLength -1:0]       evict_tag;       // tag for evicting a line
+    logic                            refill;          // refill the cache line
+    logic                            flush;           // flush this line, comes from config
+    logic [AxiUserWidth-1:0]         patid;           // partition ID
+    logic [Cfg.IndexLength-1:0]      index_partition; // remapped index-to-be accessed according to partition ID
   } llc_desc_t;
 
   // definition of the structs that are between the units and the ways
@@ -341,16 +343,16 @@ module axi_llc_top #(
   } lock_t;
 
   typedef struct packed {
-    logic [Cfg.IndexLength:0] StartIndex; // Start index in the partition region assigned to the thread.
-    logic [Cfg.IndexLength:0] NumIndex; // Number of index required by the thread.
+    logic [Cfg.IndexLength:0] StartIndex; // Start index in the partition region assigned to the partition.
+    logic [Cfg.IndexLength:0] NumIndex;   // Number of indice of the partition.
   } partition_table_t;
 
-  /// Partition table which tells the range of index assigned to each thread:
+  /// Partition table which tells the range of indice assigned to each partition:
   /// The number of entry in partition_table is one more than MaxPartition because it needs to hold 
-  /// the remaining part as shared region for any other thread that has not been allocated.
-  /// if the corresponding entry for PID_x is 0, then it means that that thread uses the shared 
-  /// region of cache. When we process data access of such thread, we should turn to 
-  /// partition_table_o[MaxPartition] for hit/miss information.
+  /// the remaining part as shared region for any other partition that has not been allocated.
+  /// If the entry is 0, then it means that the partition uses the shared region of cache. 
+  /// When we process data access of such partition, we should look up partition_table_o[MaxPartition]
+  /// for hit/miss information.
   partition_table_t [MaxPartition:0] partition_table;
 
   // slave requests, that go into the bypass `axi_demux` from the config module
@@ -450,7 +452,7 @@ module axi_llc_top #(
 
 generate
   if (CachePartition) begin
-    // configuration, also has control over bypass logic and flush
+    // configuration for LLC partitioning enabled, also has control over bypass logic and flush
     axi_llc_config_pat #(
       .Cfg            ( Cfg           ),
       .AxiCfg         ( AxiCfg        ),
@@ -463,7 +465,7 @@ generate
       .set_asso_t     ( way_ind_t     ),
       .set_t          ( set_ind_t     ),
       .addr_full_t    ( axi_addr_t    ),
-      .thread_id_t    ( axi_user_t    ),
+      .partition_id_t    ( axi_user_t    ),
       .partition_table_t ( partition_table_t ),
       .PrintLlcCfg    ( PrintLlcCfg   )
     ) i_llc_config_pat (
@@ -480,9 +482,9 @@ generate
       .desc_ready_i      ( ax_desc_ready[axi_llc_pkg::ConfigUnit] ),
       // AXI address input from slave port for controlling bypass
       .slv_aw_addr_i     ( to_isolate_req.aw.addr                 ),
-      .slv_aw_thread_id_i ( to_isolate_req.aw.user                ),
+      .slv_aw_partition_id_i ( to_isolate_req.aw.user                ),
       .slv_ar_addr_i     ( to_isolate_req.ar.addr                 ),
-      .slv_ar_thread_id_i ( to_isolate_req.ar.user                ),
+      .slv_ar_partition_id_i ( to_isolate_req.ar.user                ),
       .mst_aw_bypass_o   ( slv_aw_bypass                          ),
       .mst_ar_bypass_o   ( slv_ar_bypass                          ),
       // flush control signals to prevent new data in ax_cutter loading
@@ -501,7 +503,7 @@ generate
       .partition_table_o ( partition_table                        )
     );
   end else begin
-    // configuration, also has control over bypass logic and flush
+    // configuration for LLC partitioning disabled, also has control over bypass logic and flush
     axi_llc_config_no_pat #(
       .Cfg            ( Cfg           ),
       .AxiCfg         ( AxiCfg        ),
@@ -1127,7 +1129,7 @@ endgenerate
 
     cfg_num_lines : assert(Cfg.NumLines > 0 && $onehot(Cfg.NumLines)) else
       $fatal(1, "Parameter 'Cfg.NumLines' must be the integer power of 2 to ensure correct function for set based partition!");
-    max_thread    : assert((MaxPartition != 1) && (MaxPartition <= Cfg.NumLines)) else
+    max_partition : assert((MaxPartition != 1) && (MaxPartition <= Cfg.NumLines)) else
       $fatal(1, "Parameter 'MaxPartition' must not be 1 or larger than number of cache lines to ensure correct function for set based partition!");
 
   end

@@ -60,14 +60,12 @@
     logic       num_blocks_en;                                          \
     reg_data_t  version;                                                \
     logic       version_en;                                             \
-/********************************************     SET BASED CACHE PARTITIONING     ********************************************/  \
-    reg_data_t  cfg_flush_thread;                                       \
-    logic       cfg_flush_thread_en;                                    \
-    reg_data_t [1:0] cfg_set_partition;                                     \
-    logic [1:0]      cfg_set_partition_en;                                  \
-    reg_data_t [3:0] flushed_set;                                           \
-    logic [3:0]      flushed_set_en;                                        \
-/******************************************************************************************************************************/  \
+    reg_data_t  cfg_flush_partition;                                    \
+    logic       cfg_flush_partition_en;                                 \
+    reg_data_t [1:0] cfg_set_partition;                                 \
+    logic [1:0]      cfg_set_partition_en;                              \
+    reg_data_t [3:0] flushed_set;                                       \
+    logic [3:0]      flushed_set_en;                                    \
   } cfg_regs_d_t;
 
 // Registers -> HW
@@ -84,11 +82,9 @@
     logic       commit_cfg;                                             \
     logic       commit_partition_cfg;                                   \
     set_asso_t  flushed;                                                \
-/********************************************     SET BASED CACHE PARTITIONING     ********************************************/  \
-    reg_data_t  cfg_flush_thread;                                       \
-    reg_data_t [1:0] cfg_set_partition;                                     \
-    reg_data_t [3:0] flushed_set;                                           \
-/******************************************************************************************************************************/  \
+    reg_data_t  cfg_flush_partition;                                    \
+    reg_data_t [1:0] cfg_set_partition;                                 \
+    reg_data_t [3:0] flushed_set;                                       \
   } cfg_regs_q_t;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

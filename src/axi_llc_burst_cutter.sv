@@ -2,7 +2,10 @@
 // Solderpad Hardware License, Version 0.51, see LICENSE for details.
 // SPDX-License-Identifier: SHL-0.51
 //
-// Author: Wolfgang Roenninger <wroennin@iis.ee.ethz.ch>
+// Author: 
+// - Wolfgang Roenninger <wroennin@iis.ee.ethz.ch>
+// - Hong Pang <hongpang@ethz.ch>
+// - Diyou Shen <dishen@ethz.ch>
 // Date:   02.05.2019
 
 
@@ -30,7 +33,7 @@ module axi_llc_burst_cutter #(
   parameter type                       desc_t = logic,
   /// Type of the address rule struct used for SPM access streeri
   parameter type                       rule_t = axi_pkg::xbar_rule_64_t,
-  /// partition table type for cache partitioning
+  /// cache partition table type
   parameter type                       partition_table_t = logic
 ) (
   /// Clock, positive edge triggered.
@@ -52,7 +55,7 @@ module axi_llc_burst_cutter #(
   /// Here only the `satrt_addr` field is used. Internal builds an address decoding map
   /// one for each cache way.
   input  rule_t spm_rule_i, 
-  /// partition table for cache partitioning
+  /// cache partition table
   input  partition_table_t [MaxPartition:0] partition_table_i
   );
 
@@ -118,9 +121,7 @@ generate
       .index_partition_o ( index_partition )
     );
 
-    // Cache-Partition
-    // Add two entries carried in descripter: partition id (patid) and the new calculated index 
-    // (index_partition).
+    // Assign two more entries carried in descripter: partition id `patid` and the remapped index `index_partition`
     // If a partition's size is 0, the entry will be put into the shared region
     always_comb begin : proc_cutter    
       // Make sure the outputs are defined to a default.

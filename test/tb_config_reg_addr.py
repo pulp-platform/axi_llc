@@ -1,5 +1,12 @@
+# Copyright 2023 ETH Zurich and University of Bologna.
+# Solderpad Hardware License, Version 0.51, see LICENSE for details.
+# SPDX-License-Identifier: SHL-0.51
+#
+# Authors:
+# - Hong Pang <hongpang@ethz.ch>
+# Date:   01.03.2023
 
-# This file is used to generate the concat command in 'axi_llc_config.sv'
+# This file is used to generate the config register addresses in 'tb_axi_llc.sv'
 
 import math
 import sys
@@ -9,7 +16,7 @@ NumLines    = int(sys.argv[2]) # 256 Same as "Sfg.NumLines in sv
 MaxPartition   = int(sys.argv[3]) # 256 Same as "MaxPartition" in sv
 IndexLength = math.ceil(math.log2(NumLines))  # Same as "Cfg.IndexLength" in sv
 num_setflushreg = math.ceil(NumLines / RegWidth)
-num_setflushthread = 1
+num_setflushpartition = 1
 num_parreg  = math.ceil(MaxPartition / math.floor(RegWidth / IndexLength))  # The number of configuration registers used for set partitioning.
 valid_reg_bit = math.floor(RegWidth / IndexLength) * IndexLength
 
@@ -37,29 +44,29 @@ with open('test/tb_config_reg_addr.hjson', 'w') as f:
     VersionHigh   = 32'h44,
     BistStatus    = 32'h48,
 ''')
-    for i in range(num_setflushthread):
-        f.write(f'''    CfgFlushThreadLow    = 32'h{hex(0x4c + i * 0x08)[2:]},
-    CfgFlushThreadHigh   = 32'h{hex(0x50 + i * 0x08)[2:]},
+    for i in range(num_setflushpartition):
+        f.write(f'''    CfgFlushPartitionLow    = 32'h{hex(0x4c + i * 0x08)[2:]},
+    CfgFlushPartitionHigh   = 32'h{hex(0x50 + i * 0x08)[2:]},
 ''')
     for i in range(num_parreg):
-        f.write(f'''    CfgSetPartitionLow{i}  = 32'h{hex(0x54 + i * 0x04)[2:]},
+        f.write(f'''    CfgSetPartitionLow{i}     = 32'h{hex(0x54 + i * 0x04)[2:]},
 ''')
     temp = 0x54 + i * 0x04
     for i in range(num_parreg):
-        f.write(f'''    CfgSetPartitionHigh{i} = 32'h{hex(temp + 0x04 + i * 0x04)[2:]},
+        f.write(f'''    CfgSetPartitionHigh{i}    = 32'h{hex(temp + 0x04 + i * 0x04)[2:]},
 ''')
-    f.write(f'''    CommitPartitionCfg     = 32'h{hex(0x58 + (num_parreg - 1) * 0x08 + 0x04)[2:]},
-    CommitPartitionPadding = 32'h{hex(0x58 + (num_parreg - 1) * 0x08 + 0x08)[2:]},
+    f.write(f'''    CommitPartitionCfg      = 32'h{hex(0x58 + (num_parreg - 1) * 0x08 + 0x04)[2:]},
+    CommitPartitionPadding  = 32'h{hex(0x58 + (num_parreg - 1) * 0x08 + 0x08)[2:]},
 ''')
 
     for i in range(num_setflushreg):
-        f.write(f'''    FlushedSetLow{i}   = 32'h{hex(0x58 + num_parreg * 0x08  + 0x04 + i * 0x04)[2:]},
+        f.write(f'''    FlushedSetLow{i}          = 32'h{hex(0x58 + num_parreg * 0x08  + 0x04 + i * 0x04)[2:]},
 ''')
 
     temp = 0x58 + num_parreg * 0x08  + 0x04 + i * 0x04
 
     for i in range(num_setflushreg):
-        f.write(f'''    FlushedSetHigh{i}  = 32'h{hex(temp  + 0x04 + i * 0x04)[2:]}''')
+        f.write(f'''    FlushedSetHigh{i}         = 32'h{hex(temp  + 0x04 + i * 0x04)[2:]}''')
         if (i != num_setflushreg-1):
             f.write(',\n')
         else: 

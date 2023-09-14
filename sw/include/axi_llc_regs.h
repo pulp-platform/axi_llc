@@ -72,11 +72,11 @@ extern "C" {
 #define AXI_LLC_BIST_STATUS_REG_OFFSET 0x48
 #define AXI_LLC_BIST_STATUS_DONE_BIT 0
 
-// Index-based Thread Flush Configuration [31:0] (lower 32 bit)
-#define AXI_LLC_CFG_FLUSH_THREAD_LOW_REG_OFFSET 0x4c
+// Index-based Partition Flush Configuration [31:0] (lower 32 bit)
+#define AXI_LLC_CFG_FLUSH_PARTITION_LOW_REG_OFFSET 0x4c
 
-// Index-based Thread Flush Configuration [63:32] (upper 32 bit)
-#define AXI_LLC_CFG_FLUSH_THREAD_HIGH_REG_OFFSET 0x50
+// Index-based Partition Flush Configuration [63:32] (upper 32 bit)
+#define AXI_LLC_CFG_FLUSH_PARTITION_HIGH_REG_OFFSET 0x50
 
 // Index-based Partition Configuration [31:0] (lower 32 bit) (common
 // parameters)

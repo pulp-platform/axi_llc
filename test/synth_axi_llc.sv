@@ -1,3 +1,12 @@
+// Copyright 2023 ETH Zurich and University of Bologna.
+// Solderpad Hardware License, Version 0.51, see LICENSE for details.
+// SPDX-License-Identifier: SHL-0.51
+//
+// Authors:
+// - Hong Pang <hongpang@ethz.ch>
+
+// This wrapper is used for axi_llc synthesis.
+
 module synth_axi_llc import axi_pkg::*; #(
   /// Set Associativity of the LLC
   parameter int unsigned SetAssociativity = 32'd8,

@@ -2,7 +2,10 @@
 // Solderpad Hardware License, Version 0.51, see LICENSE for details.
 // SPDX-License-Identifier: SHL-0.51
 //
-// Author: Wolfgang Roenninger <wroennin@iis.ee.ethz.ch>
+// Author: 
+// - Wolfgang Roenninger <wroennin@iis.ee.ethz.ch>
+// - Hong Pang <hongpang@ethz.ch>
+// - Diyou Shen <dishen@ethz.ch>
 // Date:   11.06.2019
 
 /// This module houses the hit miss detection logic and the tag storage.
@@ -50,6 +53,7 @@ module axi_llc_hit_miss #(
   /// Way indicator, is a onehot signal with width: `Cfg.SetAssociativity`.
   parameter type                       way_ind_t = logic,
   parameter type                       set_ind_t = logic,
+  /// Cache partition table
   parameter type                       partition_table_t = logic,
   /// Whether to print SRAM configs
   parameter bit                        PrintSramCfg = 0
@@ -254,7 +258,7 @@ module axi_llc_hit_miss #(
                       load_desc = 1'b1;
                     end else begin
                       if (CachePartition) begin
-                        // use the new index and tag to store the tag
+                        // If cache partitioning is enabled, tag needs to include the index number
                         store_req = store_req_t'{
                           mode:      desc_i.flush ? axi_llc_pkg::Flush : axi_llc_pkg::Lookup,
                           indicator: desc_i.flush ? desc_i.way_ind     : ~flushed_i,

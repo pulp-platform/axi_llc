@@ -1,3 +1,12 @@
+// Copyright 2023 ETH Zurich and University of Bologna.
+// Solderpad Hardware License, Version 0.51, see LICENSE for details.
+// SPDX-License-Identifier: SHL-0.51
+//
+// Authors:
+// - Hong Pang <hongpang@ethz.ch>
+// - Diyou Shen <dishen@ethz.ch>
+// Date:   30.03.2023
+
 module axi_llc_sram_data #(
   parameter int unsigned NumWords     = 32'd1024, // Number of Words in data array
   parameter int unsigned DataWidth    = 32'd128,  // Data signal width

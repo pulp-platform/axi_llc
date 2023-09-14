@@ -5,6 +5,7 @@
 // Authors:
 // - Nicole Narr <narrn@ethz.ch>
 // - Christopher Reinwardt <creinwar@ethz.ch>
+// - Hong Pang <hongpang@ethz.ch>
 // Date:   17.11.2022
 
 `include "axi_llc/typedef.svh"
@@ -155,10 +156,7 @@ module axi_llc_reg_wrap #(
   /// The same restriction as of parameter `NumLines` applies.
   parameter int unsigned NumBlocks = 32'd0,
   parameter logic CachePartition = 1,
-  /// Max. number of threads supported for partitioning:
-  /// to currently make it work should set as a integer multiplcation of 8
-  /// e.g. MaxPartition should be 8 even though we have only 6 threads running 
-  /// (this is for the sake of the compliance of partition tabe size).
+  /// Max. number of partitions supported for partitioning
   parameter int unsigned MaxPartition = 32'd0,
   /// AXI4+ATOP ID field width of the slave port.
   /// The ID field width of the master port is this parameter + 1.

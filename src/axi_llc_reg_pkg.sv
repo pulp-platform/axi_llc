@@ -43,11 +43,11 @@ package axi_llc_reg_pkg;
 
   typedef struct packed {
     logic [31:0] q;
-  } axi_llc_reg2hw_cfg_flush_thread_low_reg_t;
+  } axi_llc_reg2hw_cfg_flush_partition_low_reg_t;
 
   typedef struct packed {
     logic [31:0] q;
-  } axi_llc_reg2hw_cfg_flush_thread_high_reg_t;
+  } axi_llc_reg2hw_cfg_flush_partition_high_reg_t;
 
   typedef struct packed {
     logic [31:0] q;
@@ -162,12 +162,12 @@ package axi_llc_reg_pkg;
   typedef struct packed {
     logic [31:0] d;
     logic        de;
-  } axi_llc_hw2reg_cfg_flush_thread_low_reg_t;
+  } axi_llc_hw2reg_cfg_flush_partition_low_reg_t;
 
   typedef struct packed {
     logic [31:0] d;
     logic        de;
-  } axi_llc_hw2reg_cfg_flush_thread_high_reg_t;
+  } axi_llc_hw2reg_cfg_flush_partition_high_reg_t;
 
   typedef struct packed {
     logic [31:0] d;
@@ -203,8 +203,8 @@ package axi_llc_reg_pkg;
     axi_llc_reg2hw_commit_cfg_reg_t commit_cfg; // [513:513]
     axi_llc_reg2hw_flushed_low_reg_t flushed_low; // [512:481]
     axi_llc_reg2hw_flushed_high_reg_t flushed_high; // [480:449]
-    axi_llc_reg2hw_cfg_flush_thread_low_reg_t cfg_flush_thread_low; // [448:417]
-    axi_llc_reg2hw_cfg_flush_thread_high_reg_t cfg_flush_thread_high; // [416:385]
+    axi_llc_reg2hw_cfg_flush_partition_low_reg_t cfg_flush_partition_low; // [448:417]
+    axi_llc_reg2hw_cfg_flush_partition_high_reg_t cfg_flush_partition_high; // [416:385]
     axi_llc_reg2hw_cfg_set_partition_low_mreg_t [1:0] cfg_set_partition_low; // [384:321]
     axi_llc_reg2hw_cfg_set_partition_high_mreg_t [1:0] cfg_set_partition_high; // [320:257]
     axi_llc_reg2hw_commit_partition_cfg_reg_t commit_partition_cfg; // [256:256]
@@ -232,8 +232,8 @@ package axi_llc_reg_pkg;
     axi_llc_hw2reg_version_low_reg_t version_low; // [531:499]
     axi_llc_hw2reg_version_high_reg_t version_high; // [498:466]
     axi_llc_hw2reg_bist_status_reg_t bist_status; // [465:464]
-    axi_llc_hw2reg_cfg_flush_thread_low_reg_t cfg_flush_thread_low; // [463:431]
-    axi_llc_hw2reg_cfg_flush_thread_high_reg_t cfg_flush_thread_high; // [430:398]
+    axi_llc_hw2reg_cfg_flush_partition_low_reg_t cfg_flush_partition_low; // [463:431]
+    axi_llc_hw2reg_cfg_flush_partition_high_reg_t cfg_flush_partition_high; // [430:398]
     axi_llc_hw2reg_cfg_set_partition_low_mreg_t [1:0] cfg_set_partition_low; // [397:332]
     axi_llc_hw2reg_cfg_set_partition_high_mreg_t [1:0] cfg_set_partition_high; // [331:266]
     axi_llc_hw2reg_commit_partition_cfg_reg_t commit_partition_cfg; // [265:264]
@@ -260,8 +260,8 @@ package axi_llc_reg_pkg;
   parameter logic [BlockAw-1:0] AXI_LLC_VERSION_LOW_OFFSET = 8'h 40;
   parameter logic [BlockAw-1:0] AXI_LLC_VERSION_HIGH_OFFSET = 8'h 44;
   parameter logic [BlockAw-1:0] AXI_LLC_BIST_STATUS_OFFSET = 8'h 48;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_FLUSH_THREAD_LOW_OFFSET = 8'h 4c;
-  parameter logic [BlockAw-1:0] AXI_LLC_CFG_FLUSH_THREAD_HIGH_OFFSET = 8'h 50;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_FLUSH_PARTITION_LOW_OFFSET = 8'h 4c;
+  parameter logic [BlockAw-1:0] AXI_LLC_CFG_FLUSH_PARTITION_HIGH_OFFSET = 8'h 50;
   parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION_LOW_0_OFFSET = 8'h 54;
   parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION_LOW_1_OFFSET = 8'h 58;
   parameter logic [BlockAw-1:0] AXI_LLC_CFG_SET_PARTITION_HIGH_0_OFFSET = 8'h 5c;
@@ -296,8 +296,8 @@ package axi_llc_reg_pkg;
     AXI_LLC_VERSION_LOW,
     AXI_LLC_VERSION_HIGH,
     AXI_LLC_BIST_STATUS,
-    AXI_LLC_CFG_FLUSH_THREAD_LOW,
-    AXI_LLC_CFG_FLUSH_THREAD_HIGH,
+    AXI_LLC_CFG_FLUSH_PARTITION_LOW,
+    AXI_LLC_CFG_FLUSH_PARTITION_HIGH,
     AXI_LLC_CFG_SET_PARTITION_LOW_0,
     AXI_LLC_CFG_SET_PARTITION_LOW_1,
     AXI_LLC_CFG_SET_PARTITION_HIGH_0,
@@ -333,8 +333,8 @@ package axi_llc_reg_pkg;
     4'b 1111, // index[15] AXI_LLC_VERSION_LOW
     4'b 1111, // index[16] AXI_LLC_VERSION_HIGH
     4'b 0001, // index[17] AXI_LLC_BIST_STATUS
-    4'b 1111, // index[18] AXI_LLC_CFG_FLUSH_THREAD_LOW
-    4'b 1111, // index[19] AXI_LLC_CFG_FLUSH_THREAD_HIGH
+    4'b 1111, // index[18] AXI_LLC_CFG_FLUSH_PARTITION_LOW
+    4'b 1111, // index[19] AXI_LLC_CFG_FLUSH_PARTITION_HIGH
     4'b 1111, // index[20] AXI_LLC_CFG_SET_PARTITION_LOW_0
     4'b 1111, // index[21] AXI_LLC_CFG_SET_PARTITION_LOW_1
     4'b 1111, // index[22] AXI_LLC_CFG_SET_PARTITION_HIGH_0
