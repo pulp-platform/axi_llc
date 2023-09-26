@@ -154,22 +154,25 @@ module axi_llc_reg_wrap #(
   ///
   /// Note on restrictions:
   /// The same restriction as of parameter `NumLines` applies.
-  parameter int unsigned NumBlocks = 32'd0,
-  parameter logic CachePartition = 1,
+  parameter int unsigned NumBlocks             = 32'd0,
+  /// Enabling cache partitioning
+  parameter logic        CachePartition        = 1,
+  /// Index remapping hash function used in cache partitioning
+  parameter axi_llc_pkg::algorithm_e RemapHash = axi_llc_pkg::Modulo,
   /// Max. number of partitions supported for partitioning
-  parameter int unsigned MaxPartition = 32'd0,
+  parameter int unsigned MaxPartition          = 32'd0,
   /// AXI4+ATOP ID field width of the slave port.
   /// The ID field width of the master port is this parameter + 1.
-  parameter int unsigned AxiIdWidth = 32'd0,
+  parameter int unsigned AxiIdWidth            = 32'd0,
   /// AXI4+ATOP address field width of both the slave and master port.
-  parameter int unsigned AxiAddrWidth = 32'd0,
+  parameter int unsigned AxiAddrWidth          = 32'd0,
   /// AXI4+ATOP data field width of both the slave and the master port.
-  parameter int unsigned AxiDataWidth = 32'd0,
+  parameter int unsigned AxiDataWidth          = 32'd0,
   /// AXI4+ATOP user field width of both the slave and the master port.
-  parameter int unsigned AxiUserWidth = 32'd0,
+  parameter int unsigned AxiUserWidth          = 32'd0,
   /// User signal offset
-  parameter int unsigned AxiUserIdMsb  = 7,
-  parameter int unsigned AxiUserIdLsb  = 0,
+  parameter int unsigned AxiUserIdMsb          = 7,
+  parameter int unsigned AxiUserIdLsb          = 0,
   /// AXI4+ATOP request type on the slave port.
   /// Expected format can be defined using `AXI_TYPEDEF_REQ_T.
   parameter type slv_req_t      = logic,
@@ -185,7 +188,7 @@ module axi_llc_reg_wrap #(
   /// Configuration RegBus interface request type
   parameter type reg_req_t      = logic,
   /// Configuration RegBus interface response type
-  parameter type reg_resp_t      = logic,
+  parameter type reg_resp_t     = logic,
   /// Full AXI4+ATOP Port address decoding rule
   parameter type rule_full_t    = axi_pkg::xbar_rule_64_t,
   /// Whether to print SRAM configs
@@ -275,6 +278,7 @@ module axi_llc_reg_wrap #(
     .NumBlocks        ( NumBlocks             ),
     .CachePartition   ( CachePartition        ),
     .MaxPartition     ( MaxPartition          ),
+    .RemapHash        ( RemapHash             ),
     .AxiIdWidth       ( AxiIdWidth            ),
     .AxiAddrWidth     ( AxiAddrWidth          ),
     .AxiDataWidth     ( AxiDataWidth          ),

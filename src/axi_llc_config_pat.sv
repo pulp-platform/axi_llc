@@ -234,39 +234,39 @@
 ///
 module axi_llc_config_pat #(
   /// Static AXI LLC configuration.
-  parameter axi_llc_pkg::llc_cfg_t Cfg = axi_llc_pkg::llc_cfg_t'{default: '0},
+  parameter axi_llc_pkg::llc_cfg_t Cfg        = axi_llc_pkg::llc_cfg_t'{default: '0},
   /// Give the exact AXI parameters in struct form. This is passed down from
   /// [`axi_llc_top`](module.axi_llc_top).
   ///
   /// Required struct definition in: `axi_llc_pkg`.
   parameter axi_llc_pkg::llc_axi_cfg_t AxiCfg = axi_llc_pkg::llc_axi_cfg_t'{default: '0},
   /// Register Width
-  parameter int unsigned RegWidth = 64,
+  parameter int unsigned RegWidth     = 64,
   /// Max. number of partition supported in LLC
   parameter int unsigned MaxPartition = 32,
   /// Register type for HW -> Register direction
-  parameter type conf_regs_d_t  = logic,
+  parameter type conf_regs_d_t        = logic,
   /// Register type for Register -> HW direction
-  parameter type conf_regs_q_t  = logic,
+  parameter type conf_regs_q_t        = logic,
   /// Descriptor type. This is requires as this module emits the flush descriptors.
   /// Struct definition is in [`axi_llc_top`](module.axi_llc_top).
-  parameter type desc_t = logic,
+  parameter type desc_t               = logic,
   /// Address rule struct for `common_cells/addr_decode`. Is used for bypass `axi_demux`
   /// steering.
-  parameter type rule_full_t = logic,
+  parameter type rule_full_t          = logic,
   /// Type for indicating the set associativity, same as way_ind_t in `axi_llc_top`.
-  parameter type set_asso_t = logic,
+  parameter type set_asso_t           = logic,
   /// Type for indicating the set index, same as set_ind_t in `axi_llc_top`.
-  parameter type set_t = logic,
+  parameter type set_t                = logic,
   /// Address type for the memory regions defined for caching and SPM. The same width as
   /// the address field of the AXI4+ATOP slave and master port.
-  parameter type addr_full_t = logic,
+  parameter type addr_full_t          = logic,
   /// Type for indicating the partition ID
-  parameter type partition_id_t = logic,
+  parameter type partition_id_t       = logic,
   /// Whether to print config of LLC
-  parameter bit  PrintLlcCfg = 0,
+  parameter bit  PrintLlcCfg          = 0,
   /// Type for partition table
-  parameter type partition_table_t = logic
+  parameter type partition_table_t    = logic
 ) (
   /// Rising-edge clock
   input logic clk_i,

@@ -116,7 +116,10 @@
 /// | `refill`          | `logic`            | The refill flag. The descriptor will trigger a read transaction to the main memory, refilling the cache-line.                                                                                                                                                                                               |
 /// | `flush`           | `logic`            | The flush flag. This only gets set when a way should be flushed. It gets only set by descriptors coming from the configuration module.                                                                                                                                                                      |
 /// | `patid`           | `logic`            | The partition ID. This indicates the current visited partition. It gets filled in burst cutter by reading from the AXI AW/AR user signals.                                                                                                                                                                  |
-/// | `index_partition  | `logic`            | The remapped index for cache partitioning. This will be calculated based on index bits from input address and partition's information.                                                                                                                                                                      |
+/// | `index_partition` | `logic`            | The remapped index for cache partitioning. This will be calculated based on index bits from input address and partition's information.                                                                                                                                                                      |
+/// | `pat_size`        | `logic`            | This field is used when `TruncDual` remapping hash function is activated. It signals the size of the partition region which should be accessed, used for remapped index calculation when employing `TruncDual` hash function for index remapping                                                            |
+/// | `tcdl_overflow`   | `logic`            | This field is used when `TruncDual` remapping hash function is activated. It signals whether the remapped index from the first part (in `index_assigner` module) faces an overlapping situation                                                                                                             |
+/// | `max_tcdl_offset` | `logic`            | This field is used when `TruncDual` remapping hash function is activated. It signals the smallest (2^n-1) number that is larger than pat_size, e.g. If pat_size = 85, max_tcdl_offset_o = 127.                                                                                                              |
 module axi_llc_top #(
   /// The set-associativity of the LLC.
   ///
@@ -139,7 +142,7 @@ module axi_llc_top #(
   /// fields inside of a struct. Further this value has to be a power of 2. This has to do with the
   /// requirement that the address mapping from the address onto the cache-line index has to be
   /// continuous.
-  parameter int unsigned NumLines = 32'd0,
+  parameter int unsigned NumLines        = 32'd0,
   /// Number of blocks (words) in a cache line.
   ///
   /// The width of a block is the same as the data width of the AXI4+ATOP ports. Defined with
@@ -151,9 +154,9 @@ module axi_llc_top #(
   ///
   /// Note on restrictions:
   /// The same restriction as of parameter `NumLines` applies.
-  parameter int unsigned NumBlocks = 32'd0,
+  parameter int unsigned NumBlocks       = 32'd0,
   /// Cache partitioning enabling parameter, bool type.
-  parameter logic CachePartition = 1,
+  parameter logic        CachePartition  = 1,
   /// Max. number of partitions supported for partitioning.
   ///
   /// Restrictions:
@@ -162,26 +165,28 @@ module axi_llc_top #(
   /// Note on restrictions:
   /// The reason is the doubld-sided calculation for filling the partition table. The calculation needs
   /// two partition: one on each side to correctly configure the partitions.
-  parameter int unsigned MaxPartition = 32'd0,
+  parameter int unsigned MaxPartition    = 32'd0,
+  /// Index remapping hash function used in cache partitioning
+  parameter axi_llc_pkg::algorithm_e RemapHash = axi_llc_pkg::Modulo,
   /// AXI4+ATOP ID field width of the slave port.
   /// The ID field width of the master port is this parameter + 1.
-  parameter int unsigned AxiIdWidth = 32'd0,
+  parameter int unsigned AxiIdWidth      = 32'd0,
   /// AXI4+ATOP address field width of both the slave and master port.
-  parameter int unsigned AxiAddrWidth = 32'd0,
+  parameter int unsigned AxiAddrWidth    = 32'd0,
   /// AXI4+ATOP data field width of both the slave and the master port.
-  parameter int unsigned AxiDataWidth = 32'd0,
+  parameter int unsigned AxiDataWidth    = 32'd0,
   /// AXI4+ATOP user field width of both the slave and the master port.
   /// Here, "user" data part of AXI channel is used for signaling the
   /// partition ID from which the data access is issued. AxiUserWidth 
   /// should be equal to PIDWidth, which signals the partition ID. 
   /// For current system, the upper bound of the number of partition
   /// running is 256, so AxiUserWidth should be 8.
-  parameter int unsigned AxiUserWidth = 32'd0, 
+  parameter int unsigned AxiUserWidth    = 32'd0, 
   /// Internal register width
-  parameter int unsigned RegWidth = 64,
+  parameter int unsigned RegWidth        = 64,
   /// AXI4 User signal offset
-  parameter int unsigned AxiUserIdMsb  = 7,
-  parameter int unsigned AxiUserIdLsb  = 0,
+  parameter int unsigned AxiUserIdMsb    = 7,
+  parameter int unsigned AxiUserIdLsb    = 0,
   /// Register type for HW -> Register direction
   parameter type conf_regs_d_t  = logic,
   /// Register type for Register -> HW direction
@@ -302,15 +307,22 @@ module axi_llc_top #(
     axi_pkg::resp_t                  x_resp;          // AXI response signal, for error propagation
     logic                            x_last;          // Last descriptor of a burst
     // Cache specific descriptor signals
-    logic                            spm;             // this descriptor targets a SPM region in the cache
-    logic                            rw;              // this descriptor is a read:0 or write:1 access
-    logic [Cfg.SetAssociativity-1:0] way_ind;         // way we have to perform an operation on
-    logic                            evict;           // evict what is standing in the line
-    logic [Cfg.TagLength -1:0]       evict_tag;       // tag for evicting a line
-    logic                            refill;          // refill the cache line
-    logic                            flush;           // flush this line, comes from config
-    logic [AxiUserWidth-1:0]         patid;           // partition ID
-    logic [Cfg.IndexLength-1:0]      index_partition; // remapped index-to-be accessed according to partition ID
+    logic                            spm;      // this descriptor targets a SPM region in the cache
+    logic                            rw;       // this descriptor is a read:0 or write:1 access
+    logic [Cfg.SetAssociativity-1:0] way_ind;  // way we have to perform an operation on
+    logic                            evict;    // evict what is standing in the line
+    logic [Cfg.TagLength -1:0]       evict_tag;// tag for evicting a line
+    logic                            refill;   // refill the cache line
+    logic                            flush;    // flush this line, comes from config
+    logic [AxiUserWidth-1:0]         patid;
+    logic [Cfg.IndexLength+1:0]      index_partition; // remapped index for cache partitioning
+    logic [Cfg.IndexLength+1:0]      pat_size;        // partition size, the width should be `Cfg.IndexLength+1`
+                                                      // because in index remapping calculation, we need to shift
+                                                      // this field left by 1 bit
+    logic                            tcdl_overflow;   // to tell whether the mapping index is overflowing,
+                                                      // only used in both-side index mapping hash function
+    logic [Cfg.IndexLength-1:0]      max_tcdl_offset; // the smallest (2^n-1) number that is larger than pat_size,
+                                                      // e.g. If pat_size = 85, max_tcdl_offset = 127.
   } llc_desc_t;
 
   // definition of the structs that are between the units and the ways
@@ -454,20 +466,20 @@ generate
   if (CachePartition) begin
     // configuration for LLC partitioning enabled, also has control over bypass logic and flush
     axi_llc_config_pat #(
-      .Cfg            ( Cfg           ),
-      .AxiCfg         ( AxiCfg        ),
-      .RegWidth       ( RegWidth      ),
-      .MaxPartition   ( MaxPartition  ),
-      .conf_regs_d_t  ( conf_regs_d_t ),
-      .conf_regs_q_t  ( conf_regs_q_t ),
-      .desc_t         ( llc_desc_t    ),
-      .rule_full_t    ( rule_full_t   ),
-      .set_asso_t     ( way_ind_t     ),
-      .set_t          ( set_ind_t     ),
-      .addr_full_t    ( axi_addr_t    ),
-      .partition_id_t    ( axi_user_t    ),
+      .Cfg               ( Cfg               ),
+      .AxiCfg            ( AxiCfg            ),
+      .RegWidth          ( RegWidth          ),
+      .MaxPartition      ( MaxPartition      ),
+      .conf_regs_d_t     ( conf_regs_d_t     ),
+      .conf_regs_q_t     ( conf_regs_q_t     ),
+      .desc_t            ( llc_desc_t        ),
+      .rule_full_t       ( rule_full_t       ),
+      .set_asso_t        ( way_ind_t         ),
+      .set_t             ( set_ind_t         ),
+      .addr_full_t       ( axi_addr_t        ),
+      .partition_id_t    ( axi_user_t        ),
       .partition_table_t ( partition_table_t ),
-      .PrintLlcCfg    ( PrintLlcCfg   )
+      .PrintLlcCfg       ( PrintLlcCfg       )
     ) i_llc_config_pat (
       .clk_i             ( clk_i                                  ),
       .rst_ni            ( rst_ni                                 ),
@@ -482,9 +494,9 @@ generate
       .desc_ready_i      ( ax_desc_ready[axi_llc_pkg::ConfigUnit] ),
       // AXI address input from slave port for controlling bypass
       .slv_aw_addr_i     ( to_isolate_req.aw.addr                 ),
-      .slv_aw_partition_id_i ( to_isolate_req.aw.user                ),
+      .slv_aw_partition_id_i ( to_isolate_req.aw.user             ),
       .slv_ar_addr_i     ( to_isolate_req.ar.addr                 ),
-      .slv_ar_partition_id_i ( to_isolate_req.ar.user                ),
+      .slv_ar_partition_id_i ( to_isolate_req.ar.user             ),
       .mst_aw_bypass_o   ( slv_aw_bypass                          ),
       .mst_ar_bypass_o   ( slv_ar_bypass                          ),
       // flush control signals to prevent new data in ax_cutter loading
@@ -602,8 +614,9 @@ endgenerate
   axi_llc_chan_splitter #(
     .Cfg    ( Cfg           ),
     .AxiCfg ( AxiCfg        ),
-    .CachePartition ( CachePartition ),
-    .MaxPartition ( MaxPartition  ),
+    .CachePartition ( CachePartition      ),
+    .MaxPartition   ( MaxPartition        ),
+    .RemapHash      ( RemapHash           ),
     .chan_t ( slv_aw_chan_t ),
     .Write  ( 1'b1          ),
     .desc_t ( llc_desc_t    ),
@@ -627,15 +640,16 @@ endgenerate
 
   // RW channel burst splitter
   axi_llc_chan_splitter #(
-    .Cfg    ( Cfg           ),
-    .AxiCfg ( AxiCfg        ),
-    .CachePartition ( CachePartition ),
-    .MaxPartition ( MaxPartition  ),
-    .chan_t ( slv_ar_chan_t ),
-    .Write  ( 1'b0          ),
-    .desc_t ( llc_desc_t    ),
-    .rule_t ( rule_full_t   ),
-    .partition_table_t (partition_table_t)
+    .Cfg               ( Cfg               ),
+    .AxiCfg            ( AxiCfg            ),
+    .CachePartition    ( CachePartition    ),
+    .MaxPartition      ( MaxPartition      ),
+    .RemapHash         ( RemapHash         ),
+    .chan_t            ( slv_ar_chan_t     ),
+    .Write             ( 1'b0              ),
+    .desc_t            ( llc_desc_t        ),
+    .rule_t            ( rule_full_t       ),
+    .partition_table_t ( partition_table_t )
   ) i_ar_splitter    (
     .clk_i           ( clk_i                                  ),
     .rst_ni          ( rst_ni                                 ),
@@ -685,16 +699,17 @@ endgenerate
   );
 
   axi_llc_hit_miss #(
-    .Cfg       ( Cfg        ),
-    .AxiCfg    ( AxiCfg     ),
-    .CachePartition ( CachePartition ),
-    .desc_t    ( llc_desc_t ),
-    .lock_t    ( lock_t     ),
-    .cnt_t     ( cnt_t      ),
-    .way_ind_t ( way_ind_t  ),
-    .set_ind_t ( set_ind_t  ),
+    .Cfg               ( Cfg               ),
+    .AxiCfg            ( AxiCfg            ),
+    .CachePartition    ( CachePartition    ),
+    .RemapHash         ( RemapHash         ),
+    .desc_t            ( llc_desc_t        ),
+    .lock_t            ( lock_t            ),
+    .cnt_t             ( cnt_t             ),
+    .way_ind_t         ( way_ind_t         ),
+    .set_ind_t         ( set_ind_t         ),
     .partition_table_t ( partition_table_t ),
-    .PrintSramCfg ( PrintSramCfg )
+    .PrintSramCfg      ( PrintSramCfg      )
   ) i_hit_miss_unit (
     .clk_i,
     .rst_ni,
@@ -722,15 +737,15 @@ endgenerate
   );
 
   axi_llc_evict_unit #(
-    .Cfg       ( Cfg           ),
-    .AxiCfg    ( AxiCfg        ),
+    .Cfg            ( Cfg            ),
+    .AxiCfg         ( AxiCfg         ),
     .CachePartition ( CachePartition ),
-    .desc_t    ( llc_desc_t    ),
-    .way_inp_t ( way_inp_t     ),
-    .way_oup_t ( way_oup_t     ),
-    .aw_chan_t ( slv_aw_chan_t ),
-    .w_chan_t  ( w_chan_t      ),
-    .b_chan_t  ( slv_b_chan_t  )
+    .desc_t         ( llc_desc_t     ),
+    .way_inp_t      ( way_inp_t      ),
+    .way_oup_t      ( way_oup_t      ),
+    .aw_chan_t      ( slv_aw_chan_t  ),
+    .w_chan_t       ( w_chan_t       ),
+    .b_chan_t       ( slv_b_chan_t   )
   ) i_evict_unit (
     .clk_i             ( clk_i                                ),
     .rst_ni            ( rst_ni                               ),
@@ -761,13 +776,13 @@ endgenerate
 
   // plug in refill unit for test
   axi_llc_refill_unit #(
-    .Cfg       ( Cfg           ),
-    .AxiCfg    ( AxiCfg        ),
+    .Cfg            ( Cfg            ),
+    .AxiCfg         ( AxiCfg         ),
     .CachePartition ( CachePartition ),
-    .desc_t    ( llc_desc_t    ),
-    .way_inp_t ( way_inp_t     ),
-    .ar_chan_t ( slv_ar_chan_t ),
-    .r_chan_t  ( slv_r_chan_t  )
+    .desc_t         ( llc_desc_t     ),
+    .way_inp_t      ( way_inp_t      ),
+    .ar_chan_t      ( slv_ar_chan_t  ),
+    .r_chan_t       ( slv_r_chan_t   )
   ) i_refill_unit (
     .clk_i           ( clk_i                                ),
     .rst_ni          ( rst_ni                               ),
@@ -814,14 +829,14 @@ endgenerate
 
   // write unit
   axi_llc_write_unit #(
-    .Cfg       ( Cfg          ),
-    .AxiCfg    ( AxiCfg       ),
+    .Cfg            ( Cfg            ),
+    .AxiCfg         ( AxiCfg         ),
     .CachePartition ( CachePartition ),
-    .desc_t    ( llc_desc_t   ),
-    .way_inp_t ( way_inp_t    ),
-    .lock_t    ( lock_t       ),
-    .w_chan_t  ( w_chan_t     ),
-    .b_chan_t  ( slv_b_chan_t )
+    .desc_t         ( llc_desc_t     ),
+    .way_inp_t      ( way_inp_t      ),
+    .lock_t         ( lock_t         ),
+    .w_chan_t       ( w_chan_t       ),
+    .b_chan_t       ( slv_b_chan_t   )
   ) i_write_unit  (
     .clk_i           ( clk_i                                ),
     .rst_ni          ( rst_ni                               ),
@@ -845,14 +860,14 @@ endgenerate
 
   // read unit
   axi_llc_read_unit #(
-    .Cfg       ( Cfg          ),
-    .AxiCfg    ( AxiCfg       ),
+    .Cfg            ( Cfg            ),
+    .AxiCfg         ( AxiCfg         ),
     .CachePartition ( CachePartition ),
-    .desc_t    ( llc_desc_t   ),
-    .way_inp_t ( way_inp_t    ),
-    .way_oup_t ( way_oup_t    ),
-    .lock_t    ( lock_t       ),
-    .r_chan_t  ( slv_r_chan_t )
+    .desc_t         ( llc_desc_t     ),
+    .way_inp_t      ( way_inp_t      ),
+    .way_oup_t      ( way_oup_t      ),
+    .lock_t         ( lock_t         ),
+    .r_chan_t       ( slv_r_chan_t   )
   ) i_read_unit (
     .clk_i           ( clk_i                                ),
     .rst_ni          ( rst_ni                               ),

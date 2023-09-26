@@ -29,6 +29,7 @@ sources:
   # - src/axi_llc_sram_data_fpga.sv
   # - src/axi_llc_sram_tag_fpga.sv
   - src/axi_llc_index_assigner.sv
+  - src/axi_llc_trdl_index.sv
   - src/axi_llc_burst_cutter.sv
   - src/axi_llc_data_way.sv
   - src/axi_llc_merge_unit.sv
