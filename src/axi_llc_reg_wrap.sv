@@ -156,7 +156,7 @@ module axi_llc_reg_wrap #(
   /// The same restriction as of parameter `NumLines` applies.
   parameter int unsigned NumBlocks             = 32'd0,
   /// Enabling cache partitioning
-  parameter logic        CachePartition        = 1,
+  parameter logic        CachePartition        = 0,
   /// Index remapping hash function used in cache partitioning
   parameter axi_llc_pkg::algorithm_e RemapHash = axi_llc_pkg::Modulo,
   /// Max. number of partitions supported for partitioning

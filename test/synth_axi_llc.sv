@@ -14,8 +14,12 @@ module synth_axi_llc import axi_pkg::*; #(
   parameter int unsigned NumLines         = 32'd256, // must be 256 currently
   /// Number of Blocks per cache line
   parameter int unsigned NumBlocks        = 32'd8,
+  /// Enabling cache partitioning
+  parameter logic        CachePartition   = 0,
+  /// Index remapping hash function used in cache partitioning
+  parameter axi_llc_pkg::algorithm_e RemapHash = axi_llc_pkg::Modulo,
   /// Max. number of threads supported for partitioning
-  parameter int unsigned MaxPartition        = 32'd256,
+  parameter int unsigned MaxPartition     = 32'd256,
   /// ID width of the Full AXI slave port, master port has ID `AxiIdWidthFull + 32'd1`
   parameter int unsigned AxiIdWidth       = 32'd6,
   /// Address width of the full AXI bus
@@ -24,6 +28,9 @@ module synth_axi_llc import axi_pkg::*; #(
   parameter int unsigned AxiDataWidth     = 32'd64,
   /// User width of the full AXI bus
   parameter int unsigned AxiUserWidth     = 32'd8,
+  /// User signal offset
+  parameter int unsigned AxiUserIdMsb     = 7,
+  parameter int unsigned AxiUserIdLsb     = 0,
   /// Axi types
   parameter type axi_slv_id_t             = logic [AxiIdWidth-1:0],
   parameter type axi_mst_id_t             = logic [AxiIdWidth:0],
@@ -359,14 +366,18 @@ module synth_axi_llc import axi_pkg::*; #(
   // Design under test //
   ///////////////////////
   axi_llc_reg_wrap #(
-    .SetAssociativity ( SetAssociativity ),
-    .NumLines         ( NumLines         ),
-    .NumBlocks        ( NumBlocks        ),
-    .MaxPartition        ( MaxPartition        ),
+    .SetAssociativity ( SetAssociativity   ),
+    .NumLines         ( NumLines           ),
+    .NumBlocks        ( NumBlocks          ),
+    .RemapHash        ( RemapHash          ),
+    .CachePartition   ( CachePartition     ),
+    .MaxPartition     ( MaxPartition       ),
     .AxiIdWidth       ( AxiIdWidth         ),
     .AxiAddrWidth     ( AxiAddrWidth       ),
     .AxiDataWidth     ( AxiDataWidth       ),
     .AxiUserWidth     ( AxiUserWidth       ),
+    .AxiUserIdMsb     ( AxiUserIdMsb       ),
+    .AxiUserIdLsb     ( AxiUserIdLsb       ),
     .slv_req_t        ( axi_slv_req_t      ),
     .slv_resp_t       ( axi_slv_resp_t     ),
     .mst_req_t        ( axi_mst_req_t      ),
