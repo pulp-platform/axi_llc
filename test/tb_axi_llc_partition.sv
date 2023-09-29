@@ -30,7 +30,7 @@ module tb_axi_llc #(
   /// Useless when "TbCachePartition" is set as 0, i.e. the cache partitioning feature is disabled
   parameter int unsigned TbMaxPartition     = 32'd16,
   /// Index remapping hash function used in cache partitioning
-  parameter axi_llc_pkg::algorithm_e RemapHash = axi_llc_pkg::TruncDual,
+  parameter axi_llc_pkg::algorithm_e RemapHash = axi_llc_pkg::Modulo,
   /// ID width of the Full AXI slave port, master port has ID `AxiIdWidthFull + 32'd1`
   parameter int unsigned TbAxiIdWidthFull   = 32'd6,
   /// Address width of the full AXI bus

@@ -184,7 +184,7 @@
 /// This register enables cache partition size configuration.
 ///
 /// Depending on `MaxPartition` value, there may be multiple registers forming an array, i.e. CfgSetPartition[i]
-/// For each partition, the number of bits used for patition size configuration is $clog(Cfg.NumLines)-1. The 
+/// For each partition, the number of bits used for partition size configuration is $clog(Cfg.NumLines)-1. The 
 /// last few remaining bits which are not enough to configure a partition size are not used.
 ///
 /// For example, if MaxPartition=12 and Cfg.NumLines=512, CfgSetPartition[0][8:0] defines pat0 size, 
@@ -468,11 +468,20 @@ module axi_llc_config_pat #(
   assign conf_regs_o.cfg_set_partition = conf_regs_i.cfg_set_partition;
 
   always_comb begin : proc_partition_table
+    // initialize variables
     conf_regs_o.commit_partition_cfg_en = 1'b0;
     conf_regs_o.commit_partition_cfg = conf_regs_i.commit_partition_cfg;
     conf_regs_o.cfg_set_partition_en = 1'b0;
     partition_table_valid_d = partition_table_valid_q;
-    if (conf_regs_i.commit_partition_cfg) begin
+    start_addr_valid = 0;
+
+    partition_table_o = '0;
+    partition_table_o[MaxPartition].StartIndex = partition_table_o[MaxPartition-1].StartIndex + partition_table_o[MaxPartition-1].NumIndex;
+    partition_table_o[MaxPartition].NumIndex = Cfg.NumLines - partition_table_o[MaxPartition].StartIndex;
+    conf_regs_o.cfg_set_partition_en = 1'b1;
+
+    
+    if (conf_regs_i.commit_partition_cfg || partition_table_valid_q) begin
       partition_table_valid_d = 0;
       conf_regs_o.commit_partition_cfg      = 1'b0;   // Clear the commit configuration flag
       conf_regs_o.commit_partition_cfg_en   = 1'b1;
