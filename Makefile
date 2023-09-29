@@ -10,6 +10,16 @@ PYTHON ?= python3
 REGGEN_PATH  = $(shell $(BENDER) path register_interface)/vendor/lowrisc_opentitan/util/regtool.py
 REGGEN	     = $(PYTHON) $(REGGEN_PATH)
 
+REGWIDTH            = 64
+CACHENUMLINES       = 256
+MAXPARTITION        = 16
+CACHE_PARTITION		= 1
+AXI_LLC_REGS_PATH   = data/axi_llc_regs.py
+TYPEDEF_PATH        = include/axi_llc/typedef.py
+ASSIGN_PATH         = include/axi_llc/assign.py
+AXI_LLC_CONFIG_PATH = src/axi_llc_config_pat.py
+TB_CONFIG_REG_ADDR_PATH = test/tb_config_reg_addr.py
+
 .PHONY: all clean
 
 all: help
@@ -44,9 +54,22 @@ help:
 # Registers
 # --------------
 
-regs:
+regs:set_partition_config
 	$(REGGEN) -r --outdir src/ data/axi_llc_regs.hjson
 	$(REGGEN) --cdefines --outfile sw/include/axi_llc_regs.h data/axi_llc_regs.hjson
+
+
+# -------------------------
+# Set-Based Cache Partition
+# -------------------------
+
+set_partition_config:
+	$(PYTHON) $(AXI_LLC_REGS_PATH) $(REGWIDTH) $(CACHENUMLINES) $(MAXPARTITION) ${CACHE_PARTITION}
+	$(PYTHON) $(TYPEDEF_PATH) $(REGWIDTH) $(CACHENUMLINES) $(MAXPARTITION) ${CACHE_PARTITION}
+	$(PYTHON) $(ASSIGN_PATH) $(REGWIDTH) $(CACHENUMLINES) $(MAXPARTITION) ${CACHE_PARTITION}
+# 	$(PYTHON) $(AXI_LLC_CONFIG_PATH) $(REGWIDTH) $(CACHENUMLINES) $(MAXPARTITION)
+	$(PYTHON) $(TB_CONFIG_REG_ADDR_PATH) $(REGWIDTH) $(CACHENUMLINES) $(MAXPARTITION)
+
 
 # --------------
 # QuestaSim

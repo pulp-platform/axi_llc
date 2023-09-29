@@ -166,7 +166,7 @@
 /// |:--------:|:-----------------------------:|:---------------------------:|
 /// | `[63:0]` | `axi_llc_pkg::AxiLlcVersion`  | Shows the `axi_llc_version` |
 ///
-module axi_llc_config #(
+module axi_llc_config_no_pat #(
   /// Static AXI LLC configuration.
   parameter axi_llc_pkg::llc_cfg_t Cfg = axi_llc_pkg::llc_cfg_t'{default: '0},
   /// Give the exact AXI parameters in struct form. This is passed down from

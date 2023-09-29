@@ -2,7 +2,10 @@
 // Solderpad Hardware License, Version 0.51, see LICENSE for details.
 // SPDX-License-Identifier: SHL-0.51
 //
-// Author: Wolfgang Roenninger <wroennin@iis.ee.ethz.ch>
+// Author: 
+// - Wolfgang Roenninger <wroennin@iis.ee.ethz.ch>
+// - Hong Pang <hongpang@ethz.ch>
+// - Diyou Shen <dishen@ethz.ch>
 // Date:   11.06.2019
 
 /// This module houses the hit miss detection logic and the tag storage.
@@ -25,18 +28,22 @@
 /// descriptors, so that new ones from other IDs can use the hit bypass.
 module axi_llc_hit_miss #(
   /// Stattic LLC configuration struct.
-  parameter axi_llc_pkg::llc_cfg_t     Cfg       = axi_llc_pkg::llc_cfg_t'{default: '0},
+  parameter axi_llc_pkg::llc_cfg_t     Cfg            = axi_llc_pkg::llc_cfg_t'{default: '0},
   /// AXI parameter configuration
-  parameter axi_llc_pkg::llc_axi_cfg_t AxiCfg    = axi_llc_pkg::llc_axi_cfg_t'{default: '0},
+  parameter axi_llc_pkg::llc_axi_cfg_t AxiCfg         = axi_llc_pkg::llc_axi_cfg_t'{default: '0},
+  /// Cache partitioning enabling parameter
+  parameter logic                      CachePartition = 1,
+  /// Index remapping hash function used in cache partitioning
+  parameter axi_llc_pkg::algorithm_e   RemapHash      = axi_llc_pkg::Modulo,
   /// LLC descriptor type
-  parameter type                       desc_t    = logic,
+  parameter type                       desc_t         = logic,
   /// Lock struct definition. The lock signal indicate that a cache line is unlocked.
   ///
   ///  typedef struct packed {
   ///    logic [Cfg.IndexLength-1:0]      index;        // index of lock (cacheline)
   ///    logic [Cfg.SetAssociativity-1:0] way_ind;      // way which is locked
   ///  } lock_t;
-  parameter type                       lock_t    = logic,
+  parameter type                       lock_t         = logic,
   /// Expected type definition definition of the miss counting struct
   ///
   /// typedef struct packed {
@@ -44,11 +51,14 @@ module axi_llc_hit_miss #(
   ///   logic        rw;    // 0:read, 1:write
   ///   logic        valid; // valid, equals enable
   /// } cnt_t;
-  parameter type                       cnt_t     = logic,
+  parameter type                       cnt_t          = logic,
   /// Way indicator, is a onehot signal with width: `Cfg.SetAssociativity`.
-  parameter type                       way_ind_t = logic,
+  parameter type                       way_ind_t      = logic,
+  parameter type                       set_ind_t      = logic,
+  /// Cache partition table
+  parameter type                       partition_table_t = logic,
   /// Whether to print SRAM configs
-  parameter bit                        PrintSramCfg = 0
+  parameter bit                        PrintSramCfg   = 0
 ) (
   /// Clock, positive edge triggered.
   input  logic     clk_i,
@@ -71,6 +81,7 @@ module axi_llc_hit_miss #(
   // Configuration input
   input  way_ind_t spm_lock_i,
   input  way_ind_t flushed_i,
+  input  set_ind_t flushed_set_i,
   // unlock inputs from the units
   input  lock_t    w_unlock_i,
   input  logic     w_unlock_req_i,
@@ -88,6 +99,7 @@ module axi_llc_hit_miss #(
   localparam int unsigned IndexBase = Cfg.ByteOffsetLength + Cfg.BlockOffsetLength;
   localparam int unsigned TagBase   = Cfg.ByteOffsetLength + Cfg.BlockOffsetLength +
                                       Cfg.IndexLength;
+
   // Type definitions for the requests and responses to/from the tag storage
       // typedef logic [Cfg.SetAssociativity-1:0] way_ind_t;
   typedef logic [Cfg.IndexLength-1:0]      index_t;
@@ -141,6 +153,7 @@ module axi_llc_hit_miss #(
   logic  init_d,    init_q, load_init; // is the tag storage initialized?
   desc_t desc_d,    desc_q;            // descriptor residing in unit
   logic  load_desc;
+  desc_t desc_temp;
 
   // control
   always_comb begin
@@ -151,7 +164,11 @@ module axi_llc_hit_miss #(
     load_busy = 1'b0;
     desc_d    = desc_q;
     // output
+    // Cache-Partition: If flush, recalculate the new index use old method to ensure the flush-by-set correct
     desc_o    = desc_q; // some fields get combinatorically overwritten from the tag lookup
+    if (CachePartition) begin
+      desc_o.index_partition = desc_q.flush ? desc_q.a_x_addr[IndexBase+:Cfg.IndexLength] : desc_q.index_partition;
+    end
     load_desc = 1'b0;
     // unit handshaking
     ready_o      = 1'b0;
@@ -196,8 +213,7 @@ module axi_llc_hit_miss #(
               end
             end
           end
-
-        end else begin
+        end else begin       
           ////////////////////////////////////////////////////////////////
           // NORMAL or FLUSH descriptor in unit, made req to tag_store
           // wait for the response
@@ -238,26 +254,38 @@ module axi_llc_hit_miss #(
                   // Does the module have a new descriptor at its input and we can take it?
                   if (valid_i) begin
                     // snoop at the descriptors spm, we do not have to make a lookup if it is spm
-                    if (desc_i.spm) begin
+                    if (desc_temp.spm) begin
                       // load directly, if it is spm
                       ready_o   = 1'b1;
-                      desc_d    = desc_i;
+                      desc_d    = desc_temp;
                       load_desc = 1'b1;
                     end else begin
-                      // make the request to the tag store,
-                      store_req = store_req_t'{
-                        mode:      desc_i.flush ? axi_llc_pkg::Flush : axi_llc_pkg::Lookup,
-                        indicator: desc_i.flush ? desc_i.way_ind     : ~flushed_i,
-                        index:     desc_i.a_x_addr[IndexBase+:Cfg.IndexLength],
-                        tag:       desc_i.flush ? tag_t'(0)          : desc_i.a_x_addr[TagBase+:Cfg.TagLength],
-                        dirty:     desc_i.rw,
-                        default:   '0
-                      };
+                      if (CachePartition) begin
+                        // use the new index and tag to store the tag
+                        store_req = store_req_t'{
+                          mode:      desc_temp.flush ? axi_llc_pkg::Flush : axi_llc_pkg::Lookup,
+                          indicator: desc_temp.flush ? desc_temp.way_ind     : ~flushed_i,
+                          index:     desc_temp.flush ? desc_temp.a_x_addr[IndexBase+:Cfg.IndexLength] : desc_temp.index_partition,
+                          tag:       desc_temp.flush ? tag_t'(0)          : desc_temp.a_x_addr[IndexBase+:Cfg.TagLength],
+                          dirty:     desc_temp.rw,
+                          default:   '0
+                        };
+                      end else begin
+                        // make the request to the tag store,
+                        store_req = store_req_t'{
+                          mode:      desc_temp.flush ? axi_llc_pkg::Flush : axi_llc_pkg::Lookup,
+                          indicator: desc_temp.flush ? desc_temp.way_ind     : ~flushed_i,
+                          index:     desc_temp.a_x_addr[IndexBase+:Cfg.IndexLength],
+                          tag:       desc_temp.flush ? tag_t'(0)          : desc_temp.a_x_addr[TagBase+:Cfg.TagLength],
+                          dirty:     desc_temp.rw,
+                          default:   '0
+                        };
+                      end
                       store_req_valid = 1'b1;
                       // transfer
                       if (store_req_ready) begin
                         ready_o   = 1'b1;
-                        desc_d    = desc_i;
+                        desc_d    = desc_temp;
                         load_desc = 1'b1;
                       end else begin
                         // go to idle and do nothing
@@ -283,30 +311,42 @@ module axi_llc_hit_miss #(
         // we signal that we are ready only, if there is a valid input descriptor
         if (valid_i) begin
           // snoop at the descriptors spm, we do not have to make a lookup if it is spm
-          if (desc_i.spm) begin
+          if (desc_temp.spm) begin
             // load directly, if it is spm
             ready_o   = 1'b1;
             busy_d    = 1'b1;
             load_busy = 1'b1;
-            desc_d    = desc_i;
+            desc_d    = desc_temp;
             load_desc = 1'b1;
           end else begin
-            // make the request to the tag store,
-            store_req = store_req_t'{
-              mode:      desc_i.flush ? axi_llc_pkg::Flush : axi_llc_pkg::Lookup,
-              indicator: desc_i.flush ? desc_i.way_ind     : ~flushed_i,
-              index:     desc_i.a_x_addr[IndexBase+:Cfg.IndexLength],
-              tag:       desc_i.flush ? tag_t'(0)          : desc_i.a_x_addr[TagBase+:Cfg.TagLength],
-              dirty:     desc_i.rw,
-              default:   '0
-            };
+            if (CachePartition) begin 
+              // use the new index and tag to store the tag
+              store_req = store_req_t'{
+                mode:      desc_temp.flush ? axi_llc_pkg::Flush : axi_llc_pkg::Lookup,
+                indicator: desc_temp.flush ? desc_temp.way_ind  : ~flushed_i,
+                index:     desc_temp.flush ? desc_temp.a_x_addr[IndexBase+:Cfg.IndexLength] : desc_temp.index_partition,
+                tag:       desc_temp.flush ? tag_t'(0)          : desc_temp.a_x_addr[IndexBase+:Cfg.TagLength],
+                dirty:     desc_temp.rw,
+                default:   '0
+              };
+            end else begin
+              // make the request to the tag store,
+              store_req = store_req_t'{
+                mode:      desc_temp.flush ? axi_llc_pkg::Flush : axi_llc_pkg::Lookup,
+                indicator: desc_temp.flush ? desc_temp.way_ind  : ~flushed_i,
+                index:     desc_temp.a_x_addr[IndexBase+:Cfg.IndexLength],
+                tag:       desc_temp.flush ? tag_t'(0)          : desc_temp.a_x_addr[TagBase+:Cfg.TagLength],
+                dirty:     desc_temp.rw,
+                default:   '0
+              };
+            end
             store_req_valid = 1'b1;
             // transfer
             if (store_req_ready) begin
               ready_o   = 1'b1;
               busy_d    = 1'b1;
               load_busy = 1'b1;
-              desc_d    = desc_i;
+              desc_d    = desc_temp;
               load_desc = 1'b1;
             end
           end
@@ -332,10 +372,10 @@ module axi_llc_hit_miss #(
   end
 
   axi_llc_tag_store #(
-    .Cfg          ( Cfg          ),
-    .way_ind_t    ( way_ind_t    ),
-    .store_req_t  ( store_req_t  ),
-    .store_res_t  ( store_res_t  ),
+    .Cfg         ( Cfg         ),
+    .way_ind_t   ( way_ind_t   ),
+    .store_req_t ( store_req_t ),
+    .store_res_t ( store_res_t ),
     .PrintSramCfg ( PrintSramCfg )
   ) i_tag_store (
     .clk_i,
@@ -372,8 +412,10 @@ module axi_llc_hit_miss #(
   );
 
   // inputs to the lock box
+  // Cache-Partition: the lock signal also needs to used the new index
   assign lock = '{
-    index:   desc_o.a_x_addr[(Cfg.ByteOffsetLength + Cfg.BlockOffsetLength)+:Cfg.IndexLength],
+    index:   CachePartition ? desc_o.index_partition : 
+                              desc_o.a_x_addr[(Cfg.ByteOffsetLength + Cfg.BlockOffsetLength)+:Cfg.IndexLength],
     way_ind: desc_o.way_ind
   };
   // Lock it if a transfer happens on ether channel and no flush!
@@ -396,6 +438,20 @@ module axi_llc_hit_miss #(
     .r_unlock_req_i,
     .r_unlock_gnt_o
   );
+
+generate
+  if (CachePartition && (RemapHash == (axi_llc_pkg::TruncDual))) begin
+    axi_llc_trdl_index #(
+      .Cfg    ( Cfg       ),
+      .desc_t ( desc_t    )
+    ) i_axi_llc_trdl_index (
+      .desc_i ( desc_i    ),
+      .desc_o ( desc_temp )
+    );
+  end else begin
+    assign desc_temp = desc_i;
+  end
+endgenerate
 
   // registers
   `FFLARN(busy_q, busy_d, load_busy, '0, clk_i, rst_ni)
