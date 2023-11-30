@@ -55,6 +55,8 @@ module axi_llc_index_assigner #(
   assign index_i = addr_i[LineOffset+:Cfg.IndexLength];
 
   always_comb begin
+    tcdl_overflow   = '0;
+    max_tcdl_offset = '0;
     size        = (pat_size_i == 0) ? share_size_i  : pat_size_i;
     start_index = (pat_size_i == 0) ? share_index_i : start_index_i;
 
