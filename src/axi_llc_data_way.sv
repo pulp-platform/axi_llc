@@ -123,7 +123,7 @@ module axi_llc_data_way #(
     .ByteWidth  ( 32'd8                        ),
     .NumPorts   ( 32'd1                        ),
     .Latency    ( 32'd1                        ),
-    .SimInit    ( "none"                       ),
+    .SimInit    ( "zeros"                      ),
     .PrintSimCfg( PrintSramCfg                 )
   ) i_data_sram (
     .clk_i,

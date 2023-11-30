@@ -13,7 +13,7 @@ module axi_llc_sram_data #(
   parameter int unsigned ByteWidth    = 32'd8,    // Width of a data byte
   parameter int unsigned NumPorts     = 32'd2,    // Number of read and write ports
   parameter int unsigned Latency      = 32'd1,    // Latency when the read data is available
-  parameter              SimInit      = "none",   // Simulation initialization
+  parameter              SimInit      = "zeros",   // Simulation initialization
   parameter bit          PrintSimCfg  = 1'b0,     // Print configuration
   // DEPENDENT PARAMETERS, DO NOT OVERWRITE!
   parameter int unsigned AddrWidth = (NumWords > 32'd1) ? $clog2(NumWords) : 32'd1,
