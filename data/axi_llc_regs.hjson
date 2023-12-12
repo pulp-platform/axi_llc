@@ -161,6 +161,75 @@
       fields: [
         {bits: "0:0", name: "done", desc: "BIST successfully completed"}
       ]
-    }
+    },
+    { name: "CFG_FLUSH_PARTITION_LOW",
+      desc: "Index-based Partition Flush Configuration [31:0] (lower 32 bit)",
+      swaccess: "rw",
+      hwaccess: "hrw",
+      fields: [
+        {bits: "31:0", resval: 4294967295, name: "low", desc: "lower 32 bit"}
+      ]
+    },
+    { name: "CFG_FLUSH_PARTITION_HIGH",
+      desc: "Index-based Partition Flush Configuration [63:32] (upper 32 bit)",
+      swaccess: "rw",
+      hwaccess: "hrw",
+      fields: [
+        {bits: "31:0", resval: 4294967295, name: "high", desc: "upper 32 bit"}
+      ]
+    },
+    { multireg: {
+         name: "CFG_SET_PARTITION_LOW",
+         desc: "Index-based Partition Configuration [31:0] (lower 32 bit)",
+         count: "2",
+         cname: "AXI_LLC"
+         swaccess: "rw",
+         hwaccess: "hrw",
+         fields: [
+         {bits: "31:0", name: "low", desc: "lower 32 bit"}
+      ]
+    }},
+    { multireg: {
+         name: "CFG_SET_PARTITION_HIGH",
+         desc: "Index-based Partition Configuration [63:32] (higher 32 bit)",
+         count: "2",
+         cname: "AXI_LLC"
+         swaccess: "rw",
+         hwaccess: "hrw",
+         fields: [
+         {bits: "31:0", name: "high", desc: "higher 32 bit"}
+      ]
+    }},
+    { name: "COMMIT_PARTITION_CFG",
+      desc: "Commit the set partition configuration",
+      swaccess: "rw1s",
+      hwaccess: "hrw",
+      fields: [
+        {bits: "0", name: "commit", desc: "commit set partition configuration"}
+      ]
+    },
+    {skipto: "0x6c"},
+    { multireg: {
+      name: "FLUSHED_SET_LOW",
+      desc: "Index-based Flushed Flag (lower 32 bit)",
+      count: "4",
+      cname: "AXI_LLC"
+      swaccess: "ro",
+      hwaccess: "hrw",
+      fields: [
+        {bits: "31:0", name: "low", desc: "lower 32 bit"}
+      ]
+    }},
+    { multireg: {
+      name: "FLUSHED_SET_HIGH",
+      desc: "Index-based Flushed Flag (upper 32 bit)",
+      count: "4",
+      cname: "AXI_LLC"
+      swaccess: "ro",
+      hwaccess: "hrw",
+      fields: [
+        {bits: "31:0", name: "high", desc: "upper 32 bit"}
+      ]
+    }}
   ]
 }
