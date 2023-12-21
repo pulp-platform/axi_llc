@@ -401,7 +401,7 @@ module axi_llc_config_pat #(
   logic       [flushed_set_length-1:0] conf_regs_i_cfg_flush_set;
   logic       [flushed_set_length-1:0] raw_flushed_set, mask_flush_set;
 
-  localparam int unsigned valid_reg_bit = $floor(RegWidth / Cfg.IndexLength) * Cfg.IndexLength;
+  localparam int unsigned valid_reg_bit = (RegWidth / Cfg.IndexLength) * Cfg.IndexLength;
 
   logic [MaxPartition * Cfg.IndexLength - 1 : 0] conf_regs_i_cfg_set_partition;
 
