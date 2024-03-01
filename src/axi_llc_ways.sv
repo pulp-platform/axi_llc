@@ -17,6 +17,8 @@
 module axi_llc_ways #(
   /// Static LLC configuration parameter struct.
   parameter axi_llc_pkg::llc_cfg_t Cfg = axi_llc_pkg::llc_cfg_t'{default: '0},
+  /// Tag & data sram ECC enabling parameter, bool type
+  parameter bit  EnableEcc = 0,
   /// Data way request payload type definition.
   parameter type way_inp_t = logic,
   /// Data way response payload type definition.
@@ -134,6 +136,7 @@ module axi_llc_ways #(
   for (genvar j = 0; unsigned'(j) < Cfg.SetAssociativity; j++) begin : gen_data_ways
     axi_llc_data_way #(
       .Cfg          ( Cfg          ),
+      .EnableEcc    ( EnableEcc    ),
       .way_inp_t    ( way_inp_t    ),
       .way_oup_t    ( way_oup_t    ),
       .PrintSramCfg ( PrintSramCfg )

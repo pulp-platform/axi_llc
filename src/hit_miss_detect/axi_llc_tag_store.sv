@@ -18,6 +18,8 @@
 module axi_llc_tag_store #(
   /// Static LLC configuration struct
   parameter axi_llc_pkg::llc_cfg_t Cfg = axi_llc_pkg::llc_cfg_t'{default: '0},
+  /// Tag & data sram ECC enabling parameter, bool type
+  parameter bit  EnableEcc = 0,
   /// Way indicator type
   /// EG: typedef logic [Cfg.SetAssociativity-1:0] way_ind_t;
   parameter type way_ind_t = logic,
@@ -269,7 +271,7 @@ module axi_llc_tag_store #(
   logic [SRAMDataWidth-1:0] sram_wdata;
   assign sram_wdata = {{SRAMExtendedWidth{1'b0}}, ram_wdata};
 
-
+  tag_data_t [Cfg.SetAssociativity-1:0] ram_rdata_tmp;    // read data from the sram
   // generate for each Way one tag storage macro
   for (genvar i = 0; unsigned'(i) < Cfg.SetAssociativity; i++) begin : gen_tag_macros
     logic [SRAMDataWidth-1:0] sram_rdata;
@@ -277,12 +279,13 @@ module axi_llc_tag_store #(
     tag_data_t ram_compared; // comparison result of tags
 
     // For functional test
-    axi_llc_sram_tag #(
+    axi_llc_sram #(
       .NumWords    ( Cfg.NumLines                 ),
       .DataWidth   ( SRAMDataWidth                ),
       .ByteWidth   ( SRAMDataWidth                ),
-      .NumPorts    ( 32'd1                        ),
+      // .NumPorts    ( 32'd1                        ),
       .Latency     ( axi_llc_pkg::TagMacroLatency ),
+      .EnableEcc   ( EnableEcc                    ),
       .SimInit     ( "none"                       ),
       .PrintSimCfg ( PrintSramCfg                 )
     ) i_tag_store (
@@ -293,6 +296,7 @@ module axi_llc_tag_store #(
       .addr_i  ( ram_index  ),
       .wdata_i ( sram_wdata ),
       .be_i    ( ram_we[i]  ),
+      .gnt_o   (),
       .rdata_o ( sram_rdata )
     );
 
@@ -319,6 +323,7 @@ module axi_llc_tag_store #(
     // );
 
     assign ram_rdata = sram_rdata[TagDataLen-1:0];
+    assign ram_rdata_tmp[i] = sram_rdata[TagDataLen-1:0];
 
     // shift register for a validtoken for read data, this pulses once for each read request
     shift_reg #(

@@ -15,6 +15,8 @@ module tb_axi_llc #(
   parameter int unsigned TbNumLines         = 32'd256,
   /// Number of Blocks per cache line
   parameter int unsigned TbNumBlocks        = 32'd8,
+  /// Tag & data sram ECC enabling parameter, bool type
+  parameter bit          TbEnableEcc        = 1,
   /// ID width of the Full AXI slave port, master port has ID `AxiIdWidthFull + 32'd1`
   parameter int unsigned TbAxiIdWidthFull   = 32'd6,
   /// Address width of the full AXI bus
@@ -455,6 +457,7 @@ module tb_axi_llc #(
     .SetAssociativity ( TbSetAssociativity ),
     .NumLines         ( TbNumLines         ),
     .NumBlocks        ( TbNumBlocks        ),
+    .EnableEcc        ( TbEnableEcc        ),
     .AxiIdWidth       ( TbAxiIdWidthFull   ),
     .AxiAddrWidth     ( TbAxiAddrWidthFull ),
     .AxiDataWidth     ( TbAxiDataWidthFull ),

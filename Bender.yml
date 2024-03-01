@@ -14,6 +14,7 @@ dependencies:
   common_verification: { git: "https://github.com/pulp-platform/common_verification.git", version: 0.2.0 }
   register_interface: { git: "https://github.com/pulp-platform/register_interface.git", version: 0.3.6 }
   tech_cells_generic: { git: "https://github.com/pulp-platform/tech_cells_generic.git", version: 0.2.9 }
+  redundancy_cells: { git: "https://github.com/pulp-platform/redundancy_cells.git", rev: a466340 }
 
 export_include_dirs:
   - include
@@ -24,8 +25,7 @@ sources:
   # levels 1 and 0, etc. Files within a level are ordered alphabetically.
   # Level 0
   - src/axi_llc_pkg.sv
-  - src/axi_llc_sram_data.sv
-  - src/axi_llc_sram_tag.sv
+  - src/axi_llc_sram.sv
   # - src/axi_llc_sram_data_fpga.sv
   # - src/axi_llc_sram_tag_fpga.sv
   - src/axi_llc_index_assigner.sv

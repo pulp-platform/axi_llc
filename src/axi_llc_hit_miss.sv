@@ -31,6 +31,8 @@ module axi_llc_hit_miss #(
   parameter axi_llc_pkg::llc_cfg_t     Cfg            = axi_llc_pkg::llc_cfg_t'{default: '0},
   /// AXI parameter configuration
   parameter axi_llc_pkg::llc_axi_cfg_t AxiCfg         = axi_llc_pkg::llc_axi_cfg_t'{default: '0},
+  /// Tag & data sram ECC enabling parameter, bool type
+  parameter bit                        EnableEcc      = 0,
   /// Cache partitioning enabling parameter
   parameter logic                      CachePartition = 1,
   /// Index remapping hash function used in cache partitioning
@@ -373,6 +375,7 @@ module axi_llc_hit_miss #(
 
   axi_llc_tag_store #(
     .Cfg         ( Cfg         ),
+    .EnableEcc   ( EnableEcc   ),
     .way_ind_t   ( way_ind_t   ),
     .store_req_t ( store_req_t ),
     .store_res_t ( store_res_t ),

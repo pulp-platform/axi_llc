@@ -155,6 +155,8 @@ module axi_llc_reg_wrap #(
   /// Note on restrictions:
   /// The same restriction as of parameter `NumLines` applies.
   parameter int unsigned NumBlocks             = 32'd0,
+  /// Tag & data sram ECC enabling parameter, bool type
+  parameter bit          EnableEcc             = 0,
   /// Enabling cache partitioning
   parameter logic        CachePartition        = 0,
   /// Index remapping hash function used in cache partitioning
@@ -276,6 +278,7 @@ module axi_llc_reg_wrap #(
     .SetAssociativity ( SetAssociativity      ),
     .NumLines         ( NumLines              ),
     .NumBlocks        ( NumBlocks             ),
+    .EnableEcc        ( EnableEcc             ),
     .CachePartition   ( CachePartition        ),
     .MaxPartition     ( MaxPartition          ),
     .RemapHash        ( RemapHash             ),

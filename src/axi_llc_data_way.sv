@@ -14,6 +14,8 @@
 module axi_llc_data_way #(
   /// Static AXI LLC configuration
   parameter axi_llc_pkg::llc_cfg_t Cfg = axi_llc_pkg::llc_cfg_t'{default: '0},
+  /// Tag & data sram ECC enabling parameter, bool type
+  parameter bit  EnableEcc = 0,
   /// The input struct has to be defined as follows (is done in `axi_llc_top`):
   /// typedef struct packed {
   ///   axi_axi_llc_pkg::cache_unit_e     cache_unit;   // which unit does the access
@@ -60,6 +62,7 @@ module axi_llc_data_way #(
   // SRAM control signals
   logic [SRamAddrWidth-1:0] addr;    // true macro address
   logic                     ram_req; // request to the macro
+  logic                     ram_gnt; // ready from the macro
 
   // flip-flops to know when the output data is valid on a read request
   logic                     outp_valid_d, outp_valid_q;
@@ -91,7 +94,7 @@ module axi_llc_data_way #(
         // we update `outp_valid_d` anyway
         load_valid = 1'b1;
         // what value gets written depends on if there is another sram request
-        if (inp_valid_i) begin
+        if (inp_valid_i & ram_gnt) begin
           // we can handle the new input
           inp_ready_o  = 1'b1;
           cache_unit_d = inp_i.cache_unit;
@@ -104,8 +107,8 @@ module axi_llc_data_way #(
       end
     end else begin
       // we are able to handle a request to the sram
-      inp_ready_o = 1'b1;
-      if (inp_valid_i) begin
+      inp_ready_o = ram_gnt;
+      if (inp_valid_i & ram_gnt) begin
         // load the registers and request to the sram
         cache_unit_d = inp_i.cache_unit;
         load_unit    = 1'b1;
@@ -117,12 +120,14 @@ module axi_llc_data_way #(
   end
 
   // For functional test
-  axi_llc_sram_data #(
+  axi_llc_sram #(
     .NumWords   ( Cfg.NumLines * Cfg.NumBlocks ),
     .DataWidth  ( Cfg.BlockSize                ),
     .ByteWidth  ( 32'd8                        ),
-    .NumPorts   ( 32'd1                        ),
+    // .NumPorts   ( 32'd1                        ),
     .Latency    ( 32'd1                        ),
+    .EnableEcc  ( EnableEcc                    ),
+    .ECC_GRANULARITY ( 32                      ),
     .SimInit    ( "zeros"                      ),
     .PrintSimCfg( PrintSramCfg                 )
   ) i_data_sram (
@@ -133,6 +138,7 @@ module axi_llc_data_way #(
     .addr_i  ( addr       ),
     .wdata_i ( inp_i.data ),
     .be_i    ( inp_i.strb ),
+    .gnt_o   ( ram_gnt    ),
     .rdata_o ( out_o.data )
   );
 

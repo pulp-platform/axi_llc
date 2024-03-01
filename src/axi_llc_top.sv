@@ -155,6 +155,8 @@ module axi_llc_top #(
   /// Note on restrictions:
   /// The same restriction as of parameter `NumLines` applies.
   parameter int unsigned NumBlocks       = 32'd0,
+  /// Tag & data sram ECC enabling parameter, bool type
+  parameter bit          EnableEcc       = 0,
   /// Cache partitioning enabling parameter, bool type.
   parameter logic        CachePartition  = 1,
   /// Max. number of partitions supported for partitioning.
@@ -701,6 +703,7 @@ endgenerate
   axi_llc_hit_miss #(
     .Cfg               ( Cfg               ),
     .AxiCfg            ( AxiCfg            ),
+    .EnableEcc         ( EnableEcc         ),
     .CachePartition    ( CachePartition    ),
     .RemapHash         ( RemapHash         ),
     .desc_t            ( llc_desc_t        ),
@@ -892,6 +895,7 @@ endgenerate
   // data storage
   axi_llc_ways #(
     .Cfg          ( Cfg          ),
+    .EnableEcc    ( EnableEcc    ),
     .way_inp_t    ( way_inp_t    ),
     .way_oup_t    ( way_oup_t    ),
     .PrintSramCfg ( PrintSramCfg )
