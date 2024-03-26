@@ -46,6 +46,10 @@ package axi_llc_pkg;
     int unsigned ByteOffsetLength;
     /// SPM address region length, in bytes.
     int unsigned SPMLength;
+    /// Data SRAM ECC granularity
+    int unsigned DataEccGranularity;
+    /// Tag SRAM ECC granularity
+    int unsigned TagEccGranularity;
   } llc_cfg_t;
 
   /// Number of bytes transfered in an Ax transfer. Is used in `evens_t`. There they correspond to

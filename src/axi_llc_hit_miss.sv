@@ -95,7 +95,14 @@ module axi_llc_hit_miss #(
   input  cnt_t     cnt_down_i,
   // bist aoutput
   output way_ind_t bist_res_o,
-  output logic     bist_valid_o
+  output logic     bist_valid_o,
+
+  // ecc signals
+  input  logic [Cfg.SetAssociativity-1:0][(Cfg.TagEccGranularity ? (1'b1 << ($clog2(Cfg.TagLength + 32'd2)))/Cfg.TagEccGranularity : 1)-1:0]  scrub_trigger_i,
+  output logic [Cfg.SetAssociativity-1:0][(Cfg.TagEccGranularity ? (1'b1 << ($clog2(Cfg.TagLength + 32'd2)))/Cfg.TagEccGranularity : 1)-1:0]  scrubber_fix_o,
+  output logic [Cfg.SetAssociativity-1:0][(Cfg.TagEccGranularity ? (1'b1 << ($clog2(Cfg.TagLength + 32'd2)))/Cfg.TagEccGranularity : 1)-1:0]  scrub_uncorrectable_o,
+  output logic [Cfg.SetAssociativity-1:0][(Cfg.TagEccGranularity ? (1'b1 << ($clog2(Cfg.TagLength + 32'd2)))/Cfg.TagEccGranularity : 1)-1:0]  single_error_o,
+  output logic [Cfg.SetAssociativity-1:0][(Cfg.TagEccGranularity ? (1'b1 << ($clog2(Cfg.TagLength + 32'd2)))/Cfg.TagEccGranularity : 1)-1:0]  multi_error_o
 );
   `include "common_cells/registers.svh"
   localparam int unsigned IndexBase = Cfg.ByteOffsetLength + Cfg.BlockOffsetLength;
@@ -393,7 +400,14 @@ module axi_llc_hit_miss #(
     .valid_o      ( store_res_valid ),
     .ready_i      ( store_res_ready ),
     .bist_res_o   ( bist_res_o      ),
-    .bist_valid_o ( bist_valid_o    )
+    .bist_valid_o ( bist_valid_o    ),
+
+    // ecc signals
+    .scrub_trigger_i        ( scrub_trigger_i       ),
+    .scrubber_fix_o         ( scrubber_fix_o        ),
+    .scrub_uncorrectable_o  ( scrub_uncorrectable_o ),
+    .single_error_o         ( single_error_o        ),
+    .multi_error_o          ( multi_error_o         ) 
   );
 
   // inputs to the miss counter unit

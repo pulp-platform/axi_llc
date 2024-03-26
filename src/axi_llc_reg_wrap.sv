@@ -201,7 +201,11 @@ module axi_llc_reg_wrap #(
   parameter type axi_addr_t     = logic[AxiAddrWidth-1:0],
   /// Dependent parameter, do **not** overwrite!
   /// Data type of set associativity wide registers
-  parameter type way_ind_t      = logic[SetAssociativity-1:0]
+  parameter type way_ind_t      = logic[SetAssociativity-1:0],
+  /// Data SRAM ECC granularity
+  parameter int unsigned DataEccGranularity = 32,
+  /// Tag SRAM ECC granularity
+  parameter int unsigned TagEccGranularity  = 0
 ) (
   /// Rising-edge clock of all ports.
   input logic clk_i,
@@ -238,6 +242,12 @@ module axi_llc_reg_wrap #(
 );
 
   localparam int unsigned RegWidth = 64;
+  localparam int unsigned  TagLength    = CachePartition ? (AxiAddrWidth - unsigned'($clog2(NumBlocks)) - 
+                                          unsigned'($clog2(AxiDataWidth / 32'd8))) : 
+                                          AxiAddrWidth - unsigned'($clog2(NumLines)) - 
+                                          unsigned'($clog2(NumBlocks)) - unsigned'($clog2(AxiDataWidth / 32'd8));
+  localparam int unsigned EccSignalWidthPerAssoc = (TagEccGranularity ? (1'b1 << ($clog2(TagLength + 32'd2)))/TagEccGranularity : 1)+(DataEccGranularity ? AxiDataWidth/DataEccGranularity : 1);
+  localparam int unsigned EccSignalWidth         = EccSignalWidthPerAssoc * SetAssociativity;
   typedef logic [RegWidth-1:0] reg_length_t;
 
   // Define 64-bit register types for the AXI_LLC toplevel
@@ -255,6 +265,56 @@ module axi_llc_reg_wrap #(
   `AXI_LLC_ASSIGN_REGS_Q_FROM_REGBUS(config_regs_q, config_reg2hw)
   `AXI_LLC_ASSIGN_REGBUS_FROM_REGS_D(config_hw2reg, config_regs_d)
 
+  // Intf between llc_reg/ecc_reg with demux
+  reg_req_t llc_reg_req, ecc_reg_req;
+  reg_resp_t llc_reg_resp, ecc_reg_resp;
+
+  // Signals to judge the req/resp to which reg
+  logic llc_reg_req_en;
+
+  // ECC manager signals
+  logic [SetAssociativity-1:0][ EccSignalWidthPerAssoc - 1 : 0]  scrub_trigger;
+  logic [SetAssociativity-1:0][ EccSignalWidthPerAssoc - 1 : 0]  scrubber_fix;
+  logic [SetAssociativity-1:0][ EccSignalWidthPerAssoc - 1 : 0]  scrub_uncorrectable;
+  logic [SetAssociativity-1:0][ EccSignalWidthPerAssoc - 1 : 0]  single_error;
+  logic [SetAssociativity-1:0][ EccSignalWidthPerAssoc - 1 : 0]  multi_error;
+
+  logic [SetAssociativity * EccSignalWidthPerAssoc - 1 : 0]  scrub_trigger_flat;
+  logic [SetAssociativity * EccSignalWidthPerAssoc - 1 : 0]  scrubber_fix_flat;
+  logic [SetAssociativity * EccSignalWidthPerAssoc - 1 : 0]  scrub_uncorrectable_flat;
+  logic [SetAssociativity * EccSignalWidthPerAssoc - 1 : 0]  single_error_flat;
+  logic [SetAssociativity * EccSignalWidthPerAssoc - 1 : 0]  multi_error_flat;
+
+  for (genvar i = 0; unsigned'(i) < SetAssociativity; i++) begin : gen_ecc_signals_flat_i
+    for (genvar j = 0; unsigned'(j) < EccSignalWidthPerAssoc ; j++) begin : gen_ecc_signals_flat_j
+      assign scrub_trigger   [i][j] = scrub_trigger_flat[i * EccSignalWidthPerAssoc + j];
+      assign scrubber_fix_flat        [i * EccSignalWidthPerAssoc + j] = scrubber_fix       [i][j];
+      assign scrub_uncorrectable_flat [i * EccSignalWidthPerAssoc + j] = scrub_uncorrectable[i][j];
+      assign single_error_flat        [i * EccSignalWidthPerAssoc + j] = single_error       [i][j];
+      assign multi_error_flat         [i * EccSignalWidthPerAssoc + j] = multi_error        [i][j];
+    end
+  end
+  
+
+
+  assign llc_reg_req_en  = conf_req_i.addr[axi_llc_reg_pkg::BlockAw-1:0] < ecc_manager_reg_pkg::OffsetStart;
+
+  // demux to send the req to llc_reg/ecc_reg
+  reg_demux #(
+    .req_t   ( reg_req_t  ),
+    .rsp_t   ( reg_resp_t ),
+    .NoPorts ( 2      )
+  ) i_reg_demux (
+    .clk_i,
+    .rst_ni,
+    .in_req_i    ( conf_req_i                              ),
+    .in_rsp_o    ( conf_resp_o                             ),
+    .out_req_o   ( {llc_reg_req, ecc_reg_req}              ),
+    .out_rsp_i   ( {llc_reg_resp, ecc_reg_resp}            ),
+    .in_select_i ( llc_reg_req_en                          )
+  );
+
+
   // Generated 32-bit RegBus register file
   axi_llc_reg_top #(
     .reg_req_t ( reg_req_t  ),
@@ -262,15 +322,34 @@ module axi_llc_reg_wrap #(
   ) i_llc_config_regfile (
     .clk_i,
     .rst_ni,
-    .reg_req_i  ( conf_req_i    ),
-    .reg_rsp_o  ( conf_resp_o   ),
+    .reg_req_i  ( llc_reg_req   ),
+    .reg_rsp_o  ( llc_reg_resp  ),
     
     // To HW
     .reg2hw     ( config_reg2hw ), // Write
     .hw2reg     ( config_hw2reg ), // Read
 
     // Config
-    .devmode_i  ( 1'b1          )  // If 1, explicit error return for unmapped register access
+    .devmode_i  ( 1'b0          )  // If 1, explicit error return for unmapped register access
+  );
+
+  // ECC manager, the offset of its memory mapped regs are started from the end of llc_reg
+  ecc_manager #(
+    .NumBanks      ( EccSignalWidth ),
+    .ecc_mgr_req_t ( reg_req_t  ),
+    .ecc_mgr_rsp_t ( reg_resp_t )
+  ) i_llc_ecc_manager (
+    .clk_i,
+    .rst_ni,
+
+    .ecc_mgr_req_i          ( ecc_reg_req  ),
+    .ecc_mgr_rsp_o          ( ecc_reg_resp ),
+
+    .bank_faults_i          ( single_error_flat | multi_error_flat ),
+    .scrub_fix_i            ( scrubber_fix_flat        ),
+    .scrub_uncorrectable_i  ( scrub_uncorrectable_flat ),
+    .scrub_trigger_o        ( scrub_trigger_flat       ),
+    .test_write_mask_no     ( /* not used */      )
   );
 
   // Registerfile agnostic axi_llc toplevel - configured for 64-bit internal registers
@@ -288,6 +367,8 @@ module axi_llc_reg_wrap #(
     .AxiUserWidth     ( AxiUserWidth          ),
     .AxiUserIdMsb     ( AxiUserIdMsb          ),
     .AxiUserIdLsb     ( AxiUserIdLsb          ),
+    .DataEccGranularity(DataEccGranularity    ),
+    .TagEccGranularity( TagEccGranularity     ),
     .RegWidth         ( 32'd64                ),
     .conf_regs_d_t    ( axi_llc_cfg_regs_d_t  ),
     .conf_regs_q_t    ( axi_llc_cfg_regs_q_t  ),
@@ -312,7 +393,15 @@ module axi_llc_reg_wrap #(
     .cached_start_addr_i,
     .cached_end_addr_i,
     .spm_start_addr_i,
-    .axi_llc_events_o
+    .axi_llc_events_o,
+
+    // ecc signals
+    .scrub_trigger_i      ( scrub_trigger       ),
+    .scrubber_fix_o       ( scrubber_fix        ),
+    .scrub_uncorrectable_o( scrub_uncorrectable ),
+    .single_error_o       ( single_error        ),
+    .multi_error_o        ( multi_error         )
+
   );
 
 endmodule

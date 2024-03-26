@@ -53,7 +53,14 @@ module axi_llc_data_way #(
   /// Output is valid.
   output logic out_valid_o,
   /// Downstream is ready for output.
-  input logic out_ready_i
+  input logic out_ready_i,
+
+  // ecc signals
+  input  logic [(Cfg.DataEccGranularity ? Cfg.BlockSize/Cfg.DataEccGranularity : 1)-1:0]  scrub_trigger_i,
+  output logic [(Cfg.DataEccGranularity ? Cfg.BlockSize/Cfg.DataEccGranularity : 1)-1:0]  scrubber_fix_o,
+  output logic [(Cfg.DataEccGranularity ? Cfg.BlockSize/Cfg.DataEccGranularity : 1)-1:0]  scrub_uncorrectable_o,
+  output logic [(Cfg.DataEccGranularity ? Cfg.BlockSize/Cfg.DataEccGranularity : 1)-1:0]  single_error_o,
+  output logic [(Cfg.DataEccGranularity ? Cfg.BlockSize/Cfg.DataEccGranularity : 1)-1:0]  multi_error_o  
 );
 
   // The number of lines of each data SRAM macro
@@ -127,7 +134,7 @@ module axi_llc_data_way #(
     // .NumPorts   ( 32'd1                        ),
     .Latency    ( 32'd1                        ),
     .EnableEcc  ( EnableEcc                    ),
-    .ECC_GRANULARITY ( 32                      ),
+    .ECC_GRANULARITY ( Cfg.DataEccGranularity  ),
     .SimInit    ( "zeros"                      ),
     .PrintSimCfg( PrintSramCfg                 )
   ) i_data_sram (
@@ -139,7 +146,14 @@ module axi_llc_data_way #(
     .wdata_i ( inp_i.data ),
     .be_i    ( inp_i.strb ),
     .gnt_o   ( ram_gnt    ),
-    .rdata_o ( out_o.data )
+    .rdata_o ( out_o.data ),
+
+    // ecc signals
+    .scrub_trigger_i        ( scrub_trigger_i       ),
+    .scrubber_fix_o         ( scrubber_fix_o        ),
+    .scrub_uncorrectable_o  ( scrub_uncorrectable_o ),
+    .single_error_o         ( single_error_o        ),
+    .multi_error_o          ( multi_error_o         )
   );
 
   // // For synthesis

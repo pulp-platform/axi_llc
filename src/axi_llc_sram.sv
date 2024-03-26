@@ -22,7 +22,13 @@ module axi_llc_sram #(
   parameter int unsigned BeWidth   = (DataWidth + ByteWidth - 32'd1) / ByteWidth, // ceil_div
   parameter type         addr_t    = logic [AddrWidth-1:0],
   parameter type         data_t    = logic [DataWidth-1:0],
-  parameter type         be_t      = logic [BeWidth-1:0]
+  parameter type         be_t      = logic [BeWidth-1:0],
+
+  parameter int unsigned G = (ECC_GRANULARITY == 0) ? DataWidth : ECC_GRANULARITY,
+  parameter int unsigned NumBanks = DataWidth/G,
+  parameter int unsigned K = $clog2(G) + 2,
+  parameter int unsigned EccDataWidth = G + K,
+  parameter int unsigned BeWidthPerBank = (BeWidth+NumBanks-1)/NumBanks
 ) (
   input  logic                 clk_i,      // Clock
   input  logic                 rst_ni,     // Asynchronous reset active low
@@ -34,7 +40,14 @@ module axi_llc_sram #(
   input  be_t                  be_i,       // write byte enable
   // output ports
   output logic                 gnt_o,      // sram ready
-  output data_t                rdata_o     // read data
+  output data_t                rdata_o,    // read data
+
+  // ecc signals
+  input  logic [NumBanks-1:0]  scrub_trigger_i,
+  output logic [NumBanks-1:0]  scrubber_fix_o,
+  output logic [NumBanks-1:0]  scrub_uncorrectable_o,
+  output logic [NumBanks-1:0]  single_error_o,
+  output logic [NumBanks-1:0]  multi_error_o
 );
   
   logic [DataWidth-1:0] wen;
@@ -43,12 +56,6 @@ module axi_llc_sram #(
   data_t                rdata_cmp;
 
   // if (EnableEcc) begin: gen_ecc_sram
-
-    localparam int unsigned G = (ECC_GRANULARITY == 0) ? DataWidth : ECC_GRANULARITY;
-    localparam int unsigned NumBanks = DataWidth/G;
-    localparam int unsigned K = $clog2(G) + 2;
-    localparam int unsigned EccDataWidth = G + K;
-    localparam int unsigned BeWidthPerBank = (BeWidth+NumBanks-1)/NumBanks;
 
     logic [NumBanks-1:0][G-1:0] wdata, rdata;
     logic [NumBanks-1:0][BeWidthPerBank-1:0] be;
@@ -88,9 +95,9 @@ module axi_llc_sram #(
         .rst_ni,
         .test_enable_i        ( '0  ),
 
-        .scrub_trigger_i      ( '1  ),
-        .scrubber_fix_o       (),
-        .scrub_uncorrectable_o(),
+        .scrub_trigger_i      ( scrub_trigger_i       [i]),
+        .scrubber_fix_o       ( scrubber_fix_o        [i]),
+        .scrub_uncorrectable_o( scrub_uncorrectable_o [i]),
 
         .tcdm_wdata_i ( wdata[i]),
         .tcdm_add_i   ( {{(32-AddrWidth-2){1'b0}}, addr_i, 2'b0}  ),
@@ -100,8 +107,8 @@ module axi_llc_sram #(
         .tcdm_rdata_o ( rdata[i]),
         .tcdm_gnt_o   ( gnt[i]  ),
 
-        .single_error_o       (),
-        .multi_error_o        (),
+        .single_error_o       ( single_error_o [i] ),
+        .multi_error_o        ( multi_error_o  [i] ),
 
         .test_write_mask_ni ('0)
       );

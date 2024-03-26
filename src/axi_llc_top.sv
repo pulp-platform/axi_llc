@@ -189,6 +189,11 @@ module axi_llc_top #(
   /// AXI4 User signal offset
   parameter int unsigned AxiUserIdMsb    = 7,
   parameter int unsigned AxiUserIdLsb    = 0,
+  /// Data SRAM ECC granularity
+  parameter int unsigned DataEccGranularity = 32,
+  /// Tag SRAM ECC granularity
+  parameter int unsigned TagEccGranularity  = 0,
+
   /// Register type for HW -> Register direction
   parameter type conf_regs_d_t  = logic,
   /// Register type for Register -> HW direction
@@ -253,7 +258,14 @@ module axi_llc_top #(
   /// Events output, for tracked events see `axi_llc_pkg`.
   ///
   /// When not used, leave open.
-  output axi_llc_pkg::events_t axi_llc_events_o
+  output axi_llc_pkg::events_t axi_llc_events_o,
+
+  // ecc signals
+  input  logic [Cfg.SetAssociativity-1:0][(Cfg.TagEccGranularity ? (1'b1 << ($clog2(Cfg.TagLength + 32'd2)))/Cfg.TagEccGranularity : 1)+(Cfg.DataEccGranularity ? Cfg.BlockSize/Cfg.DataEccGranularity : 1)-1:0]  scrub_trigger_i,
+  output logic [Cfg.SetAssociativity-1:0][(Cfg.TagEccGranularity ? (1'b1 << ($clog2(Cfg.TagLength + 32'd2)))/Cfg.TagEccGranularity : 1)+(Cfg.DataEccGranularity ? Cfg.BlockSize/Cfg.DataEccGranularity : 1)-1:0]  scrubber_fix_o,
+  output logic [Cfg.SetAssociativity-1:0][(Cfg.TagEccGranularity ? (1'b1 << ($clog2(Cfg.TagLength + 32'd2)))/Cfg.TagEccGranularity : 1)+(Cfg.DataEccGranularity ? Cfg.BlockSize/Cfg.DataEccGranularity : 1)-1:0]  scrub_uncorrectable_o,
+  output logic [Cfg.SetAssociativity-1:0][(Cfg.TagEccGranularity ? (1'b1 << ($clog2(Cfg.TagLength + 32'd2)))/Cfg.TagEccGranularity : 1)+(Cfg.DataEccGranularity ? Cfg.BlockSize/Cfg.DataEccGranularity : 1)-1:0]  single_error_o,
+  output logic [Cfg.SetAssociativity-1:0][(Cfg.TagEccGranularity ? (1'b1 << ($clog2(Cfg.TagLength + 32'd2)))/Cfg.TagEccGranularity : 1)+(Cfg.DataEccGranularity ? Cfg.BlockSize/Cfg.DataEccGranularity : 1)-1:0]  multi_error_o
 );
   `include "axi/typedef.svh"
 
@@ -293,7 +305,9 @@ module axi_llc_top #(
     IndexLength       : unsigned'($clog2(NumLines)),
     BlockOffsetLength : unsigned'($clog2(NumBlocks)),
     ByteOffsetLength  : unsigned'($clog2(AxiCfg.DataWidthFull / 32'd8)),
-    SPMLength         : SetAssociativity * NumLines * NumBlocks * (AxiCfg.DataWidthFull / 32'd8)
+    SPMLength         : SetAssociativity * NumLines * NumBlocks * (AxiCfg.DataWidthFull / 32'd8),
+    DataEccGranularity: DataEccGranularity,
+    TagEccGranularity : TagEccGranularity
   };
 
   typedef struct packed {
@@ -441,6 +455,27 @@ module axi_llc_top #(
 
   // global flush signals
   logic llc_isolate, llc_isolated, aw_unit_busy, ar_unit_busy, flush_recv;
+
+  // ecc signals
+  logic [Cfg.SetAssociativity-1:0][(Cfg.TagEccGranularity ? (1'b1 << ($clog2(Cfg.TagLength + 32'd2)))/Cfg.TagEccGranularity : 1)-1:0]  tag_sram_scrub_trigger;
+  logic [Cfg.SetAssociativity-1:0][(Cfg.TagEccGranularity ? (1'b1 << ($clog2(Cfg.TagLength + 32'd2)))/Cfg.TagEccGranularity : 1)-1:0]  tag_sram_scrubber_fix;
+  logic [Cfg.SetAssociativity-1:0][(Cfg.TagEccGranularity ? (1'b1 << ($clog2(Cfg.TagLength + 32'd2)))/Cfg.TagEccGranularity : 1)-1:0]  tag_sram_scrub_uncorrectable;
+  logic [Cfg.SetAssociativity-1:0][(Cfg.TagEccGranularity ? (1'b1 << ($clog2(Cfg.TagLength + 32'd2)))/Cfg.TagEccGranularity : 1)-1:0]  tag_sram_single_error;
+  logic [Cfg.SetAssociativity-1:0][(Cfg.TagEccGranularity ? (1'b1 << ($clog2(Cfg.TagLength + 32'd2)))/Cfg.TagEccGranularity : 1)-1:0]  tag_sram_multi_error;
+
+  logic [Cfg.SetAssociativity-1:0][(Cfg.DataEccGranularity ? Cfg.BlockSize/Cfg.DataEccGranularity : 1)-1:0]  data_sram_scrub_trigger;
+  logic [Cfg.SetAssociativity-1:0][(Cfg.DataEccGranularity ? Cfg.BlockSize/Cfg.DataEccGranularity : 1)-1:0]  data_sram_scrubber_fix;
+  logic [Cfg.SetAssociativity-1:0][(Cfg.DataEccGranularity ? Cfg.BlockSize/Cfg.DataEccGranularity : 1)-1:0]  data_sram_scrub_uncorrectable;
+  logic [Cfg.SetAssociativity-1:0][(Cfg.DataEccGranularity ? Cfg.BlockSize/Cfg.DataEccGranularity : 1)-1:0]  data_sram_single_error;
+  logic [Cfg.SetAssociativity-1:0][(Cfg.DataEccGranularity ? Cfg.BlockSize/Cfg.DataEccGranularity : 1)-1:0]  data_sram_multi_error_data;
+
+  for (genvar i = 0; unsigned'(i) < Cfg.SetAssociativity; i++) begin : gen_ecc_signals
+    assign {data_sram_scrub_trigger[i], tag_sram_scrub_trigger[i]} = scrub_trigger_i[i];
+    assign scrubber_fix_o[i]         = {data_sram_scrubber_fix[i],        tag_sram_scrubber_fix[i]};
+    assign scrub_uncorrectable_o[i]  = {data_sram_scrub_uncorrectable[i], tag_sram_scrub_uncorrectable[i]};
+    assign single_error_o[i]         = {data_sram_single_error[i],        tag_sram_single_error[i]};
+    assign multi_error_o[i]          = {data_sram_multi_error_data[i],    tag_sram_multi_error[i]};
+  end
 
   // define address rules from the address ports, propagate it throughout the design
   rule_full_t cached_addr_rule;
@@ -736,7 +771,14 @@ endgenerate
     .r_unlock_gnt_o ( r_unlock_gnt ),
     .cnt_down_i     ( cnt_down     ),
     .bist_res_o     ( bist_res     ),
-    .bist_valid_o   ( bist_valid   )
+    .bist_valid_o   ( bist_valid   ),
+
+    // ecc signals
+    .scrub_trigger_i        ( tag_sram_scrub_trigger       ),
+    .scrubber_fix_o         ( tag_sram_scrubber_fix        ),
+    .scrub_uncorrectable_o  ( tag_sram_scrub_uncorrectable ),
+    .single_error_o         ( tag_sram_single_error        ),
+    .multi_error_o          ( tag_sram_multi_error         )
   );
 
   axi_llc_evict_unit #(
@@ -911,7 +953,14 @@ endgenerate
     .evict_way_out_ready_i( evict_way_out_ready ),
     .read_way_out_o       ( read_way_out        ),
     .read_way_out_valid_o ( read_way_out_valid  ),
-    .read_way_out_ready_i ( read_way_out_ready  )
+    .read_way_out_ready_i ( read_way_out_ready  ),
+
+    // ecc signals
+    .scrub_trigger_i        ( data_sram_scrub_trigger      ),
+    .scrubber_fix_o         ( data_sram_scrubber_fix       ),
+    .scrub_uncorrectable_o  ( data_sram_scrub_uncorrectable),
+    .single_error_o         ( data_sram_single_error       ),
+    .multi_error_o          ( data_sram_multi_error_data   )
   );
 
   // this unit widens the AXI ID by one!

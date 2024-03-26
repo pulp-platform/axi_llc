@@ -63,7 +63,14 @@ module axi_llc_tag_store #(
   /// corresponding tag storage SRAM macro failed the test.
   output way_ind_t   bist_res_o,
   /// BIST output is valid.
-  output logic       bist_valid_o
+  output logic       bist_valid_o,
+
+  // ecc signals
+  input  logic [Cfg.SetAssociativity-1:0][(Cfg.TagEccGranularity ? (1'b1 << ($clog2(Cfg.TagLength + 32'd2)))/Cfg.TagEccGranularity : 1)-1:0]  scrub_trigger_i,
+  output logic [Cfg.SetAssociativity-1:0][(Cfg.TagEccGranularity ? (1'b1 << ($clog2(Cfg.TagLength + 32'd2)))/Cfg.TagEccGranularity : 1)-1:0]  scrubber_fix_o,
+  output logic [Cfg.SetAssociativity-1:0][(Cfg.TagEccGranularity ? (1'b1 << ($clog2(Cfg.TagLength + 32'd2)))/Cfg.TagEccGranularity : 1)-1:0]  scrub_uncorrectable_o,
+  output logic [Cfg.SetAssociativity-1:0][(Cfg.TagEccGranularity ? (1'b1 << ($clog2(Cfg.TagLength + 32'd2)))/Cfg.TagEccGranularity : 1)-1:0]  single_error_o,
+  output logic [Cfg.SetAssociativity-1:0][(Cfg.TagEccGranularity ? (1'b1 << ($clog2(Cfg.TagLength + 32'd2)))/Cfg.TagEccGranularity : 1)-1:0]  multi_error_o
 );
 
   // typedef, because we use in this module many signals with the width of SetAssiciativity
@@ -286,6 +293,7 @@ module axi_llc_tag_store #(
       // .NumPorts    ( 32'd1                        ),
       .Latency     ( axi_llc_pkg::TagMacroLatency ),
       .EnableEcc   ( EnableEcc                    ),
+      .ECC_GRANULARITY ( Cfg.TagEccGranularity    ),
       .SimInit     ( "none"                       ),
       .PrintSimCfg ( PrintSramCfg                 )
     ) i_tag_store (
@@ -297,7 +305,14 @@ module axi_llc_tag_store #(
       .wdata_i ( sram_wdata ),
       .be_i    ( ram_we[i]  ),
       .gnt_o   (),
-      .rdata_o ( sram_rdata )
+      .rdata_o ( sram_rdata ),
+
+      // ecc signals
+      .scrub_trigger_i        ( scrub_trigger_i      [i] ),
+      .scrubber_fix_o         ( scrubber_fix_o       [i] ),
+      .scrub_uncorrectable_o  ( scrub_uncorrectable_o[i] ),
+      .single_error_o         ( single_error_o       [i] ),
+      .multi_error_o          ( multi_error_o        [i] )
     );
 
     // // For synthesis

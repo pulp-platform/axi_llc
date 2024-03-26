@@ -50,7 +50,14 @@ module axi_llc_ways #(
   /// Response to the read unit is valid.
   output logic read_way_out_valid_o,
   /// Read unit is ready for the response.
-  input logic read_way_out_ready_i
+  input logic read_way_out_ready_i,
+
+  // ecc signals
+  input  logic [Cfg.SetAssociativity-1:0][(Cfg.DataEccGranularity ? Cfg.BlockSize/Cfg.DataEccGranularity : 1)-1:0]  scrub_trigger_i,
+  output logic [Cfg.SetAssociativity-1:0][(Cfg.DataEccGranularity ? Cfg.BlockSize/Cfg.DataEccGranularity : 1)-1:0]  scrubber_fix_o,
+  output logic [Cfg.SetAssociativity-1:0][(Cfg.DataEccGranularity ? Cfg.BlockSize/Cfg.DataEccGranularity : 1)-1:0]  scrub_uncorrectable_o,
+  output logic [Cfg.SetAssociativity-1:0][(Cfg.DataEccGranularity ? Cfg.BlockSize/Cfg.DataEccGranularity : 1)-1:0]  single_error_o,
+  output logic [Cfg.SetAssociativity-1:0][(Cfg.DataEccGranularity ? Cfg.BlockSize/Cfg.DataEccGranularity : 1)-1:0]  multi_error_o
 );
   localparam int unsigned SelIdxWidth = cf_math_pkg::idx_width(Cfg.SetAssociativity);
   typedef logic [SelIdxWidth-1:0]          way_sel_t; // Binary representation of the way selection
@@ -149,7 +156,14 @@ module axi_llc_ways #(
       .inp_ready_o( way_inp_ready[j] ),
       .out_o      ( way_out[j]       ),
       .out_valid_o( way_out_valid[j] ),
-      .out_ready_i( way_out_ready[j] )
+      .out_ready_i( way_out_ready[j] ),
+
+      // ecc signals
+      .scrub_trigger_i        ( scrub_trigger_i      [j]),
+      .scrubber_fix_o         ( scrubber_fix_o       [j]),
+      .scrub_uncorrectable_o  ( scrub_uncorrectable_o[j]),
+      .single_error_o         ( single_error_o       [j]),
+      .multi_error_o          ( multi_error_o        [j])
     );
   end
 
