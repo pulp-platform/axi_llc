@@ -49,38 +49,31 @@ module axi_llc_sram #(
   output logic [NumBanks-1:0]  single_error_o,
   output logic [NumBanks-1:0]  multi_error_o
 );
-  
+
   logic [DataWidth-1:0] wen;
   assign wen = (we_i) ? '0 : '1;
   
-  data_t                rdata_cmp;
 
-  // if (EnableEcc) begin: gen_ecc_sram
+  if (EnableEcc) begin: gen_ecc_sram
 
     logic [NumBanks-1:0][G-1:0] wdata, rdata;
     logic [NumBanks-1:0][BeWidthPerBank-1:0] be;
     logic [NumBanks-1:0] gnt;
+    logic                gnt_all;
 
-    logic req_q;
+    logic hsk_d, hsk_q;
     logic we_q;
     data_t rdata_d, rdata_q;
     logic  rdata_en;
 
-    // LFSR
-    logic [16-1:0] rand_value;
-    always_ff @(posedge clk_i or negedge rst_ni) begin
-      if(~rst_ni) begin
-        rand_value <= 16'b1010110011100001;
-      end else begin
-        rand_value <= {rand_value[13]^rand_value[15]^rand_value[12]^rand_value[10], rand_value[15:1]};
-      end
-    end
+    assign hsk_d   = req_i & gnt_all;
+    assign gnt_all = &gnt;
+    assign gnt_o   = gnt_all;
 
-    assign gnt_o = &gnt;
+
     for (genvar i = 0; i < NumBanks; i++) begin: gen_data_split
       assign wdata[i] = wdata_i[G*i+:G];
-      assign rdata_o[G*i+:G] = (req_q & ~we_q) ? rdata[i] : rdata_q[G*i+:G];
-      // assign rdata_cmp[G*i+:G] = (req_q & ~we_q) ? rdata[i] : '0;
+      assign rdata_o[G*i+:G] = (hsk_q & ~we_q) ? rdata[i] : rdata_q[G*i+:G];
       assign be[i] = be_i[BeWidthPerBank*i+:BeWidthPerBank];
 
       ecc_sram_wrap #(
@@ -116,15 +109,15 @@ module axi_llc_sram #(
 
     always_ff @(posedge clk_i or negedge rst_ni) begin
       if(~rst_ni) begin
-        req_q <= 1'b0;
+        hsk_q <= 1'b0;
         we_q  <= 1'b0;
       end else begin
-        req_q <= req_i;
+        hsk_q <= hsk_d;
         we_q  <= we_i;
       end
     end
 
-    assign rdata_en = req_q & ~we_q;
+    assign rdata_en = hsk_q & ~we_q;
     assign rdata_d  = rdata_o;
     always_ff @(posedge clk_i or negedge rst_ni) begin
       if(~rst_ni) begin
@@ -134,8 +127,8 @@ module axi_llc_sram #(
       end
     end
   
-  // end else begin: gen_standard_sram
-  //   assign gnt_o = 1'b1;
+  end else begin: gen_standard_sram
+    assign gnt_o = 1'b1;
     tc_sram #(
         .NumWords   ( NumWords    ),
         .DataWidth  ( DataWidth   ),
@@ -152,16 +145,8 @@ module axi_llc_sram #(
         .addr_i  ( addr_i  ),
         .wdata_i ( wdata_i ),
         .be_i    ( be_i    ),
-        .rdata_o ( rdata_cmp )
+        .rdata_o ( rdata_o )
       );
-  // end
+  end
   
-  // Assertions
-  // pragma translate_off
-  `ifndef VERILATOR
-  data_cmp:  assert property ( @(posedge clk_i) disable iff (!rst_ni)
-      (req_i & ~we_i) |=> (rdata_o == rdata_cmp)) else
-      $fatal(1, "[data_cmp] data mismatch");
-  `endif
-  // pragma translate_on
 endmodule

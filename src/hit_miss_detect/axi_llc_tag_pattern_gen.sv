@@ -41,6 +41,8 @@ module axi_llc_tag_pattern_gen #(
   output logic     req_o,
   /// Write enable for tag sram.
   output logic     we_o,
+  /// Ready signal from the tag sram
+  input  logic     sram_ready_i,
   /// Individual BIST comparison results.
   input  way_ind_t bist_res_i,
   /// `bist_res_i` is valid.
@@ -110,7 +112,7 @@ module axi_llc_tag_pattern_gen #(
           end else begin
             req_o  = 1'b1;
             we_o   = 1'b1;
-            en_cnt = 1'b1;
+            en_cnt = sram_ready_i;
           end
         end
         // read out all zeros counting up
@@ -123,7 +125,7 @@ module axi_llc_tag_pattern_gen #(
             end
           end else begin
             req_o  = 1'b1;
-            en_cnt = 1'b1;
+            en_cnt = sram_ready_i;
           end
           // do checking of the bist result gets only saved, if one of the bist_res_i is zero
           bist_res_d = bist_res_q | ~bist_res_i;
@@ -139,7 +141,7 @@ module axi_llc_tag_pattern_gen #(
             req_o     = 1'b1;
             we_o      = 1'b1;
             pattern_o = {PatternWidth{1'b1}};
-            en_cnt    = 1'b1;
+            en_cnt    = sram_ready_i;
           end
         end
         // read out all ones counting down
@@ -154,7 +156,7 @@ module axi_llc_tag_pattern_gen #(
           end else begin
             req_o     = 1'b1;
             pattern_o = {PatternWidth{1'b1}};
-            en_cnt    = 1'b1;
+            en_cnt    = sram_ready_i;
             down_cnt  = 1'b1;
           // do checking of the bist result gets only saved, if one of the bist_res_i is zero
           bist_res_d = bist_res_q | ~bist_res_i;
@@ -170,7 +172,7 @@ module axi_llc_tag_pattern_gen #(
           end else begin
             req_o    = 1'b1;
             we_o     = 1'b1;
-            en_cnt   = 1'b1;
+            en_cnt   = sram_ready_i;
             down_cnt = 1'b1;
           end
         end
@@ -184,7 +186,7 @@ module axi_llc_tag_pattern_gen #(
             end
           end else begin
             req_o         = 1'b1;
-            en_cnt        = 1'b1;
+            en_cnt        = sram_ready_i;
             down_cnt      = 1'b1;
           end
           // do checking of the bist result gets only saved, if one of the bist_res_i is zero

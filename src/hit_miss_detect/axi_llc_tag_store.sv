@@ -103,6 +103,10 @@ module axi_llc_tag_store #(
   // Macro signals
   // Request for the macros
   way_ind_t   ram_req;
+  // Ready from the macros
+  way_ind_t   ram_gnt;
+  // Handshake between macro and state machine
+  logic       ram_hsk;
   // Write enable for the macros, active high. (Also functions as byte enable as there is one byte).
   way_ind_t   ram_we;
   // Index is the address.
@@ -128,7 +132,15 @@ module axi_llc_tag_store #(
   logic       evict_req,   evict_valid;
   // Response output into the spill register
   store_res_t res;
+  store_res_t res_q;
   logic       res_valid,   res_ready;
+  logic       res_sram_wr_delay_d;
+  logic       res_sram_wr_delay_q;
+
+  assign res_sram_wr_delay_d = (((res_valid && res_ready) && |(ram_req & ram_we)) || res_sram_wr_delay_q) && !ram_hsk; // there is a unfinished resp tag update
+  `FFLARN(res_q, res, res_sram_wr_delay_d & ~res_sram_wr_delay_q, store_res_t'{default: '0}, clk_i, rst_ni)
+  `FF(res_sram_wr_delay_q, res_sram_wr_delay_d, '0)
+
 
   // macro control
   always_comb begin : proc_macro_ctrl
@@ -176,20 +188,21 @@ module axi_llc_tag_store #(
             end
 
             // Do we have to write back something?
-            if (res_valid && res_ready) begin
-              if (res.hit) begin
+            if ((res_valid && res_ready) || res_sram_wr_delay_q) begin
+              if (res.hit || res_sram_wr_delay_q && res_q.hit) begin
                 // This is a hit
-                if (req_q.dirty && !tag_dit[bin_ind]) begin
+                if (req_q.dirty && !tag_dit[bin_ind] || res_sram_wr_delay_q) begin
                   // Do we have to store a dirty as the hit was not dirty until now?
-                  ram_req   = res.indicator;
-                  ram_we    = res.indicator;
+                  // add a 1 bit state reg
+                  ram_req   = res_sram_wr_delay_q ? res_q.indicator : res.indicator;  // ff
+                  ram_we    = res_sram_wr_delay_q ? res_q.indicator : res.indicator;
                   ram_index = req_q.index;
                   ram_wdata = tag_data_t'{
                                 val: 1'b1,
                                 dit: 1'b1,
                                 tag: req_q.tag
                               };
-                  switch_busy = 1'b1;
+                  switch_busy = ram_hsk; // stop this
                 end else begin
                   // Noting to write back, do we have a new LOOKUP request?
                   if (valid_i && (req_i.mode == axi_llc_pkg::Lookup)) begin
@@ -197,7 +210,14 @@ module axi_llc_tag_store #(
                     // Do the lookup on the requested macros
                     ram_req     = req_i.indicator;
                     ram_index   = req_i.index;
-                    load_req    = 1'b1;
+                    if(ram_hsk) begin
+                      load_req    = 1'b1;
+                      switch_busy = 1'b0;                      
+                    end else begin
+                      ready_o = 1'b0;
+                      // Go back to IDLE if the tag sram is busy
+                      switch_busy = 1'b1;                      
+                    end
                   end else begin
                     // Go back to IDLE if no Lookup
                     switch_busy = 1'b1;
@@ -206,8 +226,8 @@ module axi_llc_tag_store #(
               end else begin
                 // This is a miss!
                 // Write back the new tag, it was a miss.
-                ram_req   = res.indicator;
-                ram_we    = res.indicator;
+                ram_req   = res_sram_wr_delay_q ? res_q.indicator : res.indicator;
+                ram_we    = res_sram_wr_delay_q ? res_q.indicator : res.indicator;
                 ram_index = req_q.index;
                 ram_wdata = tag_data_t'{
                               val: 1'b1,
@@ -215,7 +235,7 @@ module axi_llc_tag_store #(
                               tag: req_q.tag
                             };
                 // Go back to idle.
-                switch_busy = 1'b1;
+                switch_busy = ram_hsk;
               end
             end
           end
@@ -226,12 +246,12 @@ module axi_llc_tag_store #(
             end
 
             // Write back all zeros to the storage if the output is acknowledged.
-            if (res_valid && res_ready) begin
+            if ((res_valid && res_ready) || res_sram_wr_delay_q) begin
               ram_req     = req_q.indicator;
               ram_we      = req_q.indicator;
               ram_index   = req_q.index;
               ram_wdata   = tag_data_t'{default: '0};
-              switch_busy = 1'b1;
+              switch_busy = ram_hsk;
             end
           end
         default : /* default */;
@@ -257,14 +277,22 @@ module axi_llc_tag_store #(
             // Do the lookup on the requested macros
             ram_req     = req_i.indicator;
             ram_index   = req_i.index;
-            load_req    = 1'b1;
-            switch_busy = 1'b1;
+            if(ram_hsk) begin
+              load_req    = 1'b1;
+              switch_busy = 1'b1;
+            end else begin
+              ready_o     = 1'b0;
+              switch_busy = 1'b0;
+            end
           end
           default : /* do nothing */;
         endcase
       end
     end
   end
+
+  // make sure all the ways of sram we are accessing are ready
+  assign ram_hsk     = ~(|((ram_req & ram_gnt) ^ ram_req)); 
 
   `FFLARN(req_q, req_i, load_req, store_req_t'{default: '0}, clk_i, rst_ni)
   `FFLARN(busy_q, busy_d, switch_busy, 1'b0, clk_i, rst_ni)
@@ -304,7 +332,7 @@ module axi_llc_tag_store #(
       .addr_i  ( ram_index  ),
       .wdata_i ( sram_wdata ),
       .be_i    ( ram_we[i]  ),
-      .gnt_o   (),
+      .gnt_o   ( ram_gnt[i] ),
       .rdata_o ( sram_rdata ),
 
       // ecc signals
@@ -347,7 +375,7 @@ module axi_llc_tag_store #(
     ) i_shift_reg_rvalid (
       .clk_i,
       .rst_ni,
-      .d_i    ( ram_req[i] & ~ram_we[i] ),
+      .d_i    ( ram_req[i] & ram_hsk & ~ram_we[i] ),
       .d_o    ( ram_rvalid[i]           )
     );
 
@@ -383,6 +411,7 @@ module axi_llc_tag_store #(
     .pattern_o        ( gen_pattern ),
     .req_o            ( gen_req     ),
     .we_o             ( gen_we      ),
+    .sram_ready_i     ( ram_hsk     ),
     .bist_res_i       ( bist_res    ),
     .bist_res_valid_i ( bist_valid  ),
     .bist_res_o       ( bist_res_o  ),
