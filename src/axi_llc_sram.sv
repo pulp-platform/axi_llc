@@ -49,9 +49,6 @@ module axi_llc_sram #(
   output logic [NumBanks-1:0]  single_error_o,
   output logic [NumBanks-1:0]  multi_error_o
 );
-
-  logic [DataWidth-1:0] wen;
-  assign wen = (we_i) ? '0 : '1;
   
 
   if (EnableEcc) begin: gen_ecc_sram

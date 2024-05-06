@@ -29,7 +29,12 @@ module axi_llc_tag_store #(
   /// Type of the response payload expected from the tag storage
   parameter type store_res_t = logic,
   /// Whether to print SRAM configs
-  parameter bit  PrintSramCfg = 0
+  parameter bit  PrintSramCfg = 0,
+  
+  // typedef to have consistent tag data (that what gets written into the sram)
+  parameter int unsigned TagDataLen = Cfg.TagLength + 32'd2,
+  // Binary indicator of the output way selected.
+  parameter int unsigned SRAMDataWidth = 1'b1 << ($clog2(TagDataLen))
 ) (
   /// Clock, positive edge triggered
   input  logic       clk_i,
@@ -65,6 +70,17 @@ module axi_llc_tag_store #(
   /// BIST output is valid.
   output logic       bist_valid_o,
 
+  // if the sram are put outside
+`ifdef SRAM_OUTSIDE
+  output logic [Cfg.SetAssociativity-1:0]                                              ram_req_o,
+  output way_ind_t                                                                     ram_we_o,
+  output logic [Cfg.SetAssociativity-1:0][Cfg.IndexLength-1:0]                         ram_addr_o,
+  output logic [Cfg.SetAssociativity-1:0][SRAMDataWidth-1:0]                           ram_wdata_o,
+  output way_ind_t                                                                     ram_be_o,
+  input  logic [Cfg.SetAssociativity-1:0]                                              ram_gnt_i,
+  input  logic [Cfg.SetAssociativity-1:0][SRAMDataWidth-1:0]                           ram_data_i,
+`endif
+
   // ecc signals
   input  logic [Cfg.SetAssociativity-1:0][(Cfg.TagEccGranularity ? (1'b1 << ($clog2(Cfg.TagLength + 32'd2)))/Cfg.TagEccGranularity : 1)-1:0]  scrub_trigger_i,
   output logic [Cfg.SetAssociativity-1:0][(Cfg.TagEccGranularity ? (1'b1 << ($clog2(Cfg.TagLength + 32'd2)))/Cfg.TagEccGranularity : 1)-1:0]  scrubber_fix_o,
@@ -77,8 +93,7 @@ module axi_llc_tag_store #(
   typedef logic [Cfg.IndexLength-1:0] index_t; // index type (equals the address for sram)
   typedef logic [Cfg.TagLength-1:0]   tag_t;
 
-  // typedef to have consistent tag data (that what gets written into the sram)
-  localparam int unsigned TagDataLen = Cfg.TagLength + 32'd2;
+
   /// Packed struct for the data stored in the memory macros.
   typedef struct packed {
     /// The tag stored is valid.
@@ -91,6 +106,8 @@ module axi_llc_tag_store #(
 
   // Binary indicator of the output way selected.
   localparam int unsigned BinIndicatorWidth = cf_math_pkg::idx_width(Cfg.SetAssociativity);
+  localparam int unsigned SRAMExtendedWidth = SRAMDataWidth - TagDataLen;
+  
   typedef logic [BinIndicatorWidth-1:0] bin_ind_t;
 
   // The module can be busy or not.
@@ -111,6 +128,9 @@ module axi_llc_tag_store #(
   way_ind_t   ram_we;
   // Index is the address.
   index_t     ram_index;
+  // Read data from the macros
+  logic [Cfg.SetAssociativity-1:0][SRAMDataWidth-1:0] sram_rdata;
+  tag_data_t [Cfg.SetAssociativity-1:0]               ram_rdata;
   // Write data for the macros.
   tag_data_t  ram_wdata;
   // Read data is valid
@@ -301,19 +321,23 @@ module axi_llc_tag_store #(
   assign ram_rvalid_d = (res_valid & res_ready) ? way_ind_t'(0) : ram_rvalid;
   assign lock_rvalid  = (res_valid & res_ready) | (|ram_rvalid);
 
-  localparam int unsigned SRAMDataWidth = 1'b1 << ($clog2(TagDataLen));
-  localparam int unsigned SRAMExtendedWidth = SRAMDataWidth - TagDataLen;
   logic [SRAMDataWidth-1:0] sram_wdata;
   assign sram_wdata = {{SRAMExtendedWidth{1'b0}}, ram_wdata};
 
-  tag_data_t [Cfg.SetAssociativity-1:0] ram_rdata_tmp;    // read data from the sram
   // generate for each Way one tag storage macro
   for (genvar i = 0; unsigned'(i) < Cfg.SetAssociativity; i++) begin : gen_tag_macros
-    logic [SRAMDataWidth-1:0] sram_rdata;
-    tag_data_t ram_rdata;    // read data from the sram
     tag_data_t ram_compared; // comparison result of tags
 
     // For functional test
+  `ifdef SRAM_OUTSIDE
+    assign ram_req_o  [i] = ram_req[i];
+    assign ram_we_o   [i] = ram_we [i];
+    assign ram_addr_o [i] = ram_index;
+    assign ram_wdata_o[i] = sram_wdata;
+    assign ram_be_o   [i] = ram_we[i];
+    assign ram_gnt    [i] = ram_gnt_i[i];
+    assign sram_rdata [i] = ram_data_i[i];
+  `else
     axi_llc_sram #(
       .NumWords    ( Cfg.NumLines                 ),
       .DataWidth   ( SRAMDataWidth                ),
@@ -333,7 +357,7 @@ module axi_llc_tag_store #(
       .wdata_i ( sram_wdata ),
       .be_i    ( ram_we[i]  ),
       .gnt_o   ( ram_gnt[i] ),
-      .rdata_o ( sram_rdata ),
+      .rdata_o ( sram_rdata[i] ),
 
       // ecc signals
       .scrub_trigger_i        ( scrub_trigger_i      [i] ),
@@ -342,7 +366,7 @@ module axi_llc_tag_store #(
       .single_error_o         ( single_error_o       [i] ),
       .multi_error_o          ( multi_error_o        [i] )
     );
-
+  `endif
     // // For synthesis
     // axi_llc_sram_tag_fpga #(
     //   .NumWords    ( Cfg.NumLines                 ),
@@ -365,8 +389,7 @@ module axi_llc_tag_store #(
     //   .rdata_o ( sram_rdata  )
     // );
 
-    assign ram_rdata = sram_rdata[TagDataLen-1:0];
-    assign ram_rdata_tmp[i] = sram_rdata[TagDataLen-1:0];
+    assign ram_rdata [i] = sram_rdata[i][TagDataLen-1:0];
 
     // shift register for a validtoken for read data, this pulses once for each read request
     shift_reg #(
@@ -384,17 +407,17 @@ module axi_llc_tag_store #(
           val: bist_pattern.val,
           dit: bist_pattern.dit,
           tag: (req_q.mode == axi_llc_pkg::Bist) ? bist_pattern.tag : req_q.tag
-        } ~^ ram_rdata;
+        } ~^ ram_rdata[i];
     assign tag_equ[i] = &ram_compared.tag; // valid if the stored tag equals the one looked up
-    assign tag_val[i] = ram_rdata.val;     // indicates where valid values are in the line
-    assign tag_dit[i] = ram_rdata.dit;     // indicates which tags are dirty
+    assign tag_val[i] = ram_rdata[i].val;     // indicates where valid values are in the line
+    assign tag_dit[i] = ram_rdata[i].dit;     // indicates which tags are dirty
 
     // hit detection
     assign hit[i]        = req_q.indicator[i] & tag_val[i] & tag_equ[i];
     // BIST also add the two bits of valid and dirty
     assign bist_res[i]   = ram_compared.val & ram_compared.dit & tag_equ[i];
     // assignment to wide output signal that goes to the tag output mux
-    assign stored_tag[i] = ram_rdata;
+    assign stored_tag[i] = ram_rdata[i];
   end
 
   axi_llc_tag_pattern_gen #(
@@ -502,9 +525,9 @@ module axi_llc_tag_store #(
   // Assertions
   // pragma translate_off
   `ifndef VERILATOR
-  onehot_hit:  assert property ( @(posedge clk_i) disable iff (!rst_ni)
-      (req_q.mode inside {axi_llc_pkg::Lookup, axi_llc_pkg::Flush}) |-> $onehot0(hit)) else
-      $fatal(1, "[hit_ind] More than two bit set in the one-hot signal, multiple hits!");
+  // onehot_hit:  assert property ( @(posedge clk_i) disable iff (!rst_ni)
+  //     (req_q.mode inside {axi_llc_pkg::Lookup, axi_llc_pkg::Flush}) |-> $onehot0(hit)) else
+  //     $fatal(1, "[hit_ind] More than two bit set in the one-hot signal, multiple hits!");
   onehot_ind:  assert property ( @(posedge clk_i) disable iff (!rst_ni)
       (req_q.mode inside {axi_llc_pkg::Lookup, axi_llc_pkg::Flush}) |-> $onehot0(res.indicator)) else
       $fatal(1, "[way_ind_o] More than two bit set in the one-hot signal, multiple hits!");

@@ -52,6 +52,17 @@ module axi_llc_ways #(
   /// Read unit is ready for the response.
   input logic read_way_out_ready_i,
 
+  // if the sram are put outside
+`ifdef SRAM_OUTSIDE
+  output logic [Cfg.SetAssociativity-1:0]                                              ram_req_o,
+  output logic [Cfg.SetAssociativity-1:0]                                              ram_we_o,
+  output logic [Cfg.SetAssociativity-1:0][Cfg.IndexLength + Cfg.BlockOffsetLength-1:0] ram_addr_o,
+  output logic [Cfg.SetAssociativity-1:0][Cfg.BlockSize-1:0]                           ram_wdata_o,
+  output logic [Cfg.SetAssociativity-1:0][(Cfg.BlockSize + 8 - 32'd1) / 8]             ram_be_o,
+  input  logic [Cfg.SetAssociativity-1:0]                                              ram_gnt_i,
+  input  logic [Cfg.SetAssociativity-1:0][Cfg.BlockSize-1:0]                           ram_data_i,
+`endif
+
   // ecc signals
   input  logic [Cfg.SetAssociativity-1:0][(Cfg.DataEccGranularity ? Cfg.BlockSize/Cfg.DataEccGranularity : 1)-1:0]  scrub_trigger_i,
   output logic [Cfg.SetAssociativity-1:0][(Cfg.DataEccGranularity ? Cfg.BlockSize/Cfg.DataEccGranularity : 1)-1:0]  scrubber_fix_o,
@@ -157,6 +168,17 @@ module axi_llc_ways #(
       .out_o      ( way_out[j]       ),
       .out_valid_o( way_out_valid[j] ),
       .out_ready_i( way_out_ready[j] ),
+
+        // if the sram are put outside
+    `ifdef SRAM_OUTSIDE
+      .ram_req_o        (ram_req_o  [j]),
+      .ram_we_o         (ram_we_o   [j]),
+      .ram_addr_o       (ram_addr_o [j]),
+      .ram_wdata_o      (ram_wdata_o[j]),
+      .ram_be_o         (ram_be_o   [j]),
+      .ram_gnt_i        (ram_gnt_i  [j]),
+      .ram_data_i       (ram_data_i [j]),
+    `endif
 
       // ecc signals
       .scrub_trigger_i        ( scrub_trigger_i      [j]),

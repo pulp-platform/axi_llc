@@ -467,14 +467,67 @@ module axi_llc_top #(
   logic [Cfg.SetAssociativity-1:0][(Cfg.DataEccGranularity ? Cfg.BlockSize/Cfg.DataEccGranularity : 1)-1:0]  data_sram_scrubber_fix;
   logic [Cfg.SetAssociativity-1:0][(Cfg.DataEccGranularity ? Cfg.BlockSize/Cfg.DataEccGranularity : 1)-1:0]  data_sram_scrub_uncorrectable;
   logic [Cfg.SetAssociativity-1:0][(Cfg.DataEccGranularity ? Cfg.BlockSize/Cfg.DataEccGranularity : 1)-1:0]  data_sram_single_error;
-  logic [Cfg.SetAssociativity-1:0][(Cfg.DataEccGranularity ? Cfg.BlockSize/Cfg.DataEccGranularity : 1)-1:0]  data_sram_multi_error_data;
+  logic [Cfg.SetAssociativity-1:0][(Cfg.DataEccGranularity ? Cfg.BlockSize/Cfg.DataEccGranularity : 1)-1:0]  data_sram_multi_error;
+
+`ifdef SRAM_OUTSIDE
+  // generate for each Way one tag storage macro
+  typedef logic [Cfg.SetAssociativity-1:0][Cfg.IndexLength + Cfg.BlockOffsetLength-1:0] data_index_t;
+  typedef logic [Cfg.SetAssociativity-1:0][Cfg.IndexLength-1:0]                         tag_index_t;
+  typedef logic [Cfg.TagLength-1:0] tag_t;
+  typedef struct packed {
+    logic val; /// The tag stored is valid.
+    logic dit; /// The tag stored is dirty.
+    tag_t tag; /// The stored tag itself.
+  } tag_entry_t;
+
+  localparam int unsigned SRAMDataWidth = 1'b1 << ($clog2($bits(tag_entry_t)));
+
+  typedef logic [Cfg.BlockSize-1:0]                           data_entry_t;
+  typedef logic [Cfg.SetAssociativity-1:0][SRAMDataWidth-1:0] tag_payload_t;
+  typedef data_entry_t [Cfg.SetAssociativity-1:0]             data_payload_t;
+  
+  typedef logic [Cfg.SetAssociativity-1:0][(Cfg.BlockSize + 8 - 32'd1) / 8] data_be_t;
+
+  // Macro signals
+  way_ind_t     tag_ram_req, tag_ram_scrub_req; // Request for the macros
+  way_ind_t     tag_ram_we, tag_ram_scrub_we; // Write enable for the macros, active high. (Also functions as byte enable as there is one byte).
+  way_ind_t     tag_ram_be, tag_ram_scrub_be; // Write byte enable
+  tag_index_t   tag_ram_index, tag_ram_scrub_index; // Index is the address.
+  tag_payload_t tag_ram_wdata, tag_ram_scrub_wdata; // Write data for the macros.
+  way_ind_t     tag_ram_gnt, tag_ram_scrub_gnt; // Ready from the macros
+  tag_payload_t tag_ram_rdata, tag_ram_scrub_rdata; // Read data from the macros.
+  
+  way_ind_t     data_ram_req, data_ram_scrub_req; // Request for the macros
+  way_ind_t     data_ram_we, data_ram_scrub_we; // Write enable for the macros, active high. (Also functions as byte enable as there is one byte).
+  data_be_t     data_ram_be, data_ram_scrub_be; // Write byte enable
+  data_index_t  data_ram_index, data_ram_scrub_index; // Index is the address.
+  data_payload_t  data_ram_wdata, data_ram_scrub_wdata;
+  way_ind_t       data_ram_gnt, data_ram_scrub_gnt; // Ready from the macros
+  data_payload_t  data_ram_rdata, data_ram_scrub_rdata; // Read data from the macros.
+
+  // typedef struct packed {
+  //   logic [(Cfg.TagEccGranularity  ? (1'b1 << ($clog2(Cfg.TagLength + 32'd2)))/Cfg.TagEccGranularity : 1)-1:0]  tag_sram_single_error;
+  //   logic [(Cfg.TagEccGranularity  ? (1'b1 << ($clog2(Cfg.TagLength + 32'd2)))/Cfg.TagEccGranularity : 1)-1:0]  tag_sram_multi_error;
+  //   logic [(Cfg.DataEccGranularity ? Cfg.BlockSize/Cfg.DataEccGranularity : 1)-1:0]                             data_sram_single_error;
+  //   logic [(Cfg.DataEccGranularity ? Cfg.BlockSize/Cfg.DataEccGranularity : 1)-1:0]                             data_sram_multi_error;
+  // } error_info_per_way_t;
+  typedef struct packed {
+    logic tag_sram_single_error;
+    logic tag_sram_multi_error;
+    logic data_sram_single_error;
+    logic data_sram_multi_error;
+  } error_info_per_way_t;
+  error_info_per_way_t [Cfg.SetAssociativity-1:0] error_info;
+`endif
+
 
   for (genvar i = 0; unsigned'(i) < Cfg.SetAssociativity; i++) begin : gen_ecc_signals
-    assign {data_sram_scrub_trigger[i], tag_sram_scrub_trigger[i]} = scrub_trigger_i[i];
+    // assign {data_sram_scrub_trigger[i], tag_sram_scrub_trigger[i]} = scrub_trigger_i[i];
+    assign {data_sram_scrub_trigger[i], tag_sram_scrub_trigger[i]} = '0;
     assign scrubber_fix_o[i]         = {data_sram_scrubber_fix[i],        tag_sram_scrubber_fix[i]};
     assign scrub_uncorrectable_o[i]  = {data_sram_scrub_uncorrectable[i], tag_sram_scrub_uncorrectable[i]};
     assign single_error_o[i]         = {data_sram_single_error[i],        tag_sram_single_error[i]};
-    assign multi_error_o[i]          = {data_sram_multi_error_data[i],    tag_sram_multi_error[i]};
+    assign multi_error_o[i]          = {data_sram_multi_error[i],    tag_sram_multi_error[i]};
   end
 
   // define address rules from the address ports, propagate it throughout the design
@@ -773,12 +826,23 @@ endgenerate
     .bist_res_o     ( bist_res     ),
     .bist_valid_o   ( bist_valid   ),
 
+  // if the sram are put outside
+  `ifdef SRAM_OUTSIDE
+    .ram_req_o      ( tag_ram_req  ),
+    .ram_we_o       ( tag_ram_we   ),
+    .ram_addr_o     ( tag_ram_index),
+    .ram_wdata_o    ( tag_ram_wdata),
+    .ram_be_o       ( tag_ram_be   ),
+    .ram_gnt_i      ( tag_ram_gnt  ),
+    .ram_data_i     ( tag_ram_rdata),
+  `endif
+
     // ecc signals
-    .scrub_trigger_i        ( tag_sram_scrub_trigger       ),
-    .scrubber_fix_o         ( tag_sram_scrubber_fix        ),
-    .scrub_uncorrectable_o  ( tag_sram_scrub_uncorrectable ),
-    .single_error_o         ( tag_sram_single_error        ),
-    .multi_error_o          ( tag_sram_multi_error         )
+    .scrub_trigger_i        ( '0 ), // use external scrubber
+    .scrubber_fix_o         ( /*tag_sram_scrubber_fix       */ ),
+    .scrub_uncorrectable_o  ( /*tag_sram_scrub_uncorrectable*/ ),
+    .single_error_o         ( /*tag_sram_single_error       */ ),
+    .multi_error_o          ( /*tag_sram_multi_error        */ )
   );
 
   axi_llc_evict_unit #(
@@ -955,13 +1019,144 @@ endgenerate
     .read_way_out_valid_o ( read_way_out_valid  ),
     .read_way_out_ready_i ( read_way_out_ready  ),
 
+    `ifdef SRAM_OUTSIDE
+    .ram_req_o            ( data_ram_req    ),
+    .ram_we_o             ( data_ram_we     ),
+    .ram_addr_o           ( data_ram_index  ),
+    .ram_wdata_o          ( data_ram_wdata  ),
+    .ram_be_o             ( data_ram_be     ),
+    .ram_gnt_i            ( data_ram_gnt    ),
+    .ram_data_i           ( data_ram_rdata  ),
+    `endif
+
     // ecc signals
-    .scrub_trigger_i        ( data_sram_scrub_trigger      ),
-    .scrubber_fix_o         ( data_sram_scrubber_fix       ),
-    .scrub_uncorrectable_o  ( data_sram_scrub_uncorrectable),
-    .single_error_o         ( data_sram_single_error       ),
-    .multi_error_o          ( data_sram_multi_error_data   )
+    .scrub_trigger_i        ( '0 ), // use external scrubber
+    .scrubber_fix_o         ( /*data_sram_scrubber_fix       */),
+    .scrub_uncorrectable_o  ( /*data_sram_scrub_uncorrectable*/),
+    .single_error_o         ( /*data_sram_single_error       */),
+    .multi_error_o          ( /*data_sram_multi_error        */)
   );
+
+
+`ifdef SRAM_OUTSIDE
+  
+  for (genvar i = 0; unsigned'(i) < Cfg.SetAssociativity; i++) begin : gen_sram_macros
+    ecc_scrubber_out #(
+      .Cfg          ( Cfg          ),
+      .TagWidth       ( SRAMDataWidth ),
+      .DataWidth      ( Cfg.BlockSize ),
+      .TagDepth       ( Cfg.NumLines  ),
+      .DataDepth      ( Cfg.NumLines * Cfg.NumBlocks ),
+      .error_info_per_way_t (error_info_per_way_t)
+    ) i_scrubber (
+      .clk_i,
+      .rst_ni,
+
+      // .scrub_trigger_i ( |scrub_trigger_i  ),
+      .scrub_trigger_i ( '1  ),
+      .bit_corrected_o ( /*scrubber_fix_o       */ ),
+      .uncorrectable_o ( /*scrub_uncorrectable_o*/ ),
+
+      .tag_intc_req_i       ( tag_ram_req        [i]  ),
+      .tag_intc_gnt_o       ( tag_ram_gnt        [i]  ),
+      .tag_intc_we_i        ( tag_ram_we         [i]  ),
+      .tag_intc_be_i        ( tag_ram_be         [i]  ),
+      .tag_intc_add_i       ( tag_ram_index      [i]  ),
+      .tag_intc_wdata_i     ( tag_ram_wdata      [i]  ),
+      .tag_intc_rdata_o     ( tag_ram_rdata      [i]  ),
+
+      .data_intc_req_i      ( data_ram_req       [i]  ),
+      .data_intc_gnt_o      ( data_ram_gnt       [i]  ),
+      .data_intc_we_i       ( data_ram_we        [i]  ),
+      .data_intc_be_i       ( data_ram_be        [i]  ),
+      .data_intc_add_i      ( data_ram_index     [i]  ),
+      .data_intc_wdata_i    ( data_ram_wdata     [i]  ),
+      .data_intc_rdata_o    ( data_ram_rdata     [i]  ),
+
+      .tag_bank_req_o       ( tag_ram_scrub_req  [i]  ),
+      .tag_bank_gnt_i       ( tag_ram_scrub_gnt  [i]  ),
+      .tag_bank_we_o        ( tag_ram_scrub_we   [i]  ),
+      .tag_bank_be_o        ( tag_ram_scrub_be   [i]  ),
+      .tag_bank_add_o       ( tag_ram_scrub_index[i]  ),
+      .tag_bank_wdata_o     ( tag_ram_scrub_wdata[i]  ),
+      .tag_bank_rdata_i     ( tag_ram_scrub_rdata[i] ),
+
+      .data_bank_req_o      ( data_ram_scrub_req  [i] ),
+      .data_bank_gnt_i      ( data_ram_scrub_gnt  [i] ),
+      .data_bank_we_o       ( data_ram_scrub_we   [i] ),
+      .data_bank_be_o       ( data_ram_scrub_be   [i] ),
+      .data_bank_add_o      ( data_ram_scrub_index[i] ),
+      .data_bank_wdata_o    ( data_ram_scrub_wdata[i] ),
+      .data_bank_rdata_i    ( data_ram_scrub_rdata[i] ),
+
+      .ecc_err_i            ( error_info          [i] )
+    );
+    
+
+    axi_llc_sram #(
+      .NumWords    ( Cfg.NumLines                 ),
+      .DataWidth   ( SRAMDataWidth                ),
+      .ByteWidth   ( SRAMDataWidth                ),
+      .Latency     ( axi_llc_pkg::TagMacroLatency ),
+      .EnableEcc   ( EnableEcc                    ),
+      .ECC_GRANULARITY ( Cfg.TagEccGranularity    ),
+      .SimInit     ( "none"                       ),
+      .PrintSimCfg ( PrintSramCfg                 )
+    ) i_tag_store (
+      .clk_i,
+      .rst_ni,
+      .req_i   ( tag_ram_scrub_req[i]   ),
+      .we_i    ( tag_ram_scrub_we[i]    ),
+      .addr_i  ( tag_ram_scrub_index[i] ),
+      .wdata_i ( tag_ram_scrub_wdata[i] ),
+      .be_i    ( tag_ram_scrub_be[i]    ),
+      .gnt_o   ( tag_ram_scrub_gnt[i]   ),
+      .rdata_o ( tag_ram_scrub_rdata[i] ),
+
+      // ecc signals
+      .scrub_trigger_i        ( '0 ), // use external scrubber
+      .scrubber_fix_o         ( tag_sram_scrubber_fix       [i] ),
+      .scrub_uncorrectable_o  ( tag_sram_scrub_uncorrectable[i] ),
+      .single_error_o         ( tag_sram_single_error       [i] ),
+      .multi_error_o          ( tag_sram_multi_error        [i] )
+    );
+
+    axi_llc_sram #(
+      .NumWords   ( Cfg.NumLines * Cfg.NumBlocks ),
+      .DataWidth  ( Cfg.BlockSize                ),
+      .ByteWidth  ( 32'd8                        ),
+      .Latency    ( 32'd1                        ),
+      .EnableEcc  ( EnableEcc                    ),
+      .ECC_GRANULARITY ( Cfg.DataEccGranularity  ),
+      .SimInit    ( "zeros"                      ),
+      .PrintSimCfg( PrintSramCfg                 )
+    ) i_data_sram (
+      .clk_i,
+      .rst_ni,
+      .req_i   ( data_ram_scrub_req[i]   ),
+      .we_i    ( data_ram_scrub_we[i]    ),
+      .addr_i  ( data_ram_scrub_index[i] ),
+      .wdata_i ( data_ram_scrub_wdata[i] ),
+      .be_i    ( data_ram_scrub_be[i]    ),
+      .gnt_o   ( data_ram_scrub_gnt[i]   ),
+      .rdata_o ( data_ram_scrub_rdata[i] ),
+
+      // ecc signals
+      .scrub_trigger_i        ( '0 ), // use external scrubber
+      .scrubber_fix_o         ( data_sram_scrubber_fix        [i]),
+      .scrub_uncorrectable_o  ( data_sram_scrub_uncorrectable [i]),
+      .single_error_o         ( data_sram_single_error        [i]),
+      .multi_error_o          ( data_sram_multi_error         [i])
+    );
+
+    assign error_info[i].tag_sram_single_error   = |tag_sram_single_error  [i];
+    assign error_info[i].tag_sram_multi_error    = |tag_sram_multi_error   [i];
+    assign error_info[i].data_sram_single_error  = |data_sram_single_error [i];
+    assign error_info[i].data_sram_multi_error   = |data_sram_multi_error  [i];
+  end
+`endif
+
+
 
   // this unit widens the AXI ID by one!
   axi_mux #(
@@ -1127,6 +1322,22 @@ endgenerate
     default: '0
   };
 
+  logic slv_req_i_addr_debug_aw;
+  logic slv_req_i_addr_debug_ar;
+  logic mst_req_o_addr_debug_aw;
+  logic [31:0] slv_req_i_aw_addr_end;
+  logic [31:0] slv_req_i_ar_addr_end;
+  logic [31:0] mst_req_o_aw_addr_end;
+  logic [31:0] target_addr_lb, target_addr_ub;
+  assign target_addr_lb = 32'h80007080;
+  assign target_addr_ub = 32'h80007090;
+  assign slv_req_i_aw_addr_end = slv_req_i.aw.addr + (slv_req_i.aw.len+1) * slv_req_i.aw.size;
+  assign slv_req_i_ar_addr_end = slv_req_i.ar.addr + (slv_req_i.ar.len+1) * slv_req_i.ar.size;
+  assign mst_req_o_aw_addr_end = mst_req_o.aw.addr + (mst_req_o.aw.len+1) * mst_req_o.aw.size;
+  assign slv_req_i_addr_debug_aw = slv_req_i.aw_valid && (slv_req_i.aw.addr < target_addr_ub) && (slv_req_i_aw_addr_end >= target_addr_lb);
+  assign slv_req_i_addr_debug_ar = slv_req_i.ar_valid && (slv_req_i.ar.addr < target_addr_ub) && (slv_req_i_ar_addr_end >= target_addr_lb);
+  assign mst_req_o_addr_debug_aw = mst_req_o.aw_valid && (mst_req_o.aw.addr < target_addr_ub) && (mst_req_o_aw_addr_end >= target_addr_lb);
+  
 // pragma translate_off
 `ifndef VERILATOR
   initial begin : proc_assert_axi_params

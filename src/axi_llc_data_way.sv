@@ -55,6 +55,17 @@ module axi_llc_data_way #(
   /// Downstream is ready for output.
   input logic out_ready_i,
 
+  // if the sram are put outside
+`ifdef SRAM_OUTSIDE
+  output logic                                               ram_req_o,
+  output logic                                               ram_we_o,
+  output logic [Cfg.IndexLength + Cfg.BlockOffsetLength-1:0] ram_addr_o,
+  output logic [Cfg.BlockSize-1:0]                           ram_wdata_o,
+  output logic [(Cfg.BlockSize + 8 - 32'd1) / 8]             ram_be_o,
+  input  logic                                               ram_gnt_i,
+  input  logic [Cfg.BlockSize-1:0]                           ram_data_i,
+`endif
+
   // ecc signals
   input  logic [(Cfg.DataEccGranularity ? Cfg.BlockSize/Cfg.DataEccGranularity : 1)-1:0]  scrub_trigger_i,
   output logic [(Cfg.DataEccGranularity ? Cfg.BlockSize/Cfg.DataEccGranularity : 1)-1:0]  scrubber_fix_o,
@@ -127,6 +138,15 @@ module axi_llc_data_way #(
   end
 
   // For functional test
+`ifdef SRAM_OUTSIDE
+  assign ram_req_o    = ram_req;
+  assign ram_we_o     = inp_i.we;
+  assign ram_addr_o   = addr;
+  assign ram_wdata_o  = inp_i.data;
+  assign ram_be_o     = inp_i.strb;
+  assign ram_gnt      = ram_gnt_i;
+  assign out_o.data   = ram_data_i;
+`else
   axi_llc_sram #(
     .NumWords   ( Cfg.NumLines * Cfg.NumBlocks ),
     .DataWidth  ( Cfg.BlockSize                ),
@@ -155,6 +175,7 @@ module axi_llc_data_way #(
     .single_error_o         ( single_error_o        ),
     .multi_error_o          ( multi_error_o         )
   );
+`endif
 
   // // For synthesis
   // axi_llc_sram_data_fpga #(

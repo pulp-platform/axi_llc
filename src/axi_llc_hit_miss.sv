@@ -60,7 +60,12 @@ module axi_llc_hit_miss #(
   /// Cache partition table
   parameter type                       partition_table_t = logic,
   /// Whether to print SRAM configs
-  parameter bit                        PrintSramCfg   = 0
+  parameter bit                        PrintSramCfg   = 0,
+
+  // typedef to have consistent tag data (that what gets written into the sram)
+  parameter int unsigned TagDataLen = Cfg.TagLength + 32'd2,
+  // Binary indicator of the output way selected.
+  parameter int unsigned SRAMDataWidth = 1'b1 << ($clog2(TagDataLen))
 ) (
   /// Clock, positive edge triggered.
   input  logic     clk_i,
@@ -96,6 +101,17 @@ module axi_llc_hit_miss #(
   // bist aoutput
   output way_ind_t bist_res_o,
   output logic     bist_valid_o,
+
+  // if the sram are put outside
+`ifdef SRAM_OUTSIDE
+  output logic [Cfg.SetAssociativity-1:0]                                              ram_req_o,
+  output way_ind_t                                                                     ram_we_o,
+  output logic [Cfg.SetAssociativity-1:0][Cfg.IndexLength-1:0]                         ram_addr_o,
+  output logic [Cfg.SetAssociativity-1:0][SRAMDataWidth-1:0]                           ram_wdata_o,
+  output way_ind_t                                                                     ram_be_o,
+  input  logic [Cfg.SetAssociativity-1:0]                                              ram_gnt_i,
+  input  logic [Cfg.SetAssociativity-1:0][SRAMDataWidth-1:0]                           ram_data_i,
+`endif
 
   // ecc signals
   input  logic [Cfg.SetAssociativity-1:0][(Cfg.TagEccGranularity ? (1'b1 << ($clog2(Cfg.TagLength + 32'd2)))/Cfg.TagEccGranularity : 1)-1:0]  scrub_trigger_i,
@@ -401,6 +417,17 @@ module axi_llc_hit_miss #(
     .ready_i      ( store_res_ready ),
     .bist_res_o   ( bist_res_o      ),
     .bist_valid_o ( bist_valid_o    ),
+
+  // if the sram are put outside
+  `ifdef SRAM_OUTSIDE
+    .ram_req_o    ( ram_req_o       ),
+    .ram_we_o     ( ram_we_o        ),
+    .ram_addr_o   ( ram_addr_o      ),
+    .ram_wdata_o  ( ram_wdata_o     ),
+    .ram_be_o     ( ram_be_o        ),
+    .ram_gnt_i    ( ram_gnt_i       ),
+    .ram_data_i   ( ram_data_i      ),
+  `endif
 
     // ecc signals
     .scrub_trigger_i        ( scrub_trigger_i       ),
