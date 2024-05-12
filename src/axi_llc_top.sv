@@ -1053,7 +1053,7 @@ endgenerate
   
   for (genvar i = 0; unsigned'(i) < Cfg.SetAssociativity; i++) begin : gen_scrubbers
     ecc_scrubber_out #(
-      .Cfg          ( Cfg          ),
+      .data_be_t      ( logic[(Cfg.BlockSize + 8 - 32'd1) / 8-1:0] ),
       .TagWidth       ( SRAMDataWidth ),
       .DataWidth      ( Cfg.BlockSize ),
       .TagDepth       ( Cfg.NumLines  ),
