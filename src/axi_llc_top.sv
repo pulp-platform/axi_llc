@@ -187,7 +187,7 @@ module axi_llc_top #(
   /// Internal register width
   parameter int unsigned RegWidth        = 64,
   /// AXI4 User signal offset
-  parameter int unsigned AxiUserIdMsb    = 7,
+  parameter int unsigned AxiUserIdMsb    = AxiUserWidth-1,
   parameter int unsigned AxiUserIdLsb    = 0,
   /// Data SRAM ECC granularity
   parameter int unsigned DataEccGranularity = 32,
@@ -355,6 +355,9 @@ module axi_llc_top #(
   typedef struct packed {
     axi_llc_pkg::cache_unit_e         cache_unit;   // which unit had the access
     axi_data_t                        data;         // read data from the way
+`ifdef ENABLE_ECC
+    logic                             multi_error;  // if the data has multiple errors (uncorrectable)
+`endif
   } way_oup_t;
 
   // definitions of the miss counting struct
@@ -486,7 +489,7 @@ module axi_llc_top #(
   typedef logic [Cfg.SetAssociativity-1:0][SRAMDataWidth-1:0] tag_payload_t;
   typedef data_entry_t [Cfg.SetAssociativity-1:0]             data_payload_t;
   
-  typedef logic [Cfg.SetAssociativity-1:0][(Cfg.BlockSize + 8 - 32'd1) / 8] data_be_t;
+  typedef logic [Cfg.SetAssociativity-1:0][(Cfg.BlockSize + 8 - 32'd1) / 8-1:0] data_be_t;
 
   // Macro signals
   way_ind_t     tag_ram_req, tag_ram_scrub_req; // Request for the macros
@@ -496,6 +499,7 @@ module axi_llc_top #(
   tag_payload_t tag_ram_wdata, tag_ram_scrub_wdata; // Write data for the macros.
   way_ind_t     tag_ram_gnt, tag_ram_scrub_gnt; // Ready from the macros
   tag_payload_t tag_ram_rdata, tag_ram_scrub_rdata; // Read data from the macros.
+  way_ind_t     tag_ram_rdata_multi_err; // The data read from tag sram has multi errors.
   
   way_ind_t     data_ram_req, data_ram_scrub_req; // Request for the macros
   way_ind_t     data_ram_we, data_ram_scrub_we; // Write enable for the macros, active high. (Also functions as byte enable as there is one byte).
@@ -504,6 +508,7 @@ module axi_llc_top #(
   data_payload_t  data_ram_wdata, data_ram_scrub_wdata;
   way_ind_t       data_ram_gnt, data_ram_scrub_gnt; // Ready from the macros
   data_payload_t  data_ram_rdata, data_ram_scrub_rdata; // Read data from the macros.
+  way_ind_t       data_ram_rdata_multi_err; // The data read from data sram has multi errors.
 
   // typedef struct packed {
   //   logic [(Cfg.TagEccGranularity  ? (1'b1 << ($clog2(Cfg.TagLength + 32'd2)))/Cfg.TagEccGranularity : 1)-1:0]  tag_sram_single_error;
@@ -835,6 +840,7 @@ endgenerate
     .ram_be_o       ( tag_ram_be   ),
     .ram_gnt_i      ( tag_ram_gnt  ),
     .ram_data_i     ( tag_ram_rdata),
+    .ram_data_multi_err_i ( tag_ram_rdata_multi_err ),
   `endif
 
     // ecc signals
@@ -962,6 +968,10 @@ endgenerate
     .way_inp_o       ( to_way[axi_llc_pkg::WChanUnit]       ),
     .way_inp_valid_o ( to_way_valid[axi_llc_pkg::WChanUnit] ),
     .way_inp_ready_i ( to_way_ready[axi_llc_pkg::WChanUnit] ),
+`ifdef ENABLE_ECC
+  /// Data way write last cycle has multiple error
+    .way_out_multi_err_i  (data_ram_rdata_multi_err         ),
+`endif
     .w_unlock_o      ( w_unlock                             ),
     .w_unlock_req_o  ( w_unlock_req                         ),
     .w_unlock_gnt_i  ( w_unlock_gnt                         )
@@ -1027,6 +1037,7 @@ endgenerate
     .ram_be_o             ( data_ram_be     ),
     .ram_gnt_i            ( data_ram_gnt    ),
     .ram_data_i           ( data_ram_rdata  ),
+    .ram_data_multi_err_i ( data_ram_rdata_multi_err ),
     `endif
 
     // ecc signals
@@ -1040,7 +1051,7 @@ endgenerate
 
 `ifdef SRAM_OUTSIDE
   
-  for (genvar i = 0; unsigned'(i) < Cfg.SetAssociativity; i++) begin : gen_sram_macros
+  for (genvar i = 0; unsigned'(i) < Cfg.SetAssociativity; i++) begin : gen_scrubbers
     ecc_scrubber_out #(
       .Cfg          ( Cfg          ),
       .TagWidth       ( SRAMDataWidth ),
@@ -1064,6 +1075,7 @@ endgenerate
       .tag_intc_add_i       ( tag_ram_index      [i]  ),
       .tag_intc_wdata_i     ( tag_ram_wdata      [i]  ),
       .tag_intc_rdata_o     ( tag_ram_rdata      [i]  ),
+      .tag_intc_multi_err_o ( tag_ram_rdata_multi_err [i]),
 
       .data_intc_req_i      ( data_ram_req       [i]  ),
       .data_intc_gnt_o      ( data_ram_gnt       [i]  ),
@@ -1072,6 +1084,7 @@ endgenerate
       .data_intc_add_i      ( data_ram_index     [i]  ),
       .data_intc_wdata_i    ( data_ram_wdata     [i]  ),
       .data_intc_rdata_o    ( data_ram_rdata     [i]  ),
+      .data_intc_multi_err_o( data_ram_rdata_multi_err [i]),
 
       .tag_bank_req_o       ( tag_ram_scrub_req  [i]  ),
       .tag_bank_gnt_i       ( tag_ram_scrub_gnt  [i]  ),
@@ -1091,8 +1104,9 @@ endgenerate
 
       .ecc_err_i            ( error_info          [i] )
     );
-    
-
+  end
+  
+  for (genvar i = 0; unsigned'(i) < Cfg.SetAssociativity; i++) begin : gen_sram_macros
     axi_llc_sram #(
       .NumWords    ( Cfg.NumLines                 ),
       .DataWidth   ( SRAMDataWidth                ),
@@ -1102,7 +1116,7 @@ endgenerate
       .ECC_GRANULARITY ( Cfg.TagEccGranularity    ),
       .SimInit     ( "none"                       ),
       .PrintSimCfg ( PrintSramCfg                 )
-    ) i_tag_store (
+    ) i_tag_sram (
       .clk_i,
       .rst_ni,
       .req_i   ( tag_ram_scrub_req[i]   ),

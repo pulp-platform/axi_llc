@@ -156,7 +156,11 @@ module axi_llc_reg_wrap #(
   /// The same restriction as of parameter `NumLines` applies.
   parameter int unsigned NumBlocks             = 32'd0,
   /// Tag & data sram ECC enabling parameter, bool type
+`ifdef ENABLE_ECC
+  parameter bit          EnableEcc             = 1,
+`else
   parameter bit          EnableEcc             = 0,
+`endif
   /// Enabling cache partitioning
   parameter logic        CachePartition        = 0,
   /// Index remapping hash function used in cache partitioning
@@ -205,7 +209,7 @@ module axi_llc_reg_wrap #(
   /// Data SRAM ECC granularity
   parameter int unsigned DataEccGranularity = 32,
   /// Tag SRAM ECC granularity
-  parameter int unsigned TagEccGranularity  = 0
+  parameter int unsigned TagEccGranularity  = 32
 ) (
   /// Rising-edge clock of all ports.
   input logic clk_i,

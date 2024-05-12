@@ -61,9 +61,10 @@ module axi_llc_data_way #(
   output logic                                               ram_we_o,
   output logic [Cfg.IndexLength + Cfg.BlockOffsetLength-1:0] ram_addr_o,
   output logic [Cfg.BlockSize-1:0]                           ram_wdata_o,
-  output logic [(Cfg.BlockSize + 8 - 32'd1) / 8]             ram_be_o,
+  output logic [(Cfg.BlockSize + 8 - 32'd1) / 8-1:0]         ram_be_o,
   input  logic                                               ram_gnt_i,
   input  logic [Cfg.BlockSize-1:0]                           ram_data_i,
+  input  logic                                               ram_data_multi_err_i,
 `endif
 
   // ecc signals
@@ -146,6 +147,9 @@ module axi_llc_data_way #(
   assign ram_be_o     = inp_i.strb;
   assign ram_gnt      = ram_gnt_i;
   assign out_o.data   = ram_data_i;
+  `ifdef ENABLE_ECC
+  assign out_o.multi_error = ram_data_multi_err_i;
+  `endif
 `else
   axi_llc_sram #(
     .NumWords   ( Cfg.NumLines * Cfg.NumBlocks ),
@@ -175,6 +179,10 @@ module axi_llc_data_way #(
     .single_error_o         ( single_error_o        ),
     .multi_error_o          ( multi_error_o         )
   );
+
+  `ifdef ENABLE_ECC
+  assign out_o.multi_error = |multi_error_o;
+  `endif
 `endif
 
   // // For synthesis

@@ -79,6 +79,7 @@ module axi_llc_tag_store #(
   output way_ind_t                                                                     ram_be_o,
   input  logic [Cfg.SetAssociativity-1:0]                                              ram_gnt_i,
   input  logic [Cfg.SetAssociativity-1:0][SRAMDataWidth-1:0]                           ram_data_i,
+  input  logic [Cfg.SetAssociativity-1:0]                                              ram_data_multi_err_i,
 `endif
 
   // ecc signals

@@ -62,6 +62,10 @@ module axi_llc_write_unit #(
   output logic way_inp_valid_o,
   /// Data way is ready for a request.
   input logic way_inp_ready_i,
+`ifdef ENABLE_ECC
+  /// Data way write last cycle has multiple error
+  input logic [Cfg.SetAssociativity-1:0] way_out_multi_err_i,
+`endif
   /// Unlock signal payload for the line locking mechanism.
   output lock_t w_unlock_o,
   /// Unlock request.

@@ -58,9 +58,10 @@ module axi_llc_ways #(
   output logic [Cfg.SetAssociativity-1:0]                                              ram_we_o,
   output logic [Cfg.SetAssociativity-1:0][Cfg.IndexLength + Cfg.BlockOffsetLength-1:0] ram_addr_o,
   output logic [Cfg.SetAssociativity-1:0][Cfg.BlockSize-1:0]                           ram_wdata_o,
-  output logic [Cfg.SetAssociativity-1:0][(Cfg.BlockSize + 8 - 32'd1) / 8]             ram_be_o,
+  output logic [Cfg.SetAssociativity-1:0][(Cfg.BlockSize + 8 - 32'd1) / 8-1:0]         ram_be_o,
   input  logic [Cfg.SetAssociativity-1:0]                                              ram_gnt_i,
   input  logic [Cfg.SetAssociativity-1:0][Cfg.BlockSize-1:0]                           ram_data_i,
+  input  logic [Cfg.SetAssociativity-1:0]                                              ram_data_multi_err_i,
 `endif
 
   // ecc signals
@@ -178,6 +179,7 @@ module axi_llc_ways #(
       .ram_be_o         (ram_be_o   [j]),
       .ram_gnt_i        (ram_gnt_i  [j]),
       .ram_data_i       (ram_data_i [j]),
+      .ram_data_multi_err_i (ram_data_multi_err_i [j]),
     `endif
 
       // ecc signals

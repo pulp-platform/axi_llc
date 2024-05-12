@@ -28,7 +28,9 @@ module axi_llc_sram #(
   parameter int unsigned NumBanks = DataWidth/G,
   parameter int unsigned K = $clog2(G) + 2,
   parameter int unsigned EccDataWidth = G + K,
-  parameter int unsigned BeWidthPerBank = (BeWidth+NumBanks-1)/NumBanks
+  parameter int unsigned BeWidthPerBank = (BeWidth+NumBanks-1)/NumBanks,
+  parameter int unsigned NumBankPerInBeBit = (NumBanks/BeWidth == 0) ? 1 : NumBanks/BeWidth,
+  parameter int unsigned ByteWidthPerBank  = (ByteWidth > G) ? G : ByteWidth
 ) (
   input  logic                 clk_i,      // Clock
   input  logic                 rst_ni,     // Asynchronous reset active low
@@ -71,7 +73,7 @@ module axi_llc_sram #(
     for (genvar i = 0; i < NumBanks; i++) begin: gen_data_split
       assign wdata[i] = wdata_i[G*i+:G];
       assign rdata_o[G*i+:G] = (hsk_q & ~we_q) ? rdata[i] : rdata_q[G*i+:G];
-      assign be[i] = be_i[BeWidthPerBank*i+:BeWidthPerBank];
+      assign be[i] = be_i[BeWidthPerBank*(i/NumBankPerInBeBit)+:BeWidthPerBank];
 
       ecc_sram_wrap #(
         .BankSize         ( NumWords       ),
@@ -93,7 +95,7 @@ module axi_llc_sram #(
         .tcdm_add_i   ( {{(32-AddrWidth-2){1'b0}}, addr_i, 2'b0}  ),
         .tcdm_req_i   ( req_i   ),
         .tcdm_wen_i   ( ~we_i   ),
-        .tcdm_be_i    ( {(ByteWidth/8){be[i]}}   ),
+        .tcdm_be_i    ( {(ByteWidthPerBank/8){be[i]}}   ),
         .tcdm_rdata_o ( rdata[i]),
         .tcdm_gnt_o   ( gnt[i]  ),
 

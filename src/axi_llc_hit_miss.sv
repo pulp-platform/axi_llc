@@ -111,6 +111,7 @@ module axi_llc_hit_miss #(
   output way_ind_t                                                                     ram_be_o,
   input  logic [Cfg.SetAssociativity-1:0]                                              ram_gnt_i,
   input  logic [Cfg.SetAssociativity-1:0][SRAMDataWidth-1:0]                           ram_data_i,
+  input  logic [Cfg.SetAssociativity-1:0]                                              ram_data_multi_err_i,
 `endif
 
   // ecc signals
@@ -427,6 +428,7 @@ module axi_llc_hit_miss #(
     .ram_be_o     ( ram_be_o        ),
     .ram_gnt_i    ( ram_gnt_i       ),
     .ram_data_i   ( ram_data_i      ),
+    .ram_data_multi_err_i ( ram_data_multi_err_i ),
   `endif
 
     // ecc signals
