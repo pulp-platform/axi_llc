@@ -285,7 +285,7 @@ module axi_llc_reg_wrap #(
 
   if (EnableEcc) begin: gen_ecc_connection
     // localparam int BlockAwMax = axi_llc_reg_pkg::BlockAw > ecc_manager_reg_pkg::BlockAw ? axi_llc_reg_pkg::BlockAw : ecc_manager_reg_pkg::BlockAw;
-    assign llc_reg_req_en  = conf_req_i.addr < ecc_manager_reg_pkg::OffsetStart;
+    assign llc_reg_req_en  = conf_req_i.addr[11:0] < ecc_manager_reg_pkg::OffsetStart; // in cheshire, the LLC cfg reg has 4KB size
 
     // demux to send the req to llc_reg/ecc_reg
     reg_demux #(
