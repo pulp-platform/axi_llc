@@ -16,6 +16,8 @@ module axi_llc_data_way #(
   parameter axi_llc_pkg::llc_cfg_t Cfg = axi_llc_pkg::llc_cfg_t'{default: '0},
   /// Tag & data sram ECC enabling parameter, bool type
   parameter bit  EnableEcc = 0,
+  /// The number of SRAM banks
+  parameter int SramBankNum = (Cfg.DataEccGranularity != 0) ? Cfg.BlockSize/Cfg.DataEccGranularity : 1,
   /// The input struct has to be defined as follows (is done in `axi_llc_top`):
   /// typedef struct packed {
   ///   axi_axi_llc_pkg::cache_unit_e     cache_unit;   // which unit does the access
@@ -55,8 +57,6 @@ module axi_llc_data_way #(
   /// Downstream is ready for output.
   input logic out_ready_i,
 
-  // if the sram are put outside
-`ifdef SRAM_OUTSIDE
   output logic                                               ram_req_o,
   output logic                                               ram_we_o,
   output logic [Cfg.IndexLength + Cfg.BlockOffsetLength-1:0] ram_addr_o,
@@ -65,14 +65,13 @@ module axi_llc_data_way #(
   input  logic                                               ram_gnt_i,
   input  logic [Cfg.BlockSize-1:0]                           ram_data_i,
   input  logic                                               ram_data_multi_err_i,
-`endif
 
   // ecc signals
-  input  logic [(Cfg.DataEccGranularity ? Cfg.BlockSize/Cfg.DataEccGranularity : 1)-1:0]  scrub_trigger_i,
-  output logic [(Cfg.DataEccGranularity ? Cfg.BlockSize/Cfg.DataEccGranularity : 1)-1:0]  scrubber_fix_o,
-  output logic [(Cfg.DataEccGranularity ? Cfg.BlockSize/Cfg.DataEccGranularity : 1)-1:0]  scrub_uncorrectable_o,
-  output logic [(Cfg.DataEccGranularity ? Cfg.BlockSize/Cfg.DataEccGranularity : 1)-1:0]  single_error_o,
-  output logic [(Cfg.DataEccGranularity ? Cfg.BlockSize/Cfg.DataEccGranularity : 1)-1:0]  multi_error_o  
+  input  logic [SramBankNum - 1:0]  scrub_trigger_i,
+  output logic [SramBankNum - 1:0]  scrubber_fix_o,
+  output logic [SramBankNum - 1:0]  scrub_uncorrectable_o,
+  output logic [SramBankNum - 1:0]  single_error_o,
+  output logic [SramBankNum - 1:0]  multi_error_o  
 );
 
   // The number of lines of each data SRAM macro
@@ -139,7 +138,6 @@ module axi_llc_data_way #(
   end
 
   // For functional test
-`ifdef SRAM_OUTSIDE
   assign ram_req_o    = ram_req;
   assign ram_we_o     = inp_i.we;
   assign ram_addr_o   = addr;
@@ -147,43 +145,8 @@ module axi_llc_data_way #(
   assign ram_be_o     = inp_i.strb;
   assign ram_gnt      = ram_gnt_i;
   assign out_o.data   = ram_data_i;
-  `ifdef ENABLE_ECC
-  assign out_o.multi_error = ram_data_multi_err_i;
-  `endif
-`else
-  axi_llc_sram #(
-    .NumWords   ( Cfg.NumLines * Cfg.NumBlocks ),
-    .DataWidth  ( Cfg.BlockSize                ),
-    .ByteWidth  ( 32'd8                        ),
-    // .NumPorts   ( 32'd1                        ),
-    .Latency    ( 32'd1                        ),
-    .EnableEcc  ( EnableEcc                    ),
-    .ECC_GRANULARITY ( Cfg.DataEccGranularity  ),
-    .SimInit    ( "zeros"                      ),
-    .PrintSimCfg( PrintSramCfg                 )
-  ) i_data_sram (
-    .clk_i,
-    .rst_ni,
-    .req_i   ( ram_req    ),
-    .we_i    ( inp_i.we   ),
-    .addr_i  ( addr       ),
-    .wdata_i ( inp_i.data ),
-    .be_i    ( inp_i.strb ),
-    .gnt_o   ( ram_gnt    ),
-    .rdata_o ( out_o.data ),
-
-    // ecc signals
-    .scrub_trigger_i        ( scrub_trigger_i       ),
-    .scrubber_fix_o         ( scrubber_fix_o        ),
-    .scrub_uncorrectable_o  ( scrub_uncorrectable_o ),
-    .single_error_o         ( single_error_o        ),
-    .multi_error_o          ( multi_error_o         )
-  );
-
-  `ifdef ENABLE_ECC
-  assign out_o.multi_error = |multi_error_o;
-  `endif
-`endif
+  if (EnableEcc) assign out_o.multi_error = ram_data_multi_err_i;
+  else assign out_o.multi_error = '0;
 
   // // For synthesis
   // axi_llc_sram_data_fpga #(

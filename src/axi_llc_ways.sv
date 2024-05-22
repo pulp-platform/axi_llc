@@ -19,6 +19,8 @@ module axi_llc_ways #(
   parameter axi_llc_pkg::llc_cfg_t Cfg = axi_llc_pkg::llc_cfg_t'{default: '0},
   /// Tag & data sram ECC enabling parameter, bool type
   parameter bit  EnableEcc = 0,
+  /// The number of SRAM banks per way
+  parameter int SramBankNumPerWay = (Cfg.DataEccGranularity != 0) ? Cfg.BlockSize/Cfg.DataEccGranularity : 1,
   /// Data way request payload type definition.
   parameter type way_inp_t = logic,
   /// Data way response payload type definition.
@@ -53,7 +55,6 @@ module axi_llc_ways #(
   input logic read_way_out_ready_i,
 
   // if the sram are put outside
-`ifdef SRAM_OUTSIDE
   output logic [Cfg.SetAssociativity-1:0]                                              ram_req_o,
   output logic [Cfg.SetAssociativity-1:0]                                              ram_we_o,
   output logic [Cfg.SetAssociativity-1:0][Cfg.IndexLength + Cfg.BlockOffsetLength-1:0] ram_addr_o,
@@ -62,14 +63,13 @@ module axi_llc_ways #(
   input  logic [Cfg.SetAssociativity-1:0]                                              ram_gnt_i,
   input  logic [Cfg.SetAssociativity-1:0][Cfg.BlockSize-1:0]                           ram_data_i,
   input  logic [Cfg.SetAssociativity-1:0]                                              ram_data_multi_err_i,
-`endif
 
   // ecc signals
-  input  logic [Cfg.SetAssociativity-1:0][(Cfg.DataEccGranularity ? Cfg.BlockSize/Cfg.DataEccGranularity : 1)-1:0]  scrub_trigger_i,
-  output logic [Cfg.SetAssociativity-1:0][(Cfg.DataEccGranularity ? Cfg.BlockSize/Cfg.DataEccGranularity : 1)-1:0]  scrubber_fix_o,
-  output logic [Cfg.SetAssociativity-1:0][(Cfg.DataEccGranularity ? Cfg.BlockSize/Cfg.DataEccGranularity : 1)-1:0]  scrub_uncorrectable_o,
-  output logic [Cfg.SetAssociativity-1:0][(Cfg.DataEccGranularity ? Cfg.BlockSize/Cfg.DataEccGranularity : 1)-1:0]  single_error_o,
-  output logic [Cfg.SetAssociativity-1:0][(Cfg.DataEccGranularity ? Cfg.BlockSize/Cfg.DataEccGranularity : 1)-1:0]  multi_error_o
+  input  logic [Cfg.SetAssociativity-1:0][SramBankNumPerWay-1:0]  scrub_trigger_i,
+  output logic [Cfg.SetAssociativity-1:0][SramBankNumPerWay-1:0]  scrubber_fix_o,
+  output logic [Cfg.SetAssociativity-1:0][SramBankNumPerWay-1:0]  scrub_uncorrectable_o,
+  output logic [Cfg.SetAssociativity-1:0][SramBankNumPerWay-1:0]  single_error_o,
+  output logic [Cfg.SetAssociativity-1:0][SramBankNumPerWay-1:0]  multi_error_o
 );
   localparam int unsigned SelIdxWidth = cf_math_pkg::idx_width(Cfg.SetAssociativity);
   typedef logic [SelIdxWidth-1:0]          way_sel_t; // Binary representation of the way selection
@@ -170,8 +170,7 @@ module axi_llc_ways #(
       .out_valid_o( way_out_valid[j] ),
       .out_ready_i( way_out_ready[j] ),
 
-        // if the sram are put outside
-    `ifdef SRAM_OUTSIDE
+        // the sram are put outside
       .ram_req_o        (ram_req_o  [j]),
       .ram_we_o         (ram_we_o   [j]),
       .ram_addr_o       (ram_addr_o [j]),
@@ -180,7 +179,6 @@ module axi_llc_ways #(
       .ram_gnt_i        (ram_gnt_i  [j]),
       .ram_data_i       (ram_data_i [j]),
       .ram_data_multi_err_i (ram_data_multi_err_i [j]),
-    `endif
 
       // ecc signals
       .scrub_trigger_i        ( scrub_trigger_i      [j]),

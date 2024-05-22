@@ -33,6 +33,8 @@ module axi_llc_hit_miss #(
   parameter axi_llc_pkg::llc_axi_cfg_t AxiCfg         = axi_llc_pkg::llc_axi_cfg_t'{default: '0},
   /// Tag & data sram ECC enabling parameter, bool type
   parameter bit                        EnableEcc      = 0,
+  /// The number of SRAM banks per way
+  parameter int SramBankNumPerWay = (Cfg.TagEccGranularity != 0) ? (1'b1 << ($clog2(Cfg.TagLength + 32'd2)))/Cfg.TagEccGranularity : 1,
   /// Cache partitioning enabling parameter
   parameter logic                      CachePartition = 1,
   /// Index remapping hash function used in cache partitioning
@@ -103,23 +105,21 @@ module axi_llc_hit_miss #(
   output logic     bist_valid_o,
 
   // if the sram are put outside
-`ifdef SRAM_OUTSIDE
-  output logic [Cfg.SetAssociativity-1:0]                                              ram_req_o,
-  output way_ind_t                                                                     ram_we_o,
-  output logic [Cfg.SetAssociativity-1:0][Cfg.IndexLength-1:0]                         ram_addr_o,
-  output logic [Cfg.SetAssociativity-1:0][SRAMDataWidth-1:0]                           ram_wdata_o,
-  output way_ind_t                                                                     ram_be_o,
-  input  logic [Cfg.SetAssociativity-1:0]                                              ram_gnt_i,
-  input  logic [Cfg.SetAssociativity-1:0][SRAMDataWidth-1:0]                           ram_data_i,
-  input  logic [Cfg.SetAssociativity-1:0]                                              ram_data_multi_err_i,
-`endif
+  output logic [Cfg.SetAssociativity-1:0]                        ram_req_o,
+  output way_ind_t                                               ram_we_o,
+  output logic [Cfg.SetAssociativity-1:0][Cfg.IndexLength-1:0]   ram_addr_o,
+  output logic [Cfg.SetAssociativity-1:0][SRAMDataWidth-1:0]     ram_wdata_o,
+  output way_ind_t                                               ram_be_o,
+  input  logic [Cfg.SetAssociativity-1:0]                        ram_gnt_i,
+  input  logic [Cfg.SetAssociativity-1:0][SRAMDataWidth-1:0]     ram_data_i,
+  input  logic [Cfg.SetAssociativity-1:0]                        ram_data_multi_err_i,
 
   // ecc signals
-  input  logic [Cfg.SetAssociativity-1:0][(Cfg.TagEccGranularity ? (1'b1 << ($clog2(Cfg.TagLength + 32'd2)))/Cfg.TagEccGranularity : 1)-1:0]  scrub_trigger_i,
-  output logic [Cfg.SetAssociativity-1:0][(Cfg.TagEccGranularity ? (1'b1 << ($clog2(Cfg.TagLength + 32'd2)))/Cfg.TagEccGranularity : 1)-1:0]  scrubber_fix_o,
-  output logic [Cfg.SetAssociativity-1:0][(Cfg.TagEccGranularity ? (1'b1 << ($clog2(Cfg.TagLength + 32'd2)))/Cfg.TagEccGranularity : 1)-1:0]  scrub_uncorrectable_o,
-  output logic [Cfg.SetAssociativity-1:0][(Cfg.TagEccGranularity ? (1'b1 << ($clog2(Cfg.TagLength + 32'd2)))/Cfg.TagEccGranularity : 1)-1:0]  single_error_o,
-  output logic [Cfg.SetAssociativity-1:0][(Cfg.TagEccGranularity ? (1'b1 << ($clog2(Cfg.TagLength + 32'd2)))/Cfg.TagEccGranularity : 1)-1:0]  multi_error_o
+  input  logic [Cfg.SetAssociativity-1:0][SramBankNumPerWay-1:0] scrub_trigger_i,
+  output logic [Cfg.SetAssociativity-1:0][SramBankNumPerWay-1:0] scrubber_fix_o,
+  output logic [Cfg.SetAssociativity-1:0][SramBankNumPerWay-1:0] scrub_uncorrectable_o,
+  output logic [Cfg.SetAssociativity-1:0][SramBankNumPerWay-1:0] single_error_o,
+  output logic [Cfg.SetAssociativity-1:0][SramBankNumPerWay-1:0] multi_error_o
 );
   `include "common_cells/registers.svh"
   localparam int unsigned IndexBase = Cfg.ByteOffsetLength + Cfg.BlockOffsetLength;
@@ -420,7 +420,6 @@ module axi_llc_hit_miss #(
     .bist_valid_o ( bist_valid_o    ),
 
   // if the sram are put outside
-  `ifdef SRAM_OUTSIDE
     .ram_req_o    ( ram_req_o       ),
     .ram_we_o     ( ram_we_o        ),
     .ram_addr_o   ( ram_addr_o      ),
@@ -429,7 +428,6 @@ module axi_llc_hit_miss #(
     .ram_gnt_i    ( ram_gnt_i       ),
     .ram_data_i   ( ram_data_i      ),
     .ram_data_multi_err_i ( ram_data_multi_err_i ),
-  `endif
 
     // ecc signals
     .scrub_trigger_i        ( scrub_trigger_i       ),

@@ -110,21 +110,18 @@ module axi_llc_sram #(
       if(~rst_ni) begin
         hsk_q <= 1'b0;
         we_q  <= 1'b0;
+        rdata_q <= '0;
       end else begin
         hsk_q <= hsk_d;
         we_q  <= we_i;
+        if (rdata_en) begin
+          rdata_q <= rdata_d;
+        end
       end
     end
 
     assign rdata_en = hsk_q & ~we_q;
     assign rdata_d  = rdata_o;
-    always_ff @(posedge clk_i or negedge rst_ni) begin
-      if(~rst_ni) begin
-        rdata_q <= '0;
-      end else if (rdata_en) begin
-        rdata_q <= rdata_d;
-      end
-    end
   
   end else begin: gen_standard_sram
     assign gnt_o = 1'b1;
