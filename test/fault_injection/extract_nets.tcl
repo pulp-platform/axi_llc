@@ -12,6 +12,7 @@ source $script_base_path/extract_nets.tcl
 
 # == Base Path of a Cluster Core ==
 proc base_path {} {return "/tb_axi_llc/i_axi_llc_dut/i_axi_llc_top_raw"} 
+# proc base_path {} {return "/tb_cheshire_soc/fix/dut/gen_llc/i_llc/i_axi_llc_top_raw"} 
 
 # nets that would crash the simulation if flipped
 lappend core_netlist_ignore *clk_i

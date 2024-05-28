@@ -17,6 +17,7 @@ set print_statistics     1
 set inject_start_time 10000ns
 set inject_stop_time 0
 set injection_clock "/tb_axi_llc/clk"
+# set injection_clock "/tb_cheshire_soc/fix/dut/gen_llc/i_llc/i_axi_llc_top_raw/clk_i"
 set injection_clock_trigger 0
 set fault_period 1
 set rand_initial_injection_phase 0

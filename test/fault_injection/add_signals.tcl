@@ -1,4 +1,5 @@
 proc base_path {} {return "/tb_axi_llc/i_axi_llc_dut/i_axi_llc_top_raw"} 
+# proc base_path {} {return "/tb_cheshire_soc/fix/dut/gen_llc/i_llc/i_axi_llc_top_raw"} 
 
 
 for {set way 0} {$way < [regsub ".*'h" [examine sim:/tb_axi_llc/TbSetAssociativity] "0x"]} {incr way} {
@@ -56,6 +57,6 @@ for {set way 0} {$way < [regsub ".*'h" [examine sim:/tb_axi_llc/TbSetAssociativi
 #     }
 # }
 
-add wave -position insertpoint sim:/tb_axi_llc/i_axi_llc_dut/i_axi_llc_top_raw/tag_ecc_info_o
-add wave -position insertpoint sim:/tb_axi_llc/i_axi_llc_dut/i_axi_llc_top_raw/data_ecc_info_o
-add wave -position insertpoint sim:/tb_axi_llc/i_axi_llc_dut/i_axi_llc_top_raw/axi_llc_events_o
+add wave -position insertpoint sim:[base_path]/tag_ecc_info_o
+add wave -position insertpoint sim:[base_path]/data_ecc_info_o
+add wave -position insertpoint sim:[base_path]/axi_llc_events_o
