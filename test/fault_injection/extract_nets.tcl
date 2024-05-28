@@ -48,32 +48,52 @@ proc get_core_output_nets {} {
 #  State Netlists  #
 ####################
 
+# proc get_core_state_nets {} {
+#   set state_list []
+
+#   for {set way 0} {$way < [regsub ".*'h" [examine sim:/tb_axi_llc/TbSetAssociativity] "0x"]} {incr way} {
+#     for {set bank_tag 0} {$bank_tag < [regsub ".*'h" [examine sim:[base_path]/gen_sram_macros\[${way}\]/i_tag_sram/NumBanks] "0x"]} {incr bank_tag} {
+
+#       # for {set i 0} {$i < [regsub ".*'h" [examine sim:/tb_axi_llc/i_axi_llc_dut/i_axi_llc_top_raw/i_hit_miss_unit/i_tag_store/gen_tag_macros\[${way}\]/i_tag_store/gen_data_split\[${bank_tag}\]/i_ecc_sram/BankSize] "0x"]} {incr i} {
+        
+#         lappend state_list [base_path]/gen_sram_macros\\\[${way}\\\]/i_tag_sram/gen_ecc_sram/gen_data_split\\\[${bank_tag}\\\]/i_ecc_sram/i_bank/sram
+
+#       # }
+#     }
+
+
+#     for {set bank_dat 0} {$bank_dat < [regsub ".*'h" [examine sim:[base_path]/gen_sram_macros\[${way}\]/i_data_sram/NumBanks] "0x"]} {incr bank_dat} {
+
+#       # for {set i 0} {$i < [regsub ".*'h" [examine sim:/tb_axi_llc/i_axi_llc_dut/i_axi_llc_top_raw/i_llc_ways/gen_data_ways\[${way}\]/i_data_way/i_data_sram/gen_data_split\[${bank_dat}\]/i_ecc_sram/BankSize] "0x"]} {incr i} {
+
+#         lappend state_list [base_path]/gen_sram_macros\\\[${way}\\\]/i_data_sram/gen_ecc_sram/gen_data_split\\\[${bank_dat}\\\]/i_ecc_sram/i_bank/sram
+
+#       # }
+#     }
+#   }
+
+#   return [extract_netlists [subst $state_list] 1]
+# }
+
 proc get_core_state_nets {} {
   set state_list []
+  for {set way 0} {$way < 2} {incr way} {
+    for {set bank_tag 0} {$bank_tag < 2} {incr bank_tag} {
 
-  for {set way 0} {$way < [regsub ".*'h" [examine sim:/tb_axi_llc/TbSetAssociativity] "0x"]} {incr way} {
-    for {set bank_tag 0} {$bank_tag < [regsub ".*'h" [examine sim:[base_path]/gen_sram_macros\[${way}\]/i_tag_sram/NumBanks] "0x"]} {incr bank_tag} {
-
-      # for {set i 0} {$i < [regsub ".*'h" [examine sim:/tb_axi_llc/i_axi_llc_dut/i_axi_llc_top_raw/i_hit_miss_unit/i_tag_store/gen_tag_macros\[${way}\]/i_tag_store/gen_data_split\[${bank_tag}\]/i_ecc_sram/BankSize] "0x"]} {incr i} {
+      for {set i 0} {$i < 4} {incr i} {
         
-        lappend state_list [base_path]/gen_sram_macros\\\[${way}\\\]/i_tag_sram/gen_ecc_sram/gen_data_split\\\[${bank_tag}\\\]/i_ecc_sram/i_bank/sram
+        lappend state_list [base_path]/gen_sram_macros\\\[${way}\\\]/i_tag_sram/gen_ecc_sram/gen_data_split\\\[${bank_tag}\\\]/i_ecc_sram/i_bank/sram\\\[${i}\\\]
+        lappend state_list [base_path]/gen_sram_macros\\\[${way}\\\]/i_data_sram/gen_ecc_sram/gen_data_split\\\[${bank_tag}\\\]/i_ecc_sram/i_bank/sram\\\[${i}\\\]
 
-      # }
-    }
-
-
-    for {set bank_dat 0} {$bank_dat < [regsub ".*'h" [examine sim:[base_path]/gen_sram_macros\[${way}\]/i_data_sram/NumBanks] "0x"]} {incr bank_dat} {
-
-      # for {set i 0} {$i < [regsub ".*'h" [examine sim:/tb_axi_llc/i_axi_llc_dut/i_axi_llc_top_raw/i_llc_ways/gen_data_ways\[${way}\]/i_data_way/i_data_sram/gen_data_split\[${bank_dat}\]/i_ecc_sram/BankSize] "0x"]} {incr i} {
-
-        lappend state_list [base_path]/gen_sram_macros\\\[${way}\\\]/i_data_sram/gen_ecc_sram/gen_data_split\\\[${bank_dat}\\\]/i_ecc_sram/i_bank/sram
-
-      # }
+      }
     }
   }
-
   return [extract_netlists [subst $state_list] 1]
 }
+  # lappend state_list [base_path]/gen_sram_macros\[0\]/i_tag_sram/gen_ecc_sram/gen_data_split\[0\]/i_ecc_sram/i_bank/sram\[0\]
+  # lappend state_list [base_path]/gen_sram_macros\[0\]/i_data_sram/gen_ecc_sram/gen_data_split\[0\]/i_ecc_sram/i_bank/sram\[0\]
+  # lappend state_list [base_path]/gen_sram_macros\[0\]/i_tag_sram/gen_ecc_sram/gen_data_split\[0\]/i_ecc_sram/i_bank/sram\[1\]
+  # lappend state_list [base_path]/gen_sram_macros\[0\]/i_data_sram/gen_ecc_sram/gen_data_split\[0\]/i_ecc_sram/i_bank/sram\[2\]
 
 ##############################
 #  Get all nets from a core  #

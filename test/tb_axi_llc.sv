@@ -342,7 +342,7 @@ module tb_axi_llc #(
     
     $info("Enable scrubber");
     for(int i = 0; i < TbSetAssociativity * 2; i++) begin
-      reg_conf_driver.send_write(ECC_MANAGER_SCRUB_INTERVAL_OFFSET + i * 'h20, 32'h1, 4'hF, cfg_error);
+      reg_conf_driver.send_write(ECC_MANAGER_SCRUB_INTERVAL_OFFSET + i * 'h20, 32'h10, 4'hF, cfg_error);
     end
     
     $info("Random read and write");

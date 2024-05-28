@@ -498,7 +498,7 @@ module axi_llc_top #(
   way_ind_t     tag_ram_req, tag_ram_scrub_req; // Request for the macros
   way_ind_t     tag_ram_we, tag_ram_scrub_we; // Write enable for the macros, active high. (Also functions as byte enable as there is one byte).
   way_ind_t     tag_ram_be, tag_ram_scrub_be; // Write byte enable
-  tag_index_t   tag_ram_index, tag_ram_scrub_index; // Index is the address.
+  tag_index_t   tag_ram_index, tag_ram_scrub_index, tag_ram_scrub_index_q; // Index is the address.
   tag_payload_t tag_ram_wdata, tag_ram_scrub_wdata; // Write data for the macros.
   way_ind_t     tag_ram_gnt, tag_ram_scrub_gnt; // Ready from the macros
   tag_payload_t tag_ram_rdata, tag_ram_scrub_rdata; // Read data from the macros.
@@ -507,7 +507,7 @@ module axi_llc_top #(
   way_ind_t     data_ram_req, data_ram_scrub_req; // Request for the macros
   way_ind_t     data_ram_we, data_ram_scrub_we; // Write enable for the macros, active high. (Also functions as byte enable as there is one byte).
   data_be_t     data_ram_be, data_ram_scrub_be; // Write byte enable
-  data_index_t  data_ram_index, data_ram_scrub_index; // Index is the address.
+  data_index_t  data_ram_index, data_ram_scrub_index, data_ram_scrub_index_q; // Index is the address.
   data_payload_t  data_ram_wdata, data_ram_scrub_wdata;
   way_ind_t       data_ram_gnt, data_ram_scrub_gnt; // Ready from the macros
   data_payload_t  data_ram_rdata, data_ram_scrub_rdata; // Read data from the macros.
@@ -1029,11 +1029,14 @@ endgenerate
   );
 
 
-  
+  logic [SetAssociativity-1:0] tag_valid_bit;
+  logic [SetAssociativity-1:0] tag_dirty_bit;
+
   for (genvar i = 0; unsigned'(i) < Cfg.SetAssociativity; i++) begin : gen_scrubbers
     ecc_scrubber_out #(
       .data_be_t      ( logic[(Cfg.BlockSize + 8 - 32'd1) / 8-1:0] ),
-      .TagWidth       ( SRAMDataWidth ),
+      .TagSramWidth   ( SRAMDataWidth ),
+      .TagDataWidth   ( Cfg.TagLength + 32'd2 ),
       .DataWidth      ( Cfg.BlockSize ),
       .TagDepth       ( Cfg.NumLines  ),
       .DataDepth      ( Cfg.NumLines * Cfg.NumBlocks ),
@@ -1053,6 +1056,9 @@ endgenerate
       .tag_multi_error_o           (tag_ecc_info_o.multi_error          [i]),
       .data_single_error_o         (data_ecc_info_o.single_error        [i]),
       .data_multi_error_o          (data_ecc_info_o.multi_error         [i]),
+
+      .tag_valid_bit_o             (tag_valid_bit    [i]  ),
+      .tag_dirty_bit_o             (tag_dirty_bit    [i]  ),
 
       .tag_intc_req_i       ( tag_ram_req        [i]  ),
       .tag_intc_gnt_o       ( tag_ram_gnt        [i]  ),
@@ -1077,6 +1083,7 @@ endgenerate
       .tag_bank_we_o        ( tag_ram_scrub_we   [i]  ),
       .tag_bank_be_o        ( tag_ram_scrub_be   [i]  ),
       .tag_bank_add_o       ( tag_ram_scrub_index[i]  ),
+      .tag_bank_add_q_o     ( tag_ram_scrub_index_q[i]  ),
       .tag_bank_wdata_o     ( tag_ram_scrub_wdata[i]  ),
       .tag_bank_rdata_i     ( tag_ram_scrub_rdata[i] ),
 
@@ -1085,6 +1092,7 @@ endgenerate
       .data_bank_we_o       ( data_ram_scrub_we   [i] ),
       .data_bank_be_o       ( data_ram_scrub_be   [i] ),
       .data_bank_add_o      ( data_ram_scrub_index[i] ),
+      .data_bank_add_q_o    ( data_ram_scrub_index_q[i] ),
       .data_bank_wdata_o    ( data_ram_scrub_wdata[i] ),
       .data_bank_rdata_i    ( data_ram_scrub_rdata[i] ),
 
@@ -1155,6 +1163,55 @@ endgenerate
     assign error_info[i].data_sram_multi_error   = |data_sram_multi_error  [i];
   end
 
+  axi_llc_pkg::event_ecc_multierror_info_t event_ecc_multierror_info;
+  localparam SetAssociativity_idx = $clog2(Cfg.SetAssociativity) > 1 ? $clog2(Cfg.SetAssociativity) : 1;
+  localparam int unsigned LineOffset     = Cfg.ByteOffsetLength + Cfg.BlockOffsetLength;
+  
+  logic[SetAssociativity_idx-1:0] multierror_tag_way_idx;
+  logic[SetAssociativity_idx-1:0] multierror_data_way_idx;
+  always_comb begin
+    multierror_tag_way_idx  = '0;
+    for(int i = 0; i < Cfg.SetAssociativity; i++) begin
+      if(tag_ecc_info_o.multi_error[i]) begin
+        multierror_tag_way_idx = i;
+      end
+    end
+  end
+  always_comb begin
+    multierror_data_way_idx = '0;
+    for(int i = 0; i < Cfg.SetAssociativity; i++) begin
+      if(data_ecc_info_o.multi_error[i]) begin
+        multierror_data_way_idx = i;
+      end
+    end
+  end
+
+  if(EnableEcc) begin: gen_ecc_event
+    logic tag_ecc_multierror_en, data_ecc_multierror_en;
+    logic tag_ecc_scrub_multierror_en, data_ecc_scrub_multierror_en;
+    assign tag_ecc_multierror_en        = |tag_ecc_info_o.multi_error;
+    assign data_ecc_multierror_en       = |data_ecc_info_o.multi_error;
+    assign tag_ecc_scrub_multierror_en  = |tag_ecc_info_o.scrub_uncorrectable;
+    assign data_ecc_scrub_multierror_en = |data_ecc_info_o.scrub_uncorrectable;
+    always_comb begin
+      event_ecc_multierror_info = '0;
+      event_ecc_multierror_info.reporter    = (tag_ecc_scrub_multierror_en || data_ecc_scrub_multierror_en) ? axi_llc_pkg::SCRUBBER :
+                                              axi_llc_pkg::READ_UNIT; // TODO: incomplete
+      event_ecc_multierror_info.source      = (tag_ecc_multierror_en & data_ecc_multierror_en) ? axi_llc_pkg::TAG_DATA_SRAM :
+                                               tag_ecc_multierror_en ? axi_llc_pkg::TAG_SRAM : axi_llc_pkg::DATA_SRAM;
+      event_ecc_multierror_info.data_state  = tag_ecc_multierror_en ? (tag_dirty_bit[multierror_tag_way_idx] ? axi_llc_pkg::DIRTY : axi_llc_pkg::CLEAN):
+                                                                      (tag_dirty_bit[multierror_data_way_idx]? axi_llc_pkg::DIRTY : axi_llc_pkg::CLEAN);
+      
+      event_ecc_multierror_info.data_line_addr = (tag_ram_scrub_rdata[multierror_data_way_idx] << (AxiAddrWidth-Cfg.TagLength)) |
+                                                 (tag_ram_scrub_index_q[multierror_data_way_idx] << LineOffset);
+      event_ecc_multierror_info.way            = tag_ecc_multierror_en ? multierror_tag_way_idx : multierror_data_way_idx;
+
+      event_ecc_multierror_info.active         = (tag_ecc_multierror_en  & tag_valid_bit[multierror_tag_way_idx]) |
+                                                 (data_ecc_multierror_en & tag_valid_bit[multierror_data_way_idx]);
+    end
+  end else begin: gen_no_ecc_event
+    assign event_ecc_multierror_info = '0;
+  end
 
 
   // this unit widens the AXI ID by one!
@@ -1318,8 +1375,26 @@ endgenerate
     refill_unit_req:    to_way_valid[axi_llc_pkg::RefilUnit] & to_way_ready[axi_llc_pkg::RefilUnit],
     w_chan_unit_req:    to_way_valid[axi_llc_pkg::WChanUnit] & to_way_ready[axi_llc_pkg::WChanUnit],
     r_chan_unit_req:    to_way_valid[axi_llc_pkg::RChanUnit] & to_way_ready[axi_llc_pkg::RChanUnit],
+    ecc_multierror_info: event_ecc_multierror_info,
     default: '0
   };
+
+  // to help debug
+  // logic slv_req_i_addr_debug_aw;
+  // logic slv_req_i_addr_debug_ar;
+  // logic mst_req_o_addr_debug_aw;
+  // logic [31:0] slv_req_i_aw_addr_end;
+  // logic [31:0] slv_req_i_ar_addr_end;
+  // logic [31:0] mst_req_o_aw_addr_end;
+  // logic [31:0] target_addr_lb, target_addr_ub;
+  // assign target_addr_lb = 32'h80007080;
+  // assign target_addr_ub = 32'h80007090;
+  // assign slv_req_i_aw_addr_end = slv_req_i.aw.addr + (slv_req_i.aw.len+1) * slv_req_i.aw.size;
+  // assign slv_req_i_ar_addr_end = slv_req_i.ar.addr + (slv_req_i.ar.len+1) * slv_req_i.ar.size;
+  // assign mst_req_o_aw_addr_end = mst_req_o.aw.addr + (mst_req_o.aw.len+1) * mst_req_o.aw.size;
+  // assign slv_req_i_addr_debug_aw = slv_req_i.aw_valid && (slv_req_i.aw.addr < target_addr_ub) && (slv_req_i_aw_addr_end >= target_addr_lb);
+  // assign slv_req_i_addr_debug_ar = slv_req_i.ar_valid && (slv_req_i.ar.addr < target_addr_ub) && (slv_req_i_ar_addr_end >= target_addr_lb);
+  // assign mst_req_o_addr_debug_aw = mst_req_o.aw_valid && (mst_req_o.aw.addr < target_addr_ub) && (mst_req_o_aw_addr_end >= target_addr_lb);
   
 // pragma translate_off
 `ifndef VERILATOR
