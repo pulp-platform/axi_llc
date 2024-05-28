@@ -75,34 +75,31 @@ module axi_llc_sram #(
       assign rdata_o[G*i+:G] = (hsk_q & ~we_q) ? rdata[i] : rdata_q[G*i+:G];
       assign be[i] = be_i[BeWidthPerBank*(i/NumBankPerInBeBit)+:BeWidthPerBank];
 
-      ecc_sram_wrap #(
-        .BankSize         ( NumWords       ),
-        .InputECC         ( 0              ),
-        .EnableTestMask   ( 0              ),
-        .NumRMWCuts       ( 1              ),
+      ecc_sram #(
+        .NumWords         ( NumWords       ),
         .UnprotectedWidth ( G              ),
-        .ProtectedWidth   ( EccDataWidth   )
+        .ProtectedWidth   ( EccDataWidth   ),
+        .InputECC         ( 0              ),
+        .NumRMWCuts       ( 1              ),
+        .SimInit          ( "zeros"       )
       ) i_ecc_sram (
         .clk_i,
         .rst_ni,
-        .test_enable_i        ( '0  ),
 
         .scrub_trigger_i      ( scrub_trigger_i       [i]),
         .scrubber_fix_o       ( scrubber_fix_o        [i]),
         .scrub_uncorrectable_o( scrub_uncorrectable_o [i]),
 
-        .tcdm_wdata_i ( wdata[i]),
-        .tcdm_add_i   ( {{(32-AddrWidth-2){1'b0}}, addr_i, 2'b0}  ),
-        .tcdm_req_i   ( req_i   ),
-        .tcdm_wen_i   ( ~we_i   ),
-        .tcdm_be_i    ( {(ByteWidthPerBank/8){be[i]}}   ),
-        .tcdm_rdata_o ( rdata[i]),
-        .tcdm_gnt_o   ( gnt[i]  ),
+        .wdata_i              ( wdata[i]),
+        .addr_i               ( addr_i  ),
+        .req_i                ( req_i   ),
+        .we_i                 ( we_i    ),
+        .be_i                 ( {(ByteWidthPerBank/8){be[i]}}   ),
+        .rdata_o              ( rdata[i]),
+        .gnt_o                ( gnt[i]  ),
 
         .single_error_o       ( single_error_o [i] ),
-        .multi_error_o        ( multi_error_o  [i] ),
-
-        .test_write_mask_ni ('0)
+        .multi_error_o        ( multi_error_o  [i] )
       );
     end
 

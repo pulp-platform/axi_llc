@@ -1197,16 +1197,15 @@ endgenerate
       event_ecc_multierror_info = '0;
       event_ecc_multierror_info.reporter    = (tag_ecc_scrub_multierror_en || data_ecc_scrub_multierror_en) ? axi_llc_pkg::SCRUBBER :
                                               axi_llc_pkg::READ_UNIT; // TODO: incomplete
-      event_ecc_multierror_info.source      = (tag_ecc_multierror_en & data_ecc_multierror_en) ? axi_llc_pkg::TAG_DATA_SRAM :
-                                               tag_ecc_multierror_en ? axi_llc_pkg::TAG_SRAM : axi_llc_pkg::DATA_SRAM;
-      event_ecc_multierror_info.data_state  = tag_ecc_multierror_en ? (tag_dirty_bit[multierror_tag_way_idx] ? axi_llc_pkg::DIRTY : axi_llc_pkg::CLEAN):
+      event_ecc_multierror_info.source      = tag_ecc_multierror_en ? axi_llc_pkg::TAG_SRAM : axi_llc_pkg::DATA_SRAM;
+      event_ecc_multierror_info.data_state  = tag_ecc_multierror_en ? axi_llc_pkg::UNKNOWN :
                                                                       (tag_dirty_bit[multierror_data_way_idx]? axi_llc_pkg::DIRTY : axi_llc_pkg::CLEAN);
       
       event_ecc_multierror_info.data_line_addr = (tag_ram_scrub_rdata[multierror_data_way_idx] << (AxiAddrWidth-Cfg.TagLength)) |
                                                  (tag_ram_scrub_index_q[multierror_data_way_idx] << LineOffset);
       event_ecc_multierror_info.way            = tag_ecc_multierror_en ? multierror_tag_way_idx : multierror_data_way_idx;
 
-      event_ecc_multierror_info.active         = (tag_ecc_multierror_en  & tag_valid_bit[multierror_tag_way_idx]) |
+      event_ecc_multierror_info.active         = (tag_ecc_multierror_en) |
                                                  (data_ecc_multierror_en & tag_valid_bit[multierror_data_way_idx]);
     end
   end else begin: gen_no_ecc_event

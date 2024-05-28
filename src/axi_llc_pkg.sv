@@ -92,9 +92,10 @@ package axi_llc_pkg;
   } ecc_multierror_src_e;
 
   /// The data state of the ECC event
-  typedef enum logic {
+  typedef enum logic [1:0] {
     DIRTY,
-    CLEAN
+    CLEAN,
+    UNKNOWN
   } ecc_multierror_state_e;
 
   /// ECC info report to the system bus
