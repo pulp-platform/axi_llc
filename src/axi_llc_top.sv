@@ -263,7 +263,7 @@ module axi_llc_top #(
   output axi_llc_pkg::events_t axi_llc_events_o,
 
   // ecc signals
-  input  logic [Cfg.SetAssociativity-1:0] scrub_trigger_i,
+  input  logic [SetAssociativity-1:0] scrub_trigger_i,
   output ecc_info_t tag_ecc_info_o,
   output ecc_info_t data_ecc_info_o
 );
