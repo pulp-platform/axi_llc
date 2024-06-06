@@ -117,6 +117,10 @@ module axi_llc_tag_store #(
   // Save the request in state
   store_req_t req_q;
   logic       load_req;
+  logic       shift_req;
+  logic       req_q_valid;
+  logic       req_q_waiting_valid;
+  store_req_t req_q_q;
 
   // Macro signals
   // Request for the macros
@@ -170,6 +174,7 @@ module axi_llc_tag_store #(
     switch_busy  = 1'b0;
     ready_o      = 1'b0;
     load_req     = 1'b0;
+    shift_req    = 1'b0;
     res_valid    = 1'b0;
     ram_req      = way_ind_t'(0);
     ram_we       = way_ind_t'(0);
@@ -182,101 +187,139 @@ module axi_llc_tag_store #(
     bist_valid   = 1'b0;
 
     if (busy_q) begin
-      // We are busy so there are active operations going on, we are not ready.
-      unique case (req_q.mode)
-          axi_llc_pkg::Bist: begin
-            // During BIST connect the request to the tag pattern generator.
-            ram_req    = {Cfg.SetAssociativity{gen_req}};
-            ram_we     = {Cfg.SetAssociativity{gen_we}};
-            ram_index  = gen_index;
-            ram_wdata  = gen_pattern;
-            bist_valid = |ram_rvalid;
-            // If BIST finished, go to idle.
-            if (gen_eoc) begin
-              switch_busy = 1'b1;
-            end
-          end
-          axi_llc_pkg::Lookup: begin
-            // Wait for valid macro output
-            if ((|ram_rvalid) | (|ram_rvalid_q)) begin
-              // We are valid on hit.
-              if (|hit) begin
-                res_valid = 1'b1;
-              end else begin
-                evict_req = 1'b1;
-                res_valid = evict_valid;
+      if(req_q_valid) begin
+        // We are busy so there are active operations going on, we are not ready.
+        unique case (req_q.mode)
+            axi_llc_pkg::Bist: begin
+              // During BIST connect the request to the tag pattern generator.
+              ram_req    = {Cfg.SetAssociativity{gen_req}};
+              ram_we     = {Cfg.SetAssociativity{gen_we}};
+              ram_index  = gen_index;
+              ram_wdata  = gen_pattern;
+              bist_valid = |ram_rvalid;
+              // If BIST finished, go to idle.
+              if (gen_eoc) begin
+                switch_busy = 1'b1;
+                // Shift the req_q register
+                shift_req   = 1'b1;
               end
             end
+            axi_llc_pkg::Lookup: begin
+              // Wait for valid macro output
+              if ((|ram_rvalid) | (|ram_rvalid_q)) begin
+                // We are valid on hit.
+                if (|hit) begin
+                  res_valid = 1'b1;
+                end else begin
+                  evict_req = 1'b1;
+                  res_valid = evict_valid;
+                end
+              end
 
-            // Do we have to write back something?
-            if ((res_valid && res_ready) || res_sram_wr_delay_q) begin
-              if (res.hit || res_sram_wr_delay_q && res_q.hit) begin
-                // This is a hit
-                if (req_q.dirty && !tag_dit[bin_ind] || res_sram_wr_delay_q) begin
-                  // Do we have to store a dirty as the hit was not dirty until now?
-                  // add a 1 bit state reg
-                  ram_req   = res_sram_wr_delay_q ? res_q.indicator : res.indicator;  // ff
+              // Do we have to write back something?
+              if ((res_valid && res_ready) || res_sram_wr_delay_q) begin
+                if (res.hit || res_sram_wr_delay_q && res_q.hit) begin
+                  // This is a hit
+                  if (req_q.dirty && !tag_dit[bin_ind] || res_sram_wr_delay_q) begin
+                    // Do we have to store a dirty as the hit was not dirty until now?
+                    // add a 1 bit state reg
+                    ram_req   = res_sram_wr_delay_q ? res_q.indicator : res.indicator;  // ff
+                    ram_we    = res_sram_wr_delay_q ? res_q.indicator : res.indicator;
+                    ram_index = req_q.index;
+                    ram_wdata = tag_data_t'{
+                                  val: 1'b1,
+                                  dit: 1'b1,
+                                  tag: req_q.tag
+                                };
+                    // Stop it switch to idle if the write not hsk or there is another req waiting
+                    switch_busy = ram_hsk & ~req_q_waiting_valid; 
+                    // Shift the req_q register
+                    shift_req   = ram_hsk;
+                  end else begin
+                    // Shift the req_q register
+                    shift_req   = 1'b1;
+                    // Noting to write back, do we have a new LOOKUP request?
+                    if (valid_i && (req_i.mode == axi_llc_pkg::Lookup)) begin
+                      ready_o = 1'b1;
+                      // Do the lookup on the requested macros
+                      ram_req     = req_i.indicator;
+                      ram_index   = req_i.index;
+                      if(ram_hsk) begin
+                        load_req    = 1'b1;
+                        switch_busy = 1'b0;                      
+                      end else begin
+                        ready_o = 1'b0;
+                        // Go back to IDLE if the tag sram is busy
+                        switch_busy = ~req_q_waiting_valid;                      
+                      end
+                    end else begin
+                      // Go back to IDLE if no Lookup
+                      switch_busy = ~req_q_waiting_valid; 
+                    end
+                  end
+                end else begin
+                  // This is a miss!
+                  // Write back the new tag, it was a miss.
+                  ram_req   = res_sram_wr_delay_q ? res_q.indicator : res.indicator;
                   ram_we    = res_sram_wr_delay_q ? res_q.indicator : res.indicator;
                   ram_index = req_q.index;
                   ram_wdata = tag_data_t'{
                                 val: 1'b1,
-                                dit: 1'b1,
+                                dit: req_q.dirty,
                                 tag: req_q.tag
                               };
-                  switch_busy = ram_hsk; // stop this
-                end else begin
-                  // Noting to write back, do we have a new LOOKUP request?
-                  if (valid_i && (req_i.mode == axi_llc_pkg::Lookup)) begin
-                    ready_o = 1'b1;
-                    // Do the lookup on the requested macros
-                    ram_req     = req_i.indicator;
-                    ram_index   = req_i.index;
-                    if(ram_hsk) begin
-                      load_req    = 1'b1;
-                      switch_busy = 1'b0;                      
-                    end else begin
-                      ready_o = 1'b0;
-                      // Go back to IDLE if the tag sram is busy
-                      switch_busy = 1'b1;                      
-                    end
-                  end else begin
-                    // Go back to IDLE if no Lookup
-                    switch_busy = 1'b1;
-                  end
+                  // Go back to idle.
+                  // Stop it switch to idle if the write not hsk or there is another req waiting
+                  switch_busy = ram_hsk & ~req_q_waiting_valid;
+                  // Shift the req_q register if there is at least one waiting
+                  shift_req   = ram_hsk;
                 end
-              end else begin
-                // This is a miss!
-                // Write back the new tag, it was a miss.
-                ram_req   = res_sram_wr_delay_q ? res_q.indicator : res.indicator;
-                ram_we    = res_sram_wr_delay_q ? res_q.indicator : res.indicator;
-                ram_index = req_q.index;
-                ram_wdata = tag_data_t'{
-                              val: 1'b1,
-                              dit: req_q.dirty,
-                              tag: req_q.tag
-                            };
-                // Go back to idle.
-                switch_busy = ram_hsk;
               end
             end
-          end
-          axi_llc_pkg::Flush: begin
-            if ((|ram_rvalid) | (|ram_rvalid_q)) begin
-              // We are valid when the read output of the macros is valid!
-              res_valid = 1'b1;
-            end
+            axi_llc_pkg::Flush: begin
+              if ((|ram_rvalid) | (|ram_rvalid_q)) begin
+                // We are valid when the read output of the macros is valid!
+                res_valid = 1'b1;
+              end
 
-            // Write back all zeros to the storage if the output is acknowledged.
-            if ((res_valid && res_ready) || res_sram_wr_delay_q) begin
-              ram_req     = req_q.indicator;
-              ram_we      = req_q.indicator;
-              ram_index   = req_q.index;
-              ram_wdata   = tag_data_t'{default: '0};
-              switch_busy = ram_hsk;
+              // Write back all zeros to the storage if the output is acknowledged.
+              if ((res_valid && res_ready) || res_sram_wr_delay_q) begin
+                ram_req     = req_q.indicator;
+                ram_we      = req_q.indicator;
+                ram_index   = req_q.index;
+                ram_wdata   = tag_data_t'{default: '0};
+                // Stop it switch to idle if the write not hsk or there is another req waiting
+                switch_busy = ram_hsk & ~req_q_waiting_valid;
+                // Shift the req_q register if there is at least one waiting
+                shift_req   = ram_hsk;
+              end
             end
+          default : /* default */;
+        endcase
+      end else begin
+        // Noting to do, do we have a new LOOKUP request?
+        if (valid_i && (req_i.mode == axi_llc_pkg::Lookup)) begin
+          ready_o = 1'b1;
+          // Do the lookup on the requested macros
+          ram_req     = req_i.indicator;
+          ram_index   = req_i.index;
+          if(ram_hsk) begin
+            load_req    = 1'b1;
+            switch_busy = 1'b0;                      
+          end else begin
+            ready_o = 1'b0;
+            // Go back to IDLE if the tag sram is busy
+            switch_busy = ~req_q_waiting_valid;
+            // Still shift the req_q register if there is at least one waiting
+            shift_req   = req_q_waiting_valid;
           end
-        default : /* default */;
-      endcase
+        end else begin
+          // Go back to IDLE if no Lookup
+          switch_busy = ~req_q_waiting_valid;
+          // Still shift the req_q register if there is at least one waiting
+          shift_req   = req_q_waiting_valid;
+        end
+      end
     end else begin
       // we are not busy, so we are ready to get a new request.
       ready_o = 1'b1;
@@ -300,8 +343,10 @@ module axi_llc_tag_store #(
             ram_index   = req_i.index;
             if(ram_hsk) begin
               load_req    = 1'b1;
+              ready_o     = 1'b1;
               switch_busy = 1'b1;
             end else begin
+              load_req    = 1'b0;
               ready_o     = 1'b0;
               switch_busy = 1'b0;
             end
@@ -315,11 +360,14 @@ module axi_llc_tag_store #(
   // make sure all the ways of sram we are accessing are ready
   assign ram_hsk     = ~(|((ram_req & ram_gnt) ^ ram_req)); 
 
-  `FFLARN(req_q, req_i, load_req, store_req_t'{default: '0}, clk_i, rst_ni)
+  // `FFLARN(req_q, req_i, load_req, store_req_t'{default: '0}, clk_i, rst_ni)
+  `FFLARN(req_q_q, req_q, req_q_valid & (load_req | shift_req), store_req_t'{default: '0}, clk_i, rst_ni)
   `FFLARN(busy_q, busy_d, switch_busy, 1'b0, clk_i, rst_ni)
   assign busy_d = ~busy_q;
   `FFLARN(ram_rvalid_q, ram_rvalid_d, lock_rvalid, way_ind_t'(0), clk_i, rst_ni)
-  assign ram_rvalid_d = (res_valid & res_ready) ? way_ind_t'(0) : ram_rvalid;
+  // assign ram_rvalid_d = (res_valid & res_ready) ? way_ind_t'(0) : ram_rvalid;
+  assign ram_rvalid_d = (res_valid & res_ready) ? ((req_q_q.mode == axi_llc_pkg::Bist) ? '0 : ram_rvalid_q & ram_rvalid) 
+                                                : ram_rvalid;
   assign lock_rvalid  = (res_valid & res_ready) | (|ram_rvalid);
 
   logic [SRAMDataWidth-1:0] sram_wdata;
@@ -492,6 +540,22 @@ module axi_llc_tag_store #(
     .ready_i ( ready_i   ),
     .data_o  ( res_o     )
   );
+
+  shift_reg_gated_with_enable #(
+      .dtype ( store_req_t                  ),
+      .Depth ( axi_llc_pkg::TagMacroLatency )
+  ) i_shift_reg_gated_with_enable_req_q (
+    .clk_i,
+    .rst_ni,
+
+    .valid_i    (load_req),
+    .data_i     (req_i),
+    .shift_en_i (load_req | shift_req),
+    .valid_o    (req_q_valid),
+    .data_o     (req_q),
+    .waiting_valid_o (req_q_waiting_valid)
+  );
+
 
   // Assertions
   // pragma translate_off

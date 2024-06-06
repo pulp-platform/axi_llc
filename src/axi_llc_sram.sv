@@ -13,6 +13,7 @@ module axi_llc_sram #(
   parameter int unsigned ByteWidth    = 32'd8,    // Width of a data byte
   // parameter int unsigned NumPorts     = 32'd2,    // Number of read and write ports
   parameter int unsigned Latency      = 32'd1,    // Latency when the read data is available
+  parameter int unsigned NumOutputCuts    = 32'd0, // Number of cuts in the data output path
   parameter bit          EnableEcc    = 0,        // Tag & data sram ECC enabling parameter, bool type
   parameter int unsigned ECC_GRANULARITY = 0,     // Per ECC unit width
   parameter              SimInit      = "none",   // Simulation initialization
@@ -69,6 +70,39 @@ module axi_llc_sram #(
     assign gnt_all = &gnt;
     assign gnt_o   = gnt_all;
 
+    shift_reg #(
+      .dtype(logic),
+      .Depth(NumOutputCuts+1)
+    ) i_hsk_q (
+      .clk_i,
+      .rst_ni,
+      .d_i   (hsk_d),
+      .d_o   (hsk_q)
+    );
+
+    shift_reg #(
+      .dtype(logic),
+      .Depth(NumOutputCuts+1)
+    ) i_we_q (
+      .clk_i,
+      .rst_ni,
+      .d_i   (we_i),
+      .d_o   (we_q)
+    );
+
+    shift_reg_gated #(
+      .dtype(data_t),
+      .Depth(NumOutputCuts+1)
+    ) i_rdata_q (
+      .clk_i,
+      .rst_ni,
+      .valid_i(rdata_en),
+      .data_i (rdata_d),
+      .valid_o(),
+      .data_o (rdata_q)
+    );
+
+
 
     for (genvar i = 0; i < NumBanks; i++) begin: gen_data_split
       assign wdata[i] = wdata_i[G*i+:G];
@@ -81,7 +115,8 @@ module axi_llc_sram #(
         .ProtectedWidth   ( EccDataWidth   ),
         .InputECC         ( 0              ),
         .NumRMWCuts       ( 1              ),
-        .SimInit          ( "zeros"       )
+        .NumOutputCuts    ( NumOutputCuts  ),
+        .SimInit          ( "zeros"        )
       ) i_ecc_sram (
         .clk_i,
         .rst_ni,
@@ -103,25 +138,26 @@ module axi_llc_sram #(
       );
     end
 
-    always_ff @(posedge clk_i or negedge rst_ni) begin
-      if(~rst_ni) begin
-        hsk_q <= 1'b0;
-        we_q  <= 1'b0;
-        rdata_q <= '0;
-      end else begin
-        hsk_q <= hsk_d;
-        we_q  <= we_i;
-        if (rdata_en) begin
-          rdata_q <= rdata_d;
-        end
-      end
-    end
+    // always_ff @(posedge clk_i or negedge rst_ni) begin
+    //   if(~rst_ni) begin
+    //     hsk_q <= 1'b0;
+    //     we_q  <= 1'b0;
+    //     rdata_q <= '0;
+    //   end else begin
+    //     hsk_q <= hsk_d;
+    //     we_q  <= we_i;
+    //     if (rdata_en) begin
+    //       rdata_q <= rdata_d;
+    //     end
+    //   end
+    // end
 
     assign rdata_en = hsk_q & ~we_q;
     assign rdata_d  = rdata_o;
   
-  end else begin: gen_standard_sram
-    assign gnt_o = 1'b1;
+  // end else begin: gen_standard_sram
+  //   assign gnt_o = 1'b1;
+    data_t                rdata_cmp, rdata_cmp_q;
     tc_sram #(
         .NumWords   ( NumWords    ),
         .DataWidth  ( DataWidth   ),
@@ -138,8 +174,32 @@ module axi_llc_sram #(
         .addr_i  ( addr_i  ),
         .wdata_i ( wdata_i ),
         .be_i    ( be_i    ),
-        .rdata_o ( rdata_o )
+        // .rdata_o ( rdata_o )
+        .rdata_o ( rdata_cmp )
       );
+
+    shift_reg #(
+      .dtype(data_t),
+      .Depth(NumOutputCuts)
+    ) i_rdata_cmp_q (
+      .clk_i,
+      .rst_ni,
+      .d_i   (rdata_cmp),
+      .d_o   (rdata_cmp_q)
+    );
+
+
+  // Assertions
+  // pragma translate_off
+  `ifndef VERILATOR
+  // data_cmp:  assert property ( @(posedge clk_i) disable iff (!rst_ni)
+  //     (hsk_d & ~we_i) |=> (rdata_o == rdata_cmp_q)) else
+  //     $info(1, "[data_cmp] data mismatch");
+  data_cmp:  assert property ( @(posedge clk_i) disable iff (!rst_ni)
+      (hsk_d & ~we_i) ##(NumOutputCuts+1) 1 |-> (rdata_o == rdata_cmp_q)) else
+      $info(1, "[data_cmp] data mismatch");
+  `endif
+  // pragma translate_on
   end
   
 endmodule

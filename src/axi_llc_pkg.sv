@@ -307,7 +307,7 @@ package axi_llc_pkg;
 
   /// Read latency of the memory macros responsible for saving the tags.
   /// This value has to be >= 32'd1.
-  parameter int unsigned TagMacroLatency  = 32'd1;
+  parameter int unsigned TagMacroLatency  = 32'd2;
 
   /// Read latency of the memory macros responsible for saving the data.
   /// This value has to be == 32'd1.

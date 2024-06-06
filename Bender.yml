@@ -25,6 +25,7 @@ sources:
   # levels 1 and 0, etc. Files within a level are ordered alphabetically.
   # Level 0
   files:
+  - src/hit_miss_detect/shift_reg_gated_with_enable.sv
   - src/axi_llc_pkg.sv
   - src/axi_llc_sram.sv
   # - src/axi_llc_sram_data_fpga.sv
