@@ -288,7 +288,7 @@ module axi_llc_config #(
   // Trailing zero counter signals, for flush descriptor generation.
   flush_idx_t                 to_flush_nub;
   logic                       lzc_empty;
-  set_asso_t                  flush_way_ind;
+  set_asso_t                  flush_way_ind,flush_way_ind_n;
 
   ////////////////////////
   // AXI Bypass control //
@@ -485,7 +485,7 @@ module axi_llc_config #(
       FsmEndFlush: begin
         // this state decides, if we have other ways to flush, or if we can go back to idle
         clear_cnt = 1'b1;
-        if (to_flush_q == flush_way_ind) begin
+        if (to_flush_q == flush_way_ind_n) begin
           flush_state_d = FsmIdle;
           // reset the flushed register to SPM as new requests can enter the cache
           conf_regs_o.flushed     = conf_regs_i.cfg_spm;
@@ -551,6 +551,7 @@ module axi_llc_config #(
   );
   // Decode flush way indicator from binary to one-hot signal.
   assign flush_way_ind = (lzc_empty) ? set_asso_t'(1'b0) : set_asso_t'(64'd1) << to_flush_nub;
+  assign flush_way_ind_n = flush_way_ind >> 1;
 
   ///////////////////////////////
   // Counter for flush control //
