@@ -139,8 +139,11 @@ module axi_llc_tag_store #(
   // Write data for the macros.
   tag_data_t  ram_wdata;
   // Read data is valid
-  way_ind_t   ram_rvalid,  ram_rvalid_q, ram_rvalid_d;
-  logic       lock_rvalid;
+  way_ind_t   ram_rvalid,  ram_rvalid_q;
+  logic [$clog2(axi_llc_pkg::TagMacroLatency):0] ram_rvalid_cnt;
+  logic       ram_rvalid_cnt_overflow;
+  logic       ram_rvalid_cnt_en, ram_rvalid_cnt_down;
+  // logic       lock_rvalid;
   // Hit indication signals
   way_ind_t   hit, tag_val, tag_dit,     tag_equ;
   tag_data_t  [Cfg.SetAssociativity-1:0] stored_tag;
@@ -364,11 +367,11 @@ module axi_llc_tag_store #(
   `FFLARN(req_q_q, req_q, req_q_valid & (load_req | shift_req), store_req_t'{default: '0}, clk_i, rst_ni)
   `FFLARN(busy_q, busy_d, switch_busy, 1'b0, clk_i, rst_ni)
   assign busy_d = ~busy_q;
-  `FFLARN(ram_rvalid_q, ram_rvalid_d, lock_rvalid, way_ind_t'(0), clk_i, rst_ni)
+  // `FFLARN(ram_rvalid_q, ram_rvalid_d, lock_rvalid, way_ind_t'(0), clk_i, rst_ni)
   // assign ram_rvalid_d = (res_valid & res_ready) ? way_ind_t'(0) : ram_rvalid;
-  assign ram_rvalid_d = (res_valid & res_ready) ? ((req_q_q.mode == axi_llc_pkg::Bist) ? '0 : ram_rvalid_q & ram_rvalid) 
-                                                : ram_rvalid;
-  assign lock_rvalid  = (res_valid & res_ready) | (|ram_rvalid);
+  // assign ram_rvalid_d = (res_valid & res_ready) ? ((req_q_q.mode == axi_llc_pkg::Bist) ? '0 : ram_rvalid_q & ram_rvalid) 
+  //                                               : ram_rvalid;
+  // assign lock_rvalid  = (res_valid & res_ready) | (|ram_rvalid);
 
   logic [SRAMDataWidth-1:0] sram_wdata;
   assign sram_wdata = {{SRAMExtendedWidth{1'b0}}, ram_wdata};
@@ -432,7 +435,7 @@ module axi_llc_tag_store #(
     assign tag_dit[i] = ram_rdata[i].dit;     // indicates which tags are dirty
 
     // hit detection
-    assign hit[i]        = req_q.indicator[i] & tag_val[i] & tag_equ[i];
+    assign hit[i]        = req_q_valid & req_q.indicator[i] & tag_val[i] & tag_equ[i];
     // BIST also add the two bits of valid and dirty
     assign bist_res[i]   = ram_compared.val & ram_compared.dit & tag_equ[i];
     // assignment to wide output signal that goes to the tag output mux
@@ -501,7 +504,7 @@ module axi_llc_tag_store #(
   always_comb begin
     // Default assignment
     res = store_res_t'{default: '0};
-    if (busy_q) begin
+    if (busy_q & req_q_valid) begin
       unique case (req_q.mode)
         axi_llc_pkg::Lookup: begin
           res = store_res_t'{
@@ -557,6 +560,30 @@ module axi_llc_tag_store #(
   );
 
 
+  logic  ram_rvalid_fifo_push, ram_rvalid_fifo_pop;
+  assign ram_rvalid_cnt_en    = (req_q_q.mode != axi_llc_pkg::Bist) &
+                                ~(ram_rvalid_fifo_push & ram_rvalid_fifo_pop) &
+                                (ram_rvalid_fifo_push | ram_rvalid_fifo_pop);
+  assign ram_rvalid_cnt_down  = ram_rvalid_fifo_pop;
+  assign ram_rvalid_fifo_push = |ram_rvalid;
+  assign ram_rvalid_fifo_pop  = res_valid & res_ready;
+  assign ram_rvalid_q         = |ram_rvalid_cnt;
+
+  counter #(
+    .WIDTH      ( $clog2(axi_llc_pkg::TagMacroLatency)+1 )
+  ) i_ram_rvalid_cnt (
+    .clk_i      ( clk_i     ),
+    .rst_ni     ( rst_ni    ),
+    .clear_i    ( '0        ),
+    .en_i       ( ram_rvalid_cnt_en ),
+    .load_i     ( '0        ),
+    .down_i     ( ram_rvalid_cnt_down ),
+    .d_i        ( '0        ),
+    .q_o        ( ram_rvalid_cnt ),
+    .overflow_o ( ram_rvalid_cnt_overflow )
+  );
+
+
   // Assertions
   // pragma translate_off
   `ifndef VERILATOR
@@ -573,6 +600,9 @@ module axi_llc_tag_store #(
   check_all_spm: assert property ( @(posedge clk_i) disable iff (~rst_ni)
       ((flushed_i == {Cfg.SetAssociativity{1'b1}}) |-> (evict_req == 1'b0))) else
       $fatal(1, "Should not have a request for the evict box, if all ways are flushed!");
+  check_ram_rvalid: assert property ( @(posedge clk_i) disable iff (~rst_ni)
+      ((ram_rvalid_cnt_en) |-> ((ram_rvalid_cnt <= axi_llc_pkg::TagMacroLatency)))) else
+      $fatal(1, "Try to push a add ram_rvalid into a full ram_rvalid_cnt!");
   `endif
   // pragma translate_on
 endmodule

@@ -1040,6 +1040,8 @@ endgenerate
       .DataWidth      ( Cfg.BlockSize ),
       .TagDepth       ( Cfg.NumLines  ),
       .DataDepth      ( Cfg.NumLines * Cfg.NumBlocks ),
+      .TagReadLatency ( axi_llc_pkg::TagMacroLatency ),
+      .DataReadLatency( axi_llc_pkg::DataMacroLatency),
       .error_info_per_way_t (error_info_per_way_t)
     ) i_scrubber (
       .clk_i,
