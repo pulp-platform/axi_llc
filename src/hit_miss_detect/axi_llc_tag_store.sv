@@ -136,10 +136,16 @@ module axi_llc_tag_store #(
   // Read data from the macros
   logic [Cfg.SetAssociativity-1:0][SRAMDataWidth-1:0] sram_rdata;
   tag_data_t [Cfg.SetAssociativity-1:0]               ram_rdata;
+  tag_data_t [Cfg.SetAssociativity-1:0]               ram_rdata_q; // need to buffer the tag data, as the evict box has multiple-cycle latency, and the second tag ram read req refreshed the tag sram output
+  logic      [Cfg.SetAssociativity-1:0]               ram_rdata_en;
+  logic      [Cfg.SetAssociativity-1:0]               ram_rdata_q_valid, ram_rdata_q_valid_nxt;
+  logic      [Cfg.SetAssociativity-1:0]               ram_rdata_q_valid_en;
+  logic      [Cfg.SetAssociativity-1:0]               ram_rdata_q_valid_set, ram_rdata_q_valid_clr;
   // Write data for the macros.
   tag_data_t  ram_wdata;
   // Read data is valid
-  way_ind_t   ram_rvalid,  ram_rvalid_q;
+  way_ind_t   ram_rvalid; // ram_rvalid_q;
+  logic ram_rvalid_q;
   logic [$clog2(axi_llc_pkg::TagMacroLatency):0] ram_rvalid_cnt;
   logic       ram_rvalid_cnt_overflow;
   logic       ram_rvalid_cnt_en, ram_rvalid_cnt_down;
@@ -209,7 +215,7 @@ module axi_llc_tag_store #(
             end
             axi_llc_pkg::Lookup: begin
               // Wait for valid macro output
-              if ((|ram_rvalid) | (|ram_rvalid_q)) begin
+              if ((|ram_rvalid) | (ram_rvalid_q)) begin
                 // We are valid on hit.
                 if (|hit) begin
                   res_valid = 1'b1;
@@ -280,7 +286,7 @@ module axi_llc_tag_store #(
               end
             end
             axi_llc_pkg::Flush: begin
-              if ((|ram_rvalid) | (|ram_rvalid_q)) begin
+              if ((|ram_rvalid) | (ram_rvalid_q)) begin
                 // We are valid when the read output of the macros is valid!
                 res_valid = 1'b1;
               end
@@ -413,6 +419,15 @@ module axi_llc_tag_store #(
 
     assign ram_rdata [i] = sram_rdata[i][TagDataLen-1:0];
 
+    assign ram_rdata_en         [i] = ram_rdata_q_valid_set[i] & ~ram_rdata_q_valid_clr[i] & ~ram_rdata_q_valid[i];
+    assign ram_rdata_q_valid_en [i] = ram_rdata_q_valid_set[i] | ram_rdata_q_valid_clr [i];
+    assign ram_rdata_q_valid_set[i] = (|ram_rvalid);
+    assign ram_rdata_q_valid_clr[i] = (res_valid && res_ready);
+    assign ram_rdata_q_valid_nxt[i] = ram_rdata_q_valid_set[i] & ~ram_rdata_q_valid_clr[i];
+
+    `FFLARN(ram_rdata_q[i], ram_rdata[i], ram_rdata_en[i], '0, clk_i, rst_ni)
+    `FFLARN(ram_rdata_q_valid[i], ram_rdata_q_valid_nxt[i], ram_rdata_q_valid_en[i], '0, clk_i, rst_ni)
+
     // shift register for a validtoken for read data, this pulses once for each read request
     shift_reg #(
       .dtype ( logic                        ),
@@ -429,17 +444,17 @@ module axi_llc_tag_store #(
           val: bist_pattern.val,
           dit: bist_pattern.dit,
           tag: (req_q.mode == axi_llc_pkg::Bist) ? bist_pattern.tag : req_q.tag
-        } ~^ ram_rdata[i];
+        } ~^ (ram_rdata_q_valid ? ram_rdata_q[i] : ram_rdata[i]);
     assign tag_equ[i] = &ram_compared.tag; // valid if the stored tag equals the one looked up
-    assign tag_val[i] = ram_rdata[i].val;     // indicates where valid values are in the line
-    assign tag_dit[i] = ram_rdata[i].dit;     // indicates which tags are dirty
+    assign tag_val[i] = (ram_rdata_q_valid ? ram_rdata_q[i].val : ram_rdata[i].val);     // indicates where valid values are in the line
+    assign tag_dit[i] = (ram_rdata_q_valid ? ram_rdata_q[i].dit : ram_rdata[i].dit);     // indicates which tags are dirty
 
     // hit detection
     assign hit[i]        = req_q_valid & req_q.indicator[i] & tag_val[i] & tag_equ[i];
     // BIST also add the two bits of valid and dirty
     assign bist_res[i]   = ram_compared.val & ram_compared.dit & tag_equ[i];
     // assignment to wide output signal that goes to the tag output mux
-    assign stored_tag[i] = ram_rdata[i];
+    assign stored_tag[i] = (ram_rdata_q_valid ? ram_rdata_q[i] : ram_rdata[i]);
   end
 
   axi_llc_tag_pattern_gen #(
