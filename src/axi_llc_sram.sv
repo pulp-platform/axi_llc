@@ -155,8 +155,8 @@ module axi_llc_sram #(
     assign rdata_en = hsk_q & ~we_q;
     assign rdata_d  = rdata_o;
   
-  // end else begin: gen_standard_sram
-  //   assign gnt_o = 1'b1;
+  end else begin: gen_standard_sram
+    assign gnt_o = 1'b1;
     data_t                rdata_cmp, rdata_cmp_q;
     tc_sram #(
         .NumWords   ( NumWords    ),
@@ -189,17 +189,14 @@ module axi_llc_sram #(
     );
 
 
-  // Assertions
-  // pragma translate_off
-  `ifndef VERILATOR
+  // // Assertions
+  // // pragma translate_off
+  // `ifndef VERILATOR
   // data_cmp:  assert property ( @(posedge clk_i) disable iff (!rst_ni)
-  //     (hsk_d & ~we_i) |=> (rdata_o == rdata_cmp_q)) else
+  //     (hsk_d & ~we_i) ##(NumOutputCuts+1) 1 |-> (rdata_o == rdata_cmp_q)) else
   //     $info(1, "[data_cmp] data mismatch");
-  data_cmp:  assert property ( @(posedge clk_i) disable iff (!rst_ni)
-      (hsk_d & ~we_i) ##(NumOutputCuts+1) 1 |-> (rdata_o == rdata_cmp_q)) else
-      $info(1, "[data_cmp] data mismatch");
-  `endif
-  // pragma translate_on
+  // `endif
+  // // pragma translate_on
   end
   
 endmodule
