@@ -303,7 +303,7 @@ package axi_llc_pkg;
   /// path in the design comes out of the tag storage macros.
   /// `0`: no spill register
   /// `1`: add spill register
-  parameter bit SpillTagStore             = 1'b1;
+  parameter bit SpillTagStore             = 1'b0;
 
   /// Read latency of the memory macros responsible for saving the tags.
   /// This value has to be >= 32'd1.
