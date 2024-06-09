@@ -120,7 +120,16 @@ module axi_llc_tag_store #(
   logic       shift_req;
   logic       req_q_valid;
   logic       req_q_waiting_valid;
-  store_req_t req_q_q;
+
+  // Save the last req_q state, and the victim way
+  // For two continuous access to the same tag index, 
+  // if the previous one update the tag ram, we can forward the new tag to the following one
+  typedef struct packed {
+    store_req_t req_q;
+    logic       evict_valid;
+    bin_ind_t   evict_way;
+  } store_req_q_t;
+  store_req_q_t req_q_q, req_q_d;
 
   // Macro signals
   // Request for the macros
@@ -141,6 +150,7 @@ module axi_llc_tag_store #(
   logic      [Cfg.SetAssociativity-1:0]               ram_rdata_q_valid, ram_rdata_q_valid_nxt;
   logic      [Cfg.SetAssociativity-1:0]               ram_rdata_q_valid_en;
   logic      [Cfg.SetAssociativity-1:0]               ram_rdata_q_valid_set, ram_rdata_q_valid_clr;
+  tag_data_t [Cfg.SetAssociativity-1:0]               ram_rdata_sel;
   // Write data for the macros.
   tag_data_t  ram_wdata;
   // Read data is valid
@@ -370,17 +380,27 @@ module axi_llc_tag_store #(
   assign ram_hsk     = ~(|((ram_req & ram_gnt) ^ ram_req)); 
 
   // `FFLARN(req_q, req_i, load_req, store_req_t'{default: '0}, clk_i, rst_ni)
-  `FFLARN(req_q_q, req_q, req_q_valid & (load_req | shift_req), store_req_t'{default: '0}, clk_i, rst_ni)
+  assign req_q_d = store_req_q_t'{
+    req_q       : req_q,
+    evict_valid : evict_req & evict_valid,
+    evict_way   : bin_ind
+  };
+  `FFLARN(req_q_q, req_q_d, req_q_valid & (load_req | shift_req), store_req_q_t'{default: '0}, clk_i, rst_ni)
   `FFLARN(busy_q, busy_d, switch_busy, 1'b0, clk_i, rst_ni)
   assign busy_d = ~busy_q;
   // `FFLARN(ram_rvalid_q, ram_rvalid_d, lock_rvalid, way_ind_t'(0), clk_i, rst_ni)
   // assign ram_rvalid_d = (res_valid & res_ready) ? way_ind_t'(0) : ram_rvalid;
-  // assign ram_rvalid_d = (res_valid & res_ready) ? ((req_q_q.mode == axi_llc_pkg::Bist) ? '0 : ram_rvalid_q & ram_rvalid) 
+  // assign ram_rvalid_d = (res_valid & res_ready) ? ((req_q_q.req_q.mode == axi_llc_pkg::Bist) ? '0 : ram_rvalid_q & ram_rvalid) 
   //                                               : ram_rvalid;
   // assign lock_rvalid  = (res_valid & res_ready) | (|ram_rvalid);
 
   logic [SRAMDataWidth-1:0] sram_wdata;
   assign sram_wdata = {{SRAMExtendedWidth{1'b0}}, ram_wdata};
+
+  logic debug_use_forward_tag;
+  logic [Cfg.SetAssociativity-1:0] debug_use_forward_tag_tmp;
+
+  assign debug_use_forward_tag = |debug_use_forward_tag_tmp;
 
   // generate for each Way one tag storage macro
   for (genvar i = 0; unsigned'(i) < Cfg.SetAssociativity; i++) begin : gen_tag_macros
@@ -439,22 +459,40 @@ module axi_llc_tag_store #(
       .d_o    ( ram_rvalid[i]           )
     );
 
+    // the tag used to compare
+    always_comb begin
+      ram_rdata_sel[i] = ram_rdata_q_valid ? ram_rdata_q[i] : ram_rdata[i];
+      debug_use_forward_tag_tmp[i] = 1'b0;
+      if(req_q_q.req_q.index == req_q.index) begin
+        if(req_q_q.evict_valid) begin
+          debug_use_forward_tag_tmp[i] = 1'b1;
+          if(req_q_q.evict_way == i[$bits(bin_ind_t)-1:0]) begin
+            ram_rdata_sel[i] = tag_data_t'{
+              val: 1'b1,
+              dit: req_q_q.req_q.dirty,
+              tag: req_q_q.req_q.tag
+            };
+          end
+        end
+      end
+    end
+
     // comparator (XNOR)
     assign ram_compared = tag_data_t'{
           val: bist_pattern.val,
           dit: bist_pattern.dit,
           tag: (req_q.mode == axi_llc_pkg::Bist) ? bist_pattern.tag : req_q.tag
-        } ~^ (ram_rdata_q_valid ? ram_rdata_q[i] : ram_rdata[i]);
+        } ~^ ram_rdata_sel[i];
     assign tag_equ[i] = &ram_compared.tag; // valid if the stored tag equals the one looked up
-    assign tag_val[i] = (ram_rdata_q_valid ? ram_rdata_q[i].val : ram_rdata[i].val);     // indicates where valid values are in the line
-    assign tag_dit[i] = (ram_rdata_q_valid ? ram_rdata_q[i].dit : ram_rdata[i].dit);     // indicates which tags are dirty
+    assign tag_val[i] = ram_rdata_sel[i].val;     // indicates where valid values are in the line
+    assign tag_dit[i] = ram_rdata_sel[i].dit;     // indicates which tags are dirty
 
     // hit detection
     assign hit[i]        = req_q_valid & req_q.indicator[i] & tag_val[i] & tag_equ[i];
     // BIST also add the two bits of valid and dirty
     assign bist_res[i]   = ram_compared.val & ram_compared.dit & tag_equ[i];
     // assignment to wide output signal that goes to the tag output mux
-    assign stored_tag[i] = (ram_rdata_q_valid ? ram_rdata_q[i] : ram_rdata[i]);
+    assign stored_tag[i] = ram_rdata_sel[i];
   end
 
   axi_llc_tag_pattern_gen #(
@@ -576,7 +614,7 @@ module axi_llc_tag_store #(
 
 
   logic  ram_rvalid_fifo_push, ram_rvalid_fifo_pop;
-  assign ram_rvalid_cnt_en    = (req_q_q.mode != axi_llc_pkg::Bist) &
+  assign ram_rvalid_cnt_en    = (req_q_q.req_q.mode != axi_llc_pkg::Bist) &
                                 ~(ram_rvalid_fifo_push & ram_rvalid_fifo_pop) &
                                 (ram_rvalid_fifo_push | ram_rvalid_fifo_pop);
   assign ram_rvalid_cnt_down  = ram_rvalid_fifo_pop;
