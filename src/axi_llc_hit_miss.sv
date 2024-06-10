@@ -184,6 +184,8 @@ module axi_llc_hit_miss #(
   logic  desc_q_valid;
   logic  desc_q_waiting_valid;
 
+  way_ind_t spm_lock_q;
+
   // control
   always_comb begin
     // default assignments
@@ -221,7 +223,7 @@ module axi_llc_hit_miss #(
             // SPM descriptor in unit
             /////////////////////////////////////////////////////////
             // check if the spm access would go onto a way configured as cache, if yes error
-            if (|(desc_q.way_ind & (~spm_lock_i))) begin
+            if (|(desc_q.way_ind & (~spm_lock_q))) begin
               desc_o.x_resp = axi_pkg::RESP_SLVERR;
             end
 
@@ -469,7 +471,7 @@ module axi_llc_hit_miss #(
     .clk_i,
     .rst_ni,
     .test_i,
-    .spm_lock_i   ( spm_lock_i      ),
+    .spm_lock_i   ( spm_lock_q      ),
     .flushed_i    ( flushed_i       ),
     .req_i        ( store_req       ),
     .valid_i      ( store_req_valid ),
@@ -576,6 +578,21 @@ endgenerate
     .valid_o    (desc_q_valid),
     .data_o     (desc_q),
     .waiting_valid_o (desc_q_waiting_valid)
+  );
+
+  shift_reg_gated_with_enable #(
+      .dtype ( way_ind_t                    ),
+      .Depth ( axi_llc_pkg::TagMacroLatency )
+  ) i_shift_reg_gated_with_enable_spm_lock_q (
+    .clk_i,
+    .rst_ni,
+
+    .valid_i    (load_desc),
+    .data_i     (spm_lock_i),
+    .shift_en_i (load_desc | shift_desc),
+    .valid_o    ( ),
+    .data_o     (spm_lock_q),
+    .waiting_valid_o ( )
   );
 
 
