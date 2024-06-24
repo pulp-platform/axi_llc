@@ -31,6 +31,10 @@ module axi_llc_hit_miss #(
   parameter axi_llc_pkg::llc_cfg_t     Cfg            = axi_llc_pkg::llc_cfg_t'{default: '0},
   /// AXI parameter configuration
   parameter axi_llc_pkg::llc_axi_cfg_t AxiCfg         = axi_llc_pkg::llc_axi_cfg_t'{default: '0},
+  /// Tag & data sram ECC enabling parameter, bool type
+  parameter bit                        EnableEcc      = 0,
+  /// The number of SRAM banks per way
+  parameter int SramBankNumPerWay = (Cfg.TagEccGranularity != 0) ? (1'b1 << ($clog2(Cfg.TagLength + 32'd2)))/Cfg.TagEccGranularity : 1,
   /// Cache partitioning enabling parameter
   parameter logic                      CachePartition = 1,
   /// Index remapping hash function used in cache partitioning
@@ -58,7 +62,12 @@ module axi_llc_hit_miss #(
   /// Cache partition table
   parameter type                       partition_table_t = logic,
   /// Whether to print SRAM configs
-  parameter bit                        PrintSramCfg   = 0
+  parameter bit                        PrintSramCfg   = 0,
+
+  // typedef to have consistent tag data (that what gets written into the sram)
+  parameter int unsigned TagDataLen = Cfg.TagLength + 32'd2,
+  // Binary indicator of the output way selected.
+  parameter int unsigned SRAMDataWidth = 1'b1 << ($clog2(TagDataLen))
 ) (
   /// Clock, positive edge triggered.
   input  logic     clk_i,
@@ -93,7 +102,24 @@ module axi_llc_hit_miss #(
   input  cnt_t     cnt_down_i,
   // bist aoutput
   output way_ind_t bist_res_o,
-  output logic     bist_valid_o
+  output logic     bist_valid_o,
+
+  // if the sram are put outside
+  output logic [Cfg.SetAssociativity-1:0]                        ram_req_o,
+  output way_ind_t                                               ram_we_o,
+  output logic [Cfg.SetAssociativity-1:0][Cfg.IndexLength-1:0]   ram_addr_o,
+  output logic [Cfg.SetAssociativity-1:0][SRAMDataWidth-1:0]     ram_wdata_o,
+  output way_ind_t                                               ram_be_o,
+  input  logic [Cfg.SetAssociativity-1:0]                        ram_gnt_i,
+  input  logic [Cfg.SetAssociativity-1:0][SRAMDataWidth-1:0]     ram_data_i,
+  input  logic [Cfg.SetAssociativity-1:0]                        ram_data_multi_err_i,
+
+  // ecc signals
+  input  logic [Cfg.SetAssociativity-1:0][SramBankNumPerWay-1:0] scrub_trigger_i,
+  output logic [Cfg.SetAssociativity-1:0][SramBankNumPerWay-1:0] scrubber_fix_o,
+  output logic [Cfg.SetAssociativity-1:0][SramBankNumPerWay-1:0] scrub_uncorrectable_o,
+  output logic [Cfg.SetAssociativity-1:0][SramBankNumPerWay-1:0] single_error_o,
+  output logic [Cfg.SetAssociativity-1:0][SramBankNumPerWay-1:0] multi_error_o
 );
   `include "common_cells/registers.svh"
   localparam int unsigned IndexBase = Cfg.ByteOffsetLength + Cfg.BlockOffsetLength;
@@ -154,6 +180,11 @@ module axi_llc_hit_miss #(
   desc_t desc_d,    desc_q;            // descriptor residing in unit
   logic  load_desc;
   desc_t desc_temp;
+  logic  shift_desc;
+  logic  desc_q_valid;
+  logic  desc_q_waiting_valid;
+
+  way_ind_t spm_lock_q;
 
   // control
   always_comb begin
@@ -170,6 +201,7 @@ module axi_llc_hit_miss #(
       desc_o.index_partition = desc_q.flush ? desc_q.a_x_addr[IndexBase+:Cfg.IndexLength] : desc_q.index_partition;
     end
     load_desc = 1'b0;
+    shift_desc = 1'b0;
     // unit handshaking
     ready_o      = 1'b0;
     miss_valid_o = 1'b0;
@@ -185,122 +217,179 @@ module axi_llc_hit_miss #(
 
       // we have a valid descriptor in the unit and made the request to the tag store
       if (busy_q) begin
-        if (desc_q.spm) begin
-          /////////////////////////////////////////////////////////
-          // SPM descriptor in unit
-          /////////////////////////////////////////////////////////
-          // check if the spm access would go onto a way configured as cache, if yes error
-          if (|(desc_q.way_ind & (~spm_lock_i))) begin
-            desc_o.x_resp = axi_pkg::RESP_SLVERR;
-          end
-
-          // only do something if we are not stalled or locked
-          if (!(locked | cnt_stall)) begin
-            // check if we have to go to hit or bypass
-            if (!to_miss) begin
-              hit_valid_o = 1'b1;
-              // transfer
-              if (hit_ready_i) begin
-                busy_d    = 1'b0;
-                load_busy = 1'b1;
-              end
-            end else begin
-              miss_valid_o = 1'b1;
-              // transfer
-              if (miss_ready_i) begin
-                busy_d    = 1'b0;
-                load_busy = 1'b1;
-              end
+        if(desc_q_valid) begin
+          if (desc_q.spm) begin
+            /////////////////////////////////////////////////////////
+            // SPM descriptor in unit
+            /////////////////////////////////////////////////////////
+            // check if the spm access would go onto a way configured as cache, if yes error
+            if (|(desc_q.way_ind & (~spm_lock_q))) begin
+              desc_o.x_resp = axi_pkg::RESP_SLVERR;
             end
-          end
-        end else begin       
-          ////////////////////////////////////////////////////////////////
-          // NORMAL or FLUSH descriptor in unit, made req to tag_store
-          // wait for the response
-          ////////////////////////////////////////////////////////////////
-          if (store_res_valid) begin
-            if (desc_q.flush) begin
-              // We have to send further, update desc_o
-              desc_o.evict     = store_res.evict;
-              desc_o.evict_tag = store_res.evict_tag;
-              // check that the line is not locked!
-              if (!locked) begin
-                miss_valid_o     = 1'b1;
-                // transfer of flush descriptor to miss unit
+
+            // only do something if we are not stalled or locked
+            if (!(locked | cnt_stall)) begin
+              // check if we have to go to hit or bypass
+              if (!to_miss) begin
+                hit_valid_o = 1'b1;
+                // transfer
+                if (hit_ready_i) begin
+                  busy_d    = 1'b0;
+                  load_busy = ~desc_q_waiting_valid;
+                  shift_desc = 1'b1;
+                end
+              end else begin
+                miss_valid_o = 1'b1;
+                // transfer
                 if (miss_ready_i) begin
-                  store_res_ready = 1'b1;
-                  busy_d          = 1'b0;
-                  load_busy       = 1'b1;
+                  busy_d    = 1'b0;
+                  load_busy = ~desc_q_waiting_valid;
+                  shift_desc = 1'b1;
                 end
               end
-            end else begin
-              /////////////////////////////////////////////////////////////
-              // NORMAL lookup - differentiate between hit / miss
-              /////////////////////////////////////////////////////////////
-              // set out descriptor
-              desc_o.way_ind   = store_res.indicator;
-              desc_o.evict     = store_res.evict;
-              desc_o.evict_tag = store_res.evict_tag;
-              desc_o.refill    = store_res.hit ? 1'b0 : 1'b1;
-              // determine if it has to go to the bypass or not if we are not stalled
-              if (!(locked || cnt_stall)) begin
-                hit_valid_o  = ~to_miss &  store_res.hit;
-                miss_valid_o =  to_miss | ~store_res.hit;
-                // check for a transfer, do not update hit_valid or miss_valid from this point on!
-                if ((hit_valid_o && hit_ready_i) || (miss_valid_o && miss_ready_i)) begin
-                  store_res_ready = 1'b1;
-                  // New tag is written with the lookup or flush if it was necessary and the storage
-                  // will go to ready, if it can take a new request.
-                  // Does the module have a new descriptor at its input and we can take it?
-                  if (valid_i) begin
-                    // snoop at the descriptors spm, we do not have to make a lookup if it is spm
-                    if (desc_temp.spm) begin
-                      // load directly, if it is spm
-                      ready_o   = 1'b1;
-                      desc_d    = desc_temp;
-                      load_desc = 1'b1;
-                    end else begin
-                      if (CachePartition) begin
-                        // use the new index and tag to store the tag
-                        store_req = store_req_t'{
-                          mode:      desc_temp.flush ? axi_llc_pkg::Flush : axi_llc_pkg::Lookup,
-                          indicator: desc_temp.flush ? desc_temp.way_ind     : ~flushed_i,
-                          index:     desc_temp.flush ? desc_temp.a_x_addr[IndexBase+:Cfg.IndexLength] : desc_temp.index_partition,
-                          tag:       desc_temp.flush ? tag_t'(0)          : desc_temp.a_x_addr[IndexBase+:Cfg.TagLength],
-                          dirty:     desc_temp.rw,
-                          default:   '0
-                        };
-                      end else begin
-                        // make the request to the tag store,
-                        store_req = store_req_t'{
-                          mode:      desc_temp.flush ? axi_llc_pkg::Flush : axi_llc_pkg::Lookup,
-                          indicator: desc_temp.flush ? desc_temp.way_ind     : ~flushed_i,
-                          index:     desc_temp.a_x_addr[IndexBase+:Cfg.IndexLength],
-                          tag:       desc_temp.flush ? tag_t'(0)          : desc_temp.a_x_addr[TagBase+:Cfg.TagLength],
-                          dirty:     desc_temp.rw,
-                          default:   '0
-                        };
-                      end
-                      store_req_valid = 1'b1;
-                      // transfer
-                      if (store_req_ready) begin
+            end
+          end else begin       
+            ////////////////////////////////////////////////////////////////
+            // NORMAL or FLUSH descriptor in unit, made req to tag_store
+            // wait for the response
+            ////////////////////////////////////////////////////////////////
+            if (store_res_valid) begin
+              if (desc_q.flush) begin
+                // We have to send further, update desc_o
+                desc_o.evict     = store_res.evict;
+                desc_o.evict_tag = store_res.evict_tag;
+                // check that the line is not locked!
+                if (!locked) begin
+                  miss_valid_o     = 1'b1;
+                  // transfer of flush descriptor to miss unit
+                  if (miss_ready_i) begin
+                    store_res_ready = 1'b1;
+                    busy_d          = 1'b0;
+                    load_busy       = ~desc_q_waiting_valid;
+                    shift_desc      = 1'b1;
+                  end
+                end
+              end else begin
+                /////////////////////////////////////////////////////////////
+                // NORMAL lookup - differentiate between hit / miss
+                /////////////////////////////////////////////////////////////
+                // set out descriptor
+                desc_o.way_ind   = store_res.indicator;
+                desc_o.evict     = store_res.evict;
+                desc_o.evict_tag = store_res.evict_tag;
+                desc_o.refill    = store_res.hit ? 1'b0 : 1'b1;
+                // determine if it has to go to the bypass or not if we are not stalled
+                if (!(locked || cnt_stall)) begin
+                  hit_valid_o  = ~to_miss &  store_res.hit;
+                  miss_valid_o =  to_miss | ~store_res.hit;
+                  // check for a transfer, do not update hit_valid or miss_valid from this point on!
+                  if ((hit_valid_o && hit_ready_i) || (miss_valid_o && miss_ready_i)) begin
+                    store_res_ready = 1'b1;
+                    // New tag is written with the lookup or flush if it was necessary and the storage
+                    // will go to ready, if it can take a new request.
+                    // Does the module have a new descriptor at its input and we can take it?
+                    if (valid_i) begin
+                      // snoop at the descriptors spm, we do not have to make a lookup if it is spm
+                      if (desc_temp.spm) begin
+                        // load directly, if it is spm
                         ready_o   = 1'b1;
                         desc_d    = desc_temp;
                         load_desc = 1'b1;
                       end else begin
-                        // go to idle and do nothing
-                        busy_d    = 1'b0;
-                        load_busy = 1'b1;
+                        if (CachePartition) begin
+                          // use the new index and tag to store the tag
+                          store_req = store_req_t'{
+                            mode:      desc_temp.flush ? axi_llc_pkg::Flush : axi_llc_pkg::Lookup,
+                            indicator: desc_temp.flush ? desc_temp.way_ind     : ~flushed_i,
+                            index:     desc_temp.flush ? desc_temp.a_x_addr[IndexBase+:Cfg.IndexLength] : desc_temp.index_partition,
+                            tag:       desc_temp.flush ? tag_t'(0)          : desc_temp.a_x_addr[IndexBase+:Cfg.TagLength],
+                            dirty:     desc_temp.rw,
+                            default:   '0
+                          };
+                        end else begin
+                          // make the request to the tag store,
+                          store_req = store_req_t'{
+                            mode:      desc_temp.flush ? axi_llc_pkg::Flush : axi_llc_pkg::Lookup,
+                            indicator: desc_temp.flush ? desc_temp.way_ind     : ~flushed_i,
+                            index:     desc_temp.a_x_addr[IndexBase+:Cfg.IndexLength],
+                            tag:       desc_temp.flush ? tag_t'(0)          : desc_temp.a_x_addr[TagBase+:Cfg.TagLength],
+                            dirty:     desc_temp.rw,
+                            default:   '0
+                          };
+                        end
+                        store_req_valid = 1'b1;
+                        // transfer
+                        if (store_req_ready) begin
+                          ready_o   = 1'b1;
+                          desc_d    = desc_temp;
+                          load_desc = 1'b1;
+                        end else begin
+                          // go to idle and do nothing
+                          busy_d    = 1'b0;
+                          load_busy = ~desc_q_waiting_valid;
+                          shift_desc = 1'b1;
+                        end
                       end
+                    end else begin
+                      // Go to IDLE otherwise
+                      busy_d    = 1'b0;
+                      load_busy = ~desc_q_waiting_valid;
+                      shift_desc = 1'b1;
                     end
-                  end else begin
-                    // Go to IDLE otherwise
-                    busy_d    = 1'b0;
-                    load_busy = 1'b1;
                   end
                 end
               end
             end
+          end
+        end else begin
+          // Does the module have a new descriptor at its input and we can take it?
+          if (valid_i) begin
+            // snoop at the descriptors spm, we do not have to make a lookup if it is spm
+            if (desc_temp.spm) begin
+              // load directly, if it is spm
+              ready_o   = 1'b1;
+              desc_d    = desc_temp;
+              load_desc = 1'b1;
+            end else begin
+              if (CachePartition) begin
+                // use the new index and tag to store the tag
+                store_req = store_req_t'{
+                  mode:      desc_temp.flush ? axi_llc_pkg::Flush : axi_llc_pkg::Lookup,
+                  indicator: desc_temp.flush ? desc_temp.way_ind     : ~flushed_i,
+                  index:     desc_temp.flush ? desc_temp.a_x_addr[IndexBase+:Cfg.IndexLength] : desc_temp.index_partition,
+                  tag:       desc_temp.flush ? tag_t'(0)          : desc_temp.a_x_addr[IndexBase+:Cfg.TagLength],
+                  dirty:     desc_temp.rw,
+                  default:   '0
+                };
+              end else begin
+                // make the request to the tag store,
+                store_req = store_req_t'{
+                  mode:      desc_temp.flush ? axi_llc_pkg::Flush : axi_llc_pkg::Lookup,
+                  indicator: desc_temp.flush ? desc_temp.way_ind     : ~flushed_i,
+                  index:     desc_temp.a_x_addr[IndexBase+:Cfg.IndexLength],
+                  tag:       desc_temp.flush ? tag_t'(0)          : desc_temp.a_x_addr[TagBase+:Cfg.TagLength],
+                  dirty:     desc_temp.rw,
+                  default:   '0
+                };
+              end
+              store_req_valid = 1'b1;
+              // transfer
+              if (store_req_ready) begin
+                ready_o   = 1'b1;
+                desc_d    = desc_temp;
+                load_desc = 1'b1;
+              end else begin
+                // go to idle and do nothing
+                busy_d    = 1'b0;
+                load_busy = ~desc_q_waiting_valid;
+                shift_desc = desc_q_waiting_valid;
+              end
+            end
+          end else begin
+            // Go to IDLE otherwise
+            busy_d    = 1'b0;
+            load_busy = ~desc_q_waiting_valid;
+            shift_desc = desc_q_waiting_valid;
           end
         end
 
@@ -373,6 +462,7 @@ module axi_llc_hit_miss #(
 
   axi_llc_tag_store #(
     .Cfg         ( Cfg         ),
+    .EnableEcc   ( EnableEcc   ),
     .way_ind_t   ( way_ind_t   ),
     .store_req_t ( store_req_t ),
     .store_res_t ( store_res_t ),
@@ -381,7 +471,7 @@ module axi_llc_hit_miss #(
     .clk_i,
     .rst_ni,
     .test_i,
-    .spm_lock_i   ( spm_lock_i      ),
+    .spm_lock_i   ( spm_lock_q      ),
     .flushed_i    ( flushed_i       ),
     .req_i        ( store_req       ),
     .valid_i      ( store_req_valid ),
@@ -390,7 +480,24 @@ module axi_llc_hit_miss #(
     .valid_o      ( store_res_valid ),
     .ready_i      ( store_res_ready ),
     .bist_res_o   ( bist_res_o      ),
-    .bist_valid_o ( bist_valid_o    )
+    .bist_valid_o ( bist_valid_o    ),
+
+  // if the sram are put outside
+    .ram_req_o    ( ram_req_o       ),
+    .ram_we_o     ( ram_we_o        ),
+    .ram_addr_o   ( ram_addr_o      ),
+    .ram_wdata_o  ( ram_wdata_o     ),
+    .ram_be_o     ( ram_be_o        ),
+    .ram_gnt_i    ( ram_gnt_i       ),
+    .ram_data_i   ( ram_data_i      ),
+    .ram_data_multi_err_i ( ram_data_multi_err_i ),
+
+    // ecc signals
+    .scrub_trigger_i        ( scrub_trigger_i       ),
+    .scrubber_fix_o         ( scrubber_fix_o        ),
+    .scrub_uncorrectable_o  ( scrub_uncorrectable_o ),
+    .single_error_o         ( single_error_o        ),
+    .multi_error_o          ( multi_error_o         ) 
   );
 
   // inputs to the miss counter unit
@@ -456,7 +563,38 @@ endgenerate
   // registers
   `FFLARN(busy_q, busy_d, load_busy, '0, clk_i, rst_ni)
   `FFLARN(init_q, init_d, load_init, '0, clk_i, rst_ni)
-  `FFLARN(desc_q, desc_d, load_desc, '0, clk_i, rst_ni)
+  // `FFLARN(desc_q, desc_d, load_desc, '0, clk_i, rst_ni)
+  
+  shift_reg_gated_with_enable #(
+      .dtype ( desc_t                       ),
+      .Depth ( axi_llc_pkg::TagMacroLatency )
+  ) i_shift_reg_gated_with_enable_desc_q (
+    .clk_i,
+    .rst_ni,
+
+    .valid_i    (load_desc),
+    .data_i     (desc_d),
+    .shift_en_i (load_desc | shift_desc),
+    .valid_o    (desc_q_valid),
+    .data_o     (desc_q),
+    .waiting_valid_o (desc_q_waiting_valid)
+  );
+
+  shift_reg_gated_with_enable #(
+      .dtype ( way_ind_t                    ),
+      .Depth ( axi_llc_pkg::TagMacroLatency )
+  ) i_shift_reg_gated_with_enable_spm_lock_q (
+    .clk_i,
+    .rst_ni,
+
+    .valid_i    (load_desc),
+    .data_i     (spm_lock_i),
+    .shift_en_i (load_desc | shift_desc),
+    .valid_o    ( ),
+    .data_o     (spm_lock_q),
+    .waiting_valid_o ( )
+  );
+
 
   // pragma translate_off
   `ifndef VERILATOR

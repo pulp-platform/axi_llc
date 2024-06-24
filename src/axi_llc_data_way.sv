@@ -14,6 +14,10 @@
 module axi_llc_data_way #(
   /// Static AXI LLC configuration
   parameter axi_llc_pkg::llc_cfg_t Cfg = axi_llc_pkg::llc_cfg_t'{default: '0},
+  /// Tag & data sram ECC enabling parameter, bool type
+  parameter bit  EnableEcc = 0,
+  /// The number of SRAM banks
+  parameter int SramBankNum = (Cfg.DataEccGranularity != 0) ? Cfg.BlockSize/Cfg.DataEccGranularity : 1,
   /// The input struct has to be defined as follows (is done in `axi_llc_top`):
   /// typedef struct packed {
   ///   axi_axi_llc_pkg::cache_unit_e     cache_unit;   // which unit does the access
@@ -51,7 +55,23 @@ module axi_llc_data_way #(
   /// Output is valid.
   output logic out_valid_o,
   /// Downstream is ready for output.
-  input logic out_ready_i
+  input logic out_ready_i,
+
+  output logic                                               ram_req_o,
+  output logic                                               ram_we_o,
+  output logic [Cfg.IndexLength + Cfg.BlockOffsetLength-1:0] ram_addr_o,
+  output logic [Cfg.BlockSize-1:0]                           ram_wdata_o,
+  output logic [(Cfg.BlockSize + 8 - 32'd1) / 8-1:0]         ram_be_o,
+  input  logic                                               ram_gnt_i,
+  input  logic [Cfg.BlockSize-1:0]                           ram_data_i,
+  input  logic                                               ram_data_multi_err_i,
+
+  // ecc signals
+  input  logic [SramBankNum - 1:0]  scrub_trigger_i,
+  output logic [SramBankNum - 1:0]  scrubber_fix_o,
+  output logic [SramBankNum - 1:0]  scrub_uncorrectable_o,
+  output logic [SramBankNum - 1:0]  single_error_o,
+  output logic [SramBankNum - 1:0]  multi_error_o  
 );
 
   // The number of lines of each data SRAM macro
@@ -60,6 +80,7 @@ module axi_llc_data_way #(
   // SRAM control signals
   logic [SRamAddrWidth-1:0] addr;    // true macro address
   logic                     ram_req; // request to the macro
+  logic                     ram_gnt; // ready from the macro
 
   // flip-flops to know when the output data is valid on a read request
   logic                     outp_valid_d, outp_valid_q;
@@ -91,7 +112,7 @@ module axi_llc_data_way #(
         // we update `outp_valid_d` anyway
         load_valid = 1'b1;
         // what value gets written depends on if there is another sram request
-        if (inp_valid_i) begin
+        if (inp_valid_i & ram_gnt) begin
           // we can handle the new input
           inp_ready_o  = 1'b1;
           cache_unit_d = inp_i.cache_unit;
@@ -104,8 +125,8 @@ module axi_llc_data_way #(
       end
     end else begin
       // we are able to handle a request to the sram
-      inp_ready_o = 1'b1;
-      if (inp_valid_i) begin
+      inp_ready_o = ram_gnt;
+      if (inp_valid_i & ram_gnt) begin
         // load the registers and request to the sram
         cache_unit_d = inp_i.cache_unit;
         load_unit    = 1'b1;
@@ -117,24 +138,15 @@ module axi_llc_data_way #(
   end
 
   // For functional test
-  axi_llc_sram_data #(
-    .NumWords   ( Cfg.NumLines * Cfg.NumBlocks ),
-    .DataWidth  ( Cfg.BlockSize                ),
-    .ByteWidth  ( 32'd8                        ),
-    .NumPorts   ( 32'd1                        ),
-    .Latency    ( 32'd1                        ),
-    .SimInit    ( "zeros"                      ),
-    .PrintSimCfg( PrintSramCfg                 )
-  ) i_data_sram (
-    .clk_i,
-    .rst_ni,
-    .req_i   ( ram_req    ),
-    .we_i    ( inp_i.we   ),
-    .addr_i  ( addr       ),
-    .wdata_i ( inp_i.data ),
-    .be_i    ( inp_i.strb ),
-    .rdata_o ( out_o.data )
-  );
+  assign ram_req_o    = ram_req;
+  assign ram_we_o     = inp_i.we;
+  assign ram_addr_o   = addr;
+  assign ram_wdata_o  = inp_i.data;
+  assign ram_be_o     = inp_i.strb;
+  assign ram_gnt      = ram_gnt_i;
+  assign out_o.data   = ram_data_i;
+  if (EnableEcc) assign out_o.multi_error = ram_data_multi_err_i;
+  else assign out_o.multi_error = '0;
 
   // // For synthesis
   // axi_llc_sram_data_fpga #(

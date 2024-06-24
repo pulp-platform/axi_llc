@@ -46,6 +46,10 @@ package axi_llc_pkg;
     int unsigned ByteOffsetLength;
     /// SPM address region length, in bytes.
     int unsigned SPMLength;
+    /// Data SRAM ECC granularity
+    int unsigned DataEccGranularity;
+    /// Tag SRAM ECC granularity
+    int unsigned TagEccGranularity;
   } llc_cfg_t;
 
   /// Number of bytes transfered in an Ax transfer. Is used in `evens_t`. There they correspond to
@@ -70,6 +74,64 @@ package axi_llc_pkg;
       default: '0
     };
   endfunction : event_num_bytes
+
+  /// The reporter module of the ECC event
+  typedef enum logic [2:0] {
+    SCRUBBER, 
+    HIT_MISS_UNIT, 
+    EVICT_UNIT, 
+    READ_UNIT, 
+    WRITE_UNIT
+  } ecc_multierror_rpt_e;
+
+  /// The source module of the ECC event
+  typedef enum logic [1:0] {
+    TAG_SRAM,
+    DATA_SRAM,
+    TAG_DATA_SRAM
+  } ecc_multierror_src_e;
+
+  /// The data state of the ECC event
+  typedef enum logic [1:0] {
+    DIRTY,
+    CLEAN,
+    UNKNOWN
+  } ecc_multierror_state_e;
+
+  /// ECC info report to the system bus
+  typedef struct packed {
+    ecc_multierror_rpt_e    reporter;
+    ecc_multierror_src_e    source;
+    ecc_multierror_state_e  data_state;
+
+    logic [63:0] data_line_addr;
+    // logic [5:0]  offset;
+    logic [5:0]  way;
+
+    logic        active;
+  } event_ecc_multierror_info_t;
+
+  // /// Compose the ECC multierror info
+  // function automatic event_ecc_multierror_info_t event_ecc_multierror_info (
+  //     ecc_multierror_rpt_e rpt, ecc_multierror_src_e src, ecc_multierror_state_e data_state,
+  //     logic [63:0] data_line_addr, logic [5:0]  offset, logic [5:0]  way,
+  //     logic valid, logic ready);
+  //   event_ecc_multierror_info = event_ecc_multierror_info_t'{
+  //     reporter  : rpt,
+  //     source    : src,
+  //     data_state: data_state,
+
+  //     data_line_addr : data_line_addr,
+  //     offset    : offset,
+  //     way       : way,
+
+  //     active    : valid & ready,
+
+  //     default: '0
+  //   };
+  // endfunction : event_ecc_multierror_info
+
+
 
   /// The signals bundled here indicate certain events happening in `axi_llc`.
   /// This is an output on `axi_llc_top` and can be used for example for performance counters.
@@ -165,6 +227,8 @@ package axi_llc_pkg;
     logic w_chan_unit_req;
     /// The `RChanUnit` transfers a request (successful handshake) to the data storage macros.
     logic r_chan_unit_req;
+    /// Multiple ECC error detected.
+    event_ecc_multierror_info_t ecc_multierror_info;
   } events_t;
 
   /// Maximum concurrent AXI transactions on both ports
@@ -239,11 +303,11 @@ package axi_llc_pkg;
   /// path in the design comes out of the tag storage macros.
   /// `0`: no spill register
   /// `1`: add spill register
-  parameter bit SpillTagStore             = 1'b1;
+  parameter bit SpillTagStore             = 1'b0;
 
   /// Read latency of the memory macros responsible for saving the tags.
   /// This value has to be >= 32'd1.
-  parameter int unsigned TagMacroLatency  = 32'd1;
+  parameter int unsigned TagMacroLatency  = 32'd2;
 
   /// Read latency of the memory macros responsible for saving the data.
   /// This value has to be == 32'd1.

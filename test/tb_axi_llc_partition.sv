@@ -24,6 +24,8 @@ module tb_axi_llc #(
   parameter int unsigned TbNumLines         = 32'd256, // must be 256 currently
   /// Number of Blocks per cache line
   parameter int unsigned TbNumBlocks        = 32'd8,
+  /// Tag & data sram ECC enabling parameter, bool type
+  parameter bit          TbEnableEcc        = 1,
   /// Cache partitioning enabling parameter
   parameter logic        TbCachePartition   = 32'd1,
   /// Max. number of partitions supported in LLC
@@ -692,6 +694,7 @@ module tb_axi_llc #(
     .SetAssociativity ( TbSetAssociativity ),
     .NumLines         ( TbNumLines         ),
     .NumBlocks        ( TbNumBlocks        ),
+    .EnableEcc        ( TbEnableEcc        ),
     .CachePartition   ( TbCachePartition   ),
     .MaxPartition     ( TbMaxPartition     ),
     .RemapHash        ( RemapHash          ),
