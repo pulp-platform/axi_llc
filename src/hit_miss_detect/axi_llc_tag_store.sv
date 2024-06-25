@@ -565,6 +565,7 @@ module axi_llc_tag_store #(
             hit:       (|hit) ? 1'b1      : 1'b0,
             evict:     (|hit) ? 1'b0      : evict_flag,
             evict_tag: (|hit) ? tag_t'(0) : stored_tag[bin_ind].tag,
+            hit_line_dirty: (|hit) ? stored_tag[bin_ind].dit : '0,
             default:   '0
           };
         end
@@ -614,7 +615,7 @@ module axi_llc_tag_store #(
 
 
   logic  ram_rvalid_fifo_push, ram_rvalid_fifo_pop;
-  assign ram_rvalid_cnt_en    = (req_q_q.req_q.mode != axi_llc_pkg::Bist) &
+  assign ram_rvalid_cnt_en    = (req_q.mode != axi_llc_pkg::Bist) &
                                 ~(ram_rvalid_fifo_push & ram_rvalid_fifo_pop) &
                                 (ram_rvalid_fifo_push | ram_rvalid_fifo_pop);
   assign ram_rvalid_cnt_down  = ram_rvalid_fifo_pop;

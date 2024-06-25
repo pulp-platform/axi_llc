@@ -42,6 +42,13 @@ module axi_llc_read_unit #(
   input logic desc_valid_i,
   /// Module is ready to take in a new descriptor.
   output logic desc_ready_o,
+
+  /// descriptor from the read_unit to the evict unit (hit valid and clean data with uncorrectable, 
+  /// need to treat it as a miss and refetch it from memory)
+  output desc_t replay_desc_o,
+  output logic  replay_desc_valid_o,
+  input  logic  replay_desc_ready_i,
+  
   /// Slave port R channel beat data.
   output r_chan_t r_chan_slv_o,
   /// R beat is valid.
@@ -75,14 +82,25 @@ module axi_llc_read_unit #(
   typedef logic [AxiCfg.DataWidthFull-1:0]  data_t;
   // this struct saves the r channel meta information before it goes to the R FIFO
   typedef struct packed {
-    id_t            id;
-    axi_pkg::resp_t resp;
-    logic           last;
+    // id_t            id; // included by desc
+    // axi_pkg::resp_t resp; // included by desc
+    logic           burst_last;
+    // delay the line unlock signal until we get the cache line data ,so we can judge if it has uncorrectable error
+    lock_t          unlock;
+    logic           unit_lock_last;
+    // recored the line dirty info, for potential cache line data uncorrectable error handling
+    // logic           dirty; // included by desc
+    // the complete descriptor for replay
+    desc_t          desc;
   } r_meta_t;
 
   // flipflops
   desc_t          desc_d,    desc_q;  // flipflop to hold descriptor
   logic           load_desc;
+
+  logic           way_out_i_clean_uncorrectable_error;
+  logic           replay_desc_hsk;
+
   logic           busy_d,    busy_q;  // status if descriptor occupies unit
   logic           load_busy;
   // R FIFO control signals
@@ -111,13 +129,9 @@ module axi_llc_read_unit #(
     default: '0
   }; // other fields not needed, `we` is `1'b0.
 
-  // unlock assignment
-  assign r_unlock_o = '{
-    // index:   desc_q.index_partition,
-    index:   CachePartition ? desc_q.index_partition : 
-                              desc_q.a_x_addr[(Cfg.ByteOffsetLength + Cfg.BlockOffsetLength)+:Cfg.IndexLength],
-    way_ind: desc_q.way_ind
-  };
+  // unlock signal
+  assign r_unlock_req_o = r_fifo_push & meta_fifo_outp.unit_lock_last; // unlock the line, line is free when the bloom filter is updated in the next cycle
+  assign r_unlock_o     = meta_fifo_outp.unlock;
 
   // control
   always_comb begin
@@ -129,34 +143,39 @@ module axi_llc_read_unit #(
     // handshaking signals
     way_inp_valid_o = 1'b0;
     desc_ready_o    = 1'b0;
-    // unlock signal
-    r_unlock_req_o = 1'b0;
 
     // control
     if (busy_q) begin
       // we are busy and have a descriptor inside (listen to meta FIFO)
-      if (!meta_fifo_full && r_unlock_gnt_i) begin
-        // send requests towards the macros
-        way_inp_valid_o = 1'b1;
-        if (way_inp_ready_i) begin
-          //transaction
-          if (desc_q.a_x_len == '0) begin
-            // all read requests where made, go to IDLE and load potential new descriptor
-            busy_d    = 1'b0;
-            load_busy = 1'b1;
-            // unlock the line, line is free when the bloom filter is updated in the next cycle
-            r_unlock_req_o = 1'b1;
-            load_new_desc();
-          end else begin
-            // more read requests have to be made, update the address and update the length
-            if (desc_q.a_x_burst != axi_pkg::BURST_FIXED) begin
-              // update the address
-              desc_d.a_x_addr = axi_pkg::aligned_addr(desc_q.a_x_addr +
-                                    axi_pkg::num_bytes(desc_q.a_x_size), desc_q.a_x_size);
+      if(!(replay_desc_valid_o)) begin
+        if (!meta_fifo_full) begin
+          // send requests towards the macros
+          way_inp_valid_o = 1'b1;
+          if (way_inp_ready_i) begin
+            //transaction
+            if (desc_q.a_x_len == '0) begin
+              // all read requests where made, go to IDLE and load potential new descriptor
+              busy_d    = 1'b0;
+              load_busy = 1'b1;
+              load_new_desc();
+            end else begin
+              // more read requests have to be made, update the address and update the length
+              if (desc_q.a_x_burst != axi_pkg::BURST_FIXED) begin
+                // update the address
+                desc_d.a_x_addr = axi_pkg::aligned_addr(desc_q.a_x_addr +
+                                      axi_pkg::num_bytes(desc_q.a_x_size), desc_q.a_x_size);
+              end
+              desc_d.a_x_len  = desc_q.a_x_len - axi_pkg::len_t'(1);
+              load_desc       = 1'b1;
             end
-            desc_d.a_x_len  = desc_q.a_x_len - axi_pkg::len_t'(1);
-            load_desc       = 1'b1;
           end
+        end
+      end else begin
+        if(replay_desc_hsk) begin
+          // there is a clean uncorrectable error for the last read data ram, stop read the following data, and replay the remain burst as a miss
+          busy_d    = 1'b0;
+          load_busy = 1'b1;
+          load_new_desc();          
         end
       end
     end else begin
@@ -179,17 +198,40 @@ module axi_llc_read_unit #(
 
   // Metadata FIFO
   assign meta_fifo_inp = '{
-    id:   desc_q.a_x_id,                           // propagate ID
-    resp: desc_q.x_resp,                           // propagate response
-    last: (desc_q.x_last & (desc_q.a_x_len == '0)) // set the last flag only on the last request
+    // id:   desc_q.a_x_id,                            // propagate ID
+    // resp: desc_q.x_resp,                            // propagate response
+    burst_last: (desc_q.x_last & (desc_q.a_x_len == '0)), // set the last flag only on the last request
+
+    unlock: lock_t'{
+      // index:   desc_q.index_partition,
+      index:   CachePartition ? desc_q.index_partition : 
+                                desc_q.a_x_addr[(Cfg.ByteOffsetLength + Cfg.BlockOffsetLength)+:Cfg.IndexLength],
+      way_ind: desc_q.way_ind
+    },
+    unit_lock_last: (desc_q.a_x_len == '0),
+
+    // dirty: desc_q.hit_line_dirty,
+    desc : desc_q
   };
   // push pop control of the metadata FIFO
   assign meta_fifo_push = way_inp_valid_o & way_inp_ready_i; // push when request to SRAM is made
-  assign meta_fifo_pop  = r_fifo_push;                       // pop when R beat goes to output FIFO
+  assign meta_fifo_pop  = r_fifo_push | replay_desc_hsk;     // pop when R beat goes to output FIFO, or the desc is replayed
 
   // push data into the R FIFO
-  assign r_fifo_push     =  way_out_valid_i & way_out_ready_o;
-  assign way_out_ready_o = ~r_fifo_full     & ~meta_fifo_empty;
+  assign r_fifo_push     =  way_out_valid_i & way_out_ready_o & // original handshake
+                            ~way_out_i_clean_uncorrectable_error & // the resp data shouldn't have uncorrectable error
+                            r_unlock_gnt_i; // we also postpone unlock here, for the ecc results
+  assign way_out_ready_o =  way_out_i_clean_uncorrectable_error ? replay_desc_ready_i & ~meta_fifo_empty :
+                            ~r_fifo_full & ~meta_fifo_empty & r_unlock_gnt_i;
+
+  // if we have a hit clean uncorrectable error here, we need to replay it as a miss
+  assign way_out_i_clean_uncorrectable_error = way_out_valid_i &
+                                               way_out_i.multi_error & 
+                                               ~meta_fifo_outp.desc.hit_line_dirty &
+                                               ~meta_fifo_outp.desc.spm;
+  assign replay_desc_valid_o = way_out_i_clean_uncorrectable_error & ~meta_fifo_empty;
+  assign replay_desc_hsk     = replay_desc_valid_o & replay_desc_ready_i;
+  assign replay_desc_o       = meta_fifo_outp.desc;
 
   // The FIFO is directly connected to the R channel, this means its handshaking is the pop control
   assign r_chan_valid_o  = ~r_fifo_empty;
@@ -197,12 +239,12 @@ module axi_llc_read_unit #(
 
   // R FIFO data assignment
   assign r_fifo_inp = r_chan_t'{
-    id:   meta_fifo_outp.id,
+    id:   meta_fifo_outp.desc.a_x_id,
     // Add data from the SRAM only if the response is ok.
-    data: (meta_fifo_outp.resp inside {axi_pkg::RESP_OKAY}) ?
+    data: (meta_fifo_outp.desc.x_resp inside {axi_pkg::RESP_OKAY}) ?
               way_out_i.data : data_t'(axi_llc_pkg::AxiLlcVersion),
-    resp: meta_fifo_outp.resp,
-    last: meta_fifo_outp.last,
+    resp: meta_fifo_outp.desc.x_resp,
+    last: meta_fifo_outp.burst_last,
     default: '0
   };
 

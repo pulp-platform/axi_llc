@@ -156,6 +156,9 @@ module axi_llc_hit_miss #(
     logic     evict;
     /// The tag which is evicted.
     tag_t     evict_tag;
+    /// For ecc uncorrectable error handling: if it is a hit, pass the line dirty info to read unit,
+    /// in case there is a uncorrectable error in the hit clean data line, we can refetch it from the next level memory
+    logic     hit_line_dirty;
   } store_res_t;
 
   // Signals to/from the tag store
@@ -200,6 +203,7 @@ module axi_llc_hit_miss #(
     if (CachePartition) begin
       desc_o.index_partition = desc_q.flush ? desc_q.a_x_addr[IndexBase+:Cfg.IndexLength] : desc_q.index_partition;
     end
+    desc_o.hit_line_dirty = 1'b0;
     load_desc = 1'b0;
     shift_desc = 1'b0;
     // unit handshaking
@@ -254,6 +258,7 @@ module axi_llc_hit_miss #(
             // wait for the response
             ////////////////////////////////////////////////////////////////
             if (store_res_valid) begin
+              desc_o.hit_line_dirty = store_res.hit_line_dirty;
               if (desc_q.flush) begin
                 // We have to send further, update desc_o
                 desc_o.evict     = store_res.evict;

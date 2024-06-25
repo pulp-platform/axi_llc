@@ -339,6 +339,10 @@ module axi_llc_top #(
                                                       // only used in both-side index mapping hash function
     logic [Cfg.IndexLength-1:0]      max_tcdl_offset; // the smallest (2^n-1) number that is larger than pat_size,
                                                       // e.g. If pat_size = 85, max_tcdl_offset = 127.
+    logic                            hit_line_dirty;  // For ecc uncorrectable error handling: if ti is a hit,
+                                                      // pass the line dirty info to read unit, in case there is a
+                                                      // uncorrectable error in the hit clean data line, we can
+                                                      // refetch it from the next level memory
   } llc_desc_t;
 
   // definition of the structs that are between the units and the ways
@@ -425,6 +429,10 @@ module axi_llc_top #(
   // descriptor from the merge_unit to the read_unit
   llc_desc_t            read_desc;
   logic                 read_desc_valid,   read_desc_ready;
+
+  // descriptor from the read_unit to the evict unit (hit valid and clean data with uncorrectable, need to treat it as a miss and refetch it from memory)
+  llc_desc_t            read_replay_desc;
+  logic                 read_replay_desc_valid,   read_replay_desc_ready;
 
   // signals from the unit to the data_ways
   way_inp_t [3:0]       to_way;
@@ -976,6 +984,9 @@ endgenerate
     .desc_i          ( read_desc                            ),
     .desc_valid_i    ( read_desc_valid                      ),
     .desc_ready_o    ( read_desc_ready                      ),
+    .replay_desc_o      ( /*TODO: reinject the desc to evict unit */  ),
+    .replay_desc_valid_o( /*TODO: reinject the desc to evict unit */  ),
+    .replay_desc_ready_i( 1'b1 /*TODO: reinject the desc to evict unit */),
     .r_chan_slv_o    ( to_llc_resp.r                        ),
     .r_chan_valid_o  ( to_llc_resp.r_valid                  ),
     .r_chan_ready_i  ( to_llc_req.r_ready                   ),
