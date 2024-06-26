@@ -343,6 +343,8 @@ module axi_llc_top #(
                                                       // pass the line dirty info to read unit, in case there is a
                                                       // uncorrectable error in the hit clean data line, we can
                                                       // refetch it from the next level memory
+    logic                            replay;          // if it is a hit but clean data ecc uncorrectable refetch miss, 
+                                                      // don't need to count down the miss counter at merge_unit
   } llc_desc_t;
 
   // definition of the structs that are between the units and the ways

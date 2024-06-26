@@ -235,6 +235,8 @@ module axi_llc_read_unit #(
     replay_desc_o        = meta_fifo_outp.desc;
     replay_desc_o.refill = 1'b1; // let the refetched data overwrite the error line
     replay_desc_o.evict  = 1'b0; // the old error line is clean, no need to evict
+    replay_desc_o.replay = 1'b1; // if it is a hit but clean data ecc uncorrectable refetch miss, 
+                                 // don't need to count down the miss counter at merge_unit
   end
 
   // The FIFO is directly connected to the R channel, this means its handshaking is the pop control
