@@ -231,7 +231,11 @@ module axi_llc_read_unit #(
                                                ~meta_fifo_outp.desc.spm;
   assign replay_desc_valid_o = way_out_i_clean_uncorrectable_error & ~meta_fifo_empty;
   assign replay_desc_hsk     = replay_desc_valid_o & replay_desc_ready_i;
-  assign replay_desc_o       = meta_fifo_outp.desc;
+  always_comb begin
+    replay_desc_o        = meta_fifo_outp.desc;
+    replay_desc_o.refill = 1'b1; // let the refetched data overwrite the error line
+    replay_desc_o.evict  = 1'b0; // the old error line is clean, no need to evict
+  end
 
   // The FIFO is directly connected to the R channel, this means its handshaking is the pop control
   assign r_chan_valid_o  = ~r_fifo_empty;

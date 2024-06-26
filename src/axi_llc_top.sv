@@ -434,6 +434,10 @@ module axi_llc_top #(
   llc_desc_t            read_replay_desc;
   logic                 read_replay_desc_valid,   read_replay_desc_ready;
 
+  // descriptor from the arbiter to the evict_unit
+  llc_desc_t            evict_unit_arb_desc;
+  logic                 evict_unit_arb_desc_valid,   evict_unit_arb_desc_ready;
+
   // signals from the unit to the data_ways
   way_inp_t [3:0]       to_way;
   logic     [3:0]       to_way_valid;
@@ -843,6 +847,24 @@ endgenerate
     .multi_error_o          ( /*tag_sram_multi_error        */ )
   );
 
+
+  stream_arbiter #(
+    .DATA_T  ( llc_desc_t ),
+    .N_INP   ( 2          ),
+    .ARBITER ( "prio"     )
+  ) i_to_evict_unit_stream_arbiter (
+    .clk_i             ( clk_i                                ),
+    .rst_ni            ( rst_ni                               ),
+
+    .inp_data_i        ( {desc, read_replay_desc}             ),
+    .inp_valid_i       ( {miss_valid, read_replay_desc_valid} ),
+    .inp_ready_o       ( {miss_ready, read_replay_desc_ready} ),
+
+    .oup_data_o        ( evict_unit_arb_desc                  ),
+    .oup_valid_o       ( evict_unit_arb_desc_valid            ),
+    .oup_ready_i       ( evict_unit_arb_desc_ready            )
+  );
+
   axi_llc_evict_unit #(
     .Cfg            ( Cfg            ),
     .AxiCfg         ( AxiCfg         ),
@@ -857,9 +879,9 @@ endgenerate
     .clk_i             ( clk_i                                ),
     .rst_ni            ( rst_ni                               ),
     .test_i            ( test_i                               ),
-    .desc_i            ( desc                                 ),
-    .desc_valid_i      ( miss_valid                           ),
-    .desc_ready_o      ( miss_ready                           ),
+    .desc_i            ( evict_unit_arb_desc                  ),
+    .desc_valid_i      ( evict_unit_arb_desc_valid            ),
+    .desc_ready_o      ( evict_unit_arb_desc_ready            ),
     .desc_o            ( evict_desc                           ),
     .desc_valid_o      ( evict_desc_valid                     ),
     .desc_ready_i      ( evict_desc_ready                     ),
@@ -978,27 +1000,27 @@ endgenerate
     .lock_t         ( lock_t         ),
     .r_chan_t       ( slv_r_chan_t   )
   ) i_read_unit (
-    .clk_i           ( clk_i                                ),
-    .rst_ni          ( rst_ni                               ),
-    .test_i          ( test_i                               ),
-    .desc_i          ( read_desc                            ),
-    .desc_valid_i    ( read_desc_valid                      ),
-    .desc_ready_o    ( read_desc_ready                      ),
-    .replay_desc_o      ( /*TODO: reinject the desc to evict unit */  ),
-    .replay_desc_valid_o( /*TODO: reinject the desc to evict unit */  ),
-    .replay_desc_ready_i( 1'b1 /*TODO: reinject the desc to evict unit */),
-    .r_chan_slv_o    ( to_llc_resp.r                        ),
-    .r_chan_valid_o  ( to_llc_resp.r_valid                  ),
-    .r_chan_ready_i  ( to_llc_req.r_ready                   ),
-    .way_inp_o       ( to_way[axi_llc_pkg::RChanUnit]       ),
-    .way_inp_valid_o ( to_way_valid[axi_llc_pkg::RChanUnit] ),
-    .way_inp_ready_i ( to_way_ready[axi_llc_pkg::RChanUnit] ),
-    .way_out_i       ( read_way_out                         ),
-    .way_out_valid_i ( read_way_out_valid                   ),
-    .way_out_ready_o ( read_way_out_ready                   ),
-    .r_unlock_o      ( r_unlock                             ),
-    .r_unlock_req_o  ( r_unlock_req                         ),
-    .r_unlock_gnt_i  ( r_unlock_gnt                         )
+    .clk_i                ( clk_i                                ),
+    .rst_ni               ( rst_ni                               ),
+    .test_i               ( test_i                               ),
+    .desc_i               ( read_desc                            ),
+    .desc_valid_i         ( read_desc_valid                      ),
+    .desc_ready_o         ( read_desc_ready                      ),
+    .replay_desc_o        ( read_replay_desc                     ),
+    .replay_desc_valid_o  ( read_replay_desc_valid               ),
+    .replay_desc_ready_i  ( read_replay_desc_ready               ),
+    .r_chan_slv_o         ( to_llc_resp.r                        ),
+    .r_chan_valid_o       ( to_llc_resp.r_valid                  ),
+    .r_chan_ready_i       ( to_llc_req.r_ready                   ),
+    .way_inp_o            ( to_way[axi_llc_pkg::RChanUnit]       ),
+    .way_inp_valid_o      ( to_way_valid[axi_llc_pkg::RChanUnit] ),
+    .way_inp_ready_i      ( to_way_ready[axi_llc_pkg::RChanUnit] ),
+    .way_out_i            ( read_way_out                         ),
+    .way_out_valid_i      ( read_way_out_valid                   ),
+    .way_out_ready_o      ( read_way_out_ready                   ),
+    .r_unlock_o           ( r_unlock                             ),
+    .r_unlock_req_o       ( r_unlock_req                         ),
+    .r_unlock_gnt_i       ( r_unlock_gnt                         )
   );
 
   // data storage
@@ -1403,12 +1425,12 @@ endgenerate
   // logic [31:0] target_addr_lb, target_addr_ub;
   // assign target_addr_lb = 32'h80007080;
   // assign target_addr_ub = 32'h80007090;
-  // assign slv_req_i_aw_addr_end = slv_req_i.aw.addr + (slv_req_i.aw.len+1) * slv_req_i.aw.size;
-  // assign slv_req_i_ar_addr_end = slv_req_i.ar.addr + (slv_req_i.ar.len+1) * slv_req_i.ar.size;
-  // assign mst_req_o_aw_addr_end = mst_req_o.aw.addr + (mst_req_o.aw.len+1) * mst_req_o.aw.size;
-  // assign slv_req_i_addr_debug_aw = slv_req_i.aw_valid && (slv_req_i.aw.addr < target_addr_ub) && (slv_req_i_aw_addr_end >= target_addr_lb);
-  // assign slv_req_i_addr_debug_ar = slv_req_i.ar_valid && (slv_req_i.ar.addr < target_addr_ub) && (slv_req_i_ar_addr_end >= target_addr_lb);
-  // assign mst_req_o_addr_debug_aw = mst_req_o.aw_valid && (mst_req_o.aw.addr < target_addr_ub) && (mst_req_o_aw_addr_end >= target_addr_lb);
+  // assign slv_req_i_aw_addr_end = slv_req_i.aw.addr + (slv_req_i.aw.len+1) * (1 << slv_req_i.aw.size);
+  // assign slv_req_i_ar_addr_end = slv_req_i.ar.addr + (slv_req_i.ar.len+1) * (1 << slv_req_i.ar.size);
+  // assign mst_req_o_aw_addr_end = mst_req_o.aw.addr + (mst_req_o.aw.len+1) * (1 << mst_req_o.aw.size);
+  // assign slv_req_i_addr_debug_aw = slv_req_i.aw_valid && (slv_req_i.aw.addr <= target_addr_ub) && (slv_req_i_aw_addr_end >= target_addr_lb);
+  // assign slv_req_i_addr_debug_ar = slv_req_i.ar_valid && (slv_req_i.ar.addr <= target_addr_ub) && (slv_req_i_ar_addr_end >= target_addr_lb);
+  // assign mst_req_o_addr_debug_aw = mst_req_o.aw_valid && (mst_req_o.aw.addr <= target_addr_ub) && (mst_req_o_aw_addr_end >= target_addr_lb);
   
 // pragma translate_off
 `ifndef VERILATOR
