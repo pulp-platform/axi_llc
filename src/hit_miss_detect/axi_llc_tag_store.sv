@@ -255,7 +255,7 @@ module axi_llc_tag_store #(
     end
   end
 
-  `FFLARN(req_q, req_i, load_req, store_req_t'{default: '0}, clk_i, rst_ni)
+  `FFLARN(req_q, req_i, load_req, store_req_t'{mode: axi_llc_pkg::Bist, default: '0}, clk_i, rst_ni)
   `FFLARN(busy_q, busy_d, switch_busy, 1'b0, clk_i, rst_ni)
   assign busy_d = ~busy_q;
   `FFLARN(ram_rvalid_q, ram_rvalid_d, lock_rvalid, way_ind_t'(0), clk_i, rst_ni)
