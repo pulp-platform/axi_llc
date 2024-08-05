@@ -14,17 +14,17 @@
 /// During initialisation no descriptors can enter the unit.
 ///
 /// This unit keeps track of which cache lines are currently in use by descriptors
-/// downstream with the help od a bloom filter. If there is a new descriptor, which
-/// will access a cache line currently in use, it wil be stalled untill the line is
+/// downstream with the help of a bloom filter. If there is a new descriptor, which
+/// will access a cache line currently in use, it will be stalled until the line is
 /// unlocked. This is to prevent data corruption.
 ///
-/// There is an array of counter which keep track which IDs of descriptors
+/// There is an array of counters which keep track which IDs of descriptors
 /// are currently in the miss pipeline. All subsequent hits which normally would go
 /// through the bypass will get sent also towards the miss pipeline. However their
 /// eviction and refill fields will not be set. This is to clear the unit from
 /// descriptors, so that new ones from other IDs can use the hit bypass.
 module axi_llc_hit_miss #(
-  /// Stattic LLC configuration struct.
+  /// Static LLC configuration struct.
   parameter axi_llc_pkg::llc_cfg_t     Cfg       = axi_llc_pkg::llc_cfg_t'{default: '0},
   /// AXI parameter configuration
   parameter axi_llc_pkg::llc_axi_cfg_t AxiCfg    = axi_llc_pkg::llc_axi_cfg_t'{default: '0},
