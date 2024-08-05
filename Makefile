@@ -147,29 +147,29 @@ doc: doc/morty/index.html
 graph: doc/morty/llc.png
 
 sources.txt: Bender.yml Bender.lock
-	$(BENDER) script flist -t rtl -t synthesis -t pulp -t cva6 | sed -e $(RELATIVE_PATH_REGEX) > $@
+	$(BENDER) script flist-plus -t rtl -t synthesis -t pulp -t cva6 | sed -e $(RELATIVE_PATH_REGEX) > $@
 
 sources_tb.txt: Bender.yml Bender.lock
-	$(BENDER) script flist -t rtl -t synthesis -t pulp -t simulation -t test -t cva6 | sed -e $(RELATIVE_PATH_REGEX) > $@
+	$(BENDER) script flist-plus -t rtl -t synthesis -t pulp -t simulation -t test -t cva6 | sed -e $(RELATIVE_PATH_REGEX) > $@
 
 sources_llc.txt: Bender.yml Bender.lock
-	$(BENDER) script flist -n -t rtl -t synthesis -t pulp -t cva6 | sed -e $(RELATIVE_PATH_REGEX) > $@
+	$(BENDER) script flist-plus -n -t rtl -t synthesis -t pulp -t cva6 | sed -e $(RELATIVE_PATH_REGEX) > $@
 
 pickle/llc_pickle.sv: sources.txt
 	mkdir -p pickle
-	$(MORTY) --top $(MORTY_TOP) -s _pickle $$(cat sources.txt | sed -e "s/+incdir+/-I /") -o $@
+	$(MORTY) --top $(MORTY_TOP) -s _pickle $$(cat sources.txt | sed -e "s/+incdir+/-I /" | sed -e "s/+define+/-D /") -o $@
 
 pickle/llc_pickle_stripped.sv: sources.txt
 	mkdir -p pickle
-	$(MORTY) --top $(MORTY_TOP) --strip-comments -s _pickle_stripped $$(cat sources.txt | sed -e "s/+incdir+/-I /") -o $@
+	$(MORTY) --top $(MORTY_TOP) --strip-comments -s _pickle_stripped $$(cat sources.txt | sed -e "s/+incdir+/-I /" | sed -e "s/+define+/-D /") -o $@
 
 doc/morty/index.html: sources_llc.txt
 	mkdir -p doc/morty
-	$(MORTY) -i --top $(MORTY_TOP_TB) --doc doc/morty $$(cat sources_llc.txt | sed -e "s/+incdir+/-I /") -o /dev/null
+	$(MORTY) -i --top $(MORTY_TOP_TB) --doc doc/morty $$(cat sources_llc.txt | sed -e "s/+incdir+/-I /" | sed -e "s/+define+/-D /") -o /dev/null
 
 doc/morty/llc.dot: sources_tb.txt
 	mkdir -p doc/morty
-	$(MORTY) -i --top $(MORTY_TOP_TB) $$(cat sources_tb.txt | sed -e "s/+incdir+/-I /") --graph_file $@ -o /dev/null
+	$(MORTY) -i --top $(MORTY_TOP_TB) $$(cat sources_tb.txt | sed -e "s/+incdir+/-I /" | sed -e "s/+define+/-D /") --graph_file $@ -o /dev/null
 
 doc/morty/llc.png: doc/morty/llc.dot
 	dot $^ -Tpng -Granksep=4 -v -Ln25 -o $@
@@ -197,7 +197,7 @@ graph_clean:
 bender:
 ifeq (,$(wildcard ./bender))
 	curl --proto '=https' --tlsv1.2 -sSf https://pulp-platform.github.io/bender/init \
-		| bash -s -- 0.26.1
+		| bash -s -- 0.28.1
 	touch bender
 endif
 
@@ -210,7 +210,7 @@ bender-rm:
 morty:
 ifeq (,$(wildcard ./morty))
 	mkdir -p morty-dl
-	cd morty-dl; wget https://github.com/pulp-platform/morty/releases/download/v0.8.0/morty-centos.7.9.2009-x86_64.tar.gz
+	cd morty-dl; wget https://github.com/pulp-platform/morty/releases/download/v0.9.0/morty-centos.7.9.2009-x86_64.tar.gz
 	cd morty-dl; tar -xvf morty-centos.7.9.2009-x86_64.tar.gz; rm -f morty-centos.7.9.2009-x86_64.tar.gz
 	mv morty-dl/morty .; rm -rf morty-dl
 endif
