@@ -302,25 +302,6 @@ module axi_llc_reg_wrap #(
       .in_select_i ( ~llc_reg_req_en )
     );
 
-
-    // Generated 32-bit RegBus register file
-    axi_llc_reg_top #(
-      .reg_req_t ( reg_req_t  ),
-      .reg_rsp_t ( reg_resp_t )
-    ) i_llc_config_regfile (
-      .clk_i,
-      .rst_ni,
-      .reg_req_i  ( llc_reg_req  [0] ),
-      .reg_rsp_o  ( llc_reg_resp [0] ),
-      
-      // To HW
-      .reg2hw     ( config_reg2hw ), // Write
-      .hw2reg     ( config_hw2reg ), // Read
-
-      // Config
-      .devmode_i  ( 1'b0          )  // If 1, explicit error return for unmapped register access
-    );
-
     // ECC manager signals
     logic [EccSignalWidth-1:0] bank_faults_flat;
     logic [EccSignalWidth-1:0] scrubber_fix_flat;
@@ -360,10 +341,26 @@ module axi_llc_reg_wrap #(
   end else begin: gen_no_ecc_connection
     assign llc_reg_req[0] = conf_req_i;
     assign conf_resp_o = llc_reg_resp[0];
-    assign tag_ecc_info  = '0;
-    assign data_ecc_info = '0;
     assign scrub_trigger = '0;
   end
+
+    // Generated 32-bit RegBus register file
+    axi_llc_reg_top #(
+      .reg_req_t ( reg_req_t  ),
+      .reg_rsp_t ( reg_resp_t )
+    ) i_llc_config_regfile (
+      .clk_i,
+      .rst_ni,
+      .reg_req_i  ( llc_reg_req  [0] ),
+      .reg_rsp_o  ( llc_reg_resp [0] ),
+
+      // To HW
+      .reg2hw     ( config_reg2hw ), // Write
+      .hw2reg     ( config_hw2reg ), // Read
+
+      // Config
+      .devmode_i  ( 1'b0          )  // If 1, explicit error return for unmapped register access
+    );
 
   // Registerfile agnostic axi_llc toplevel - configured for 64-bit internal registers
   axi_llc_top #(
