@@ -174,7 +174,7 @@ module axi_llc_sram #(
         .addr_i  ( addr_i  ),
         .wdata_i ( wdata_i ),
         .be_i    ( be_i    ),
-        .rdata_o ( rdata_o )
+        .rdata_o ( rdata_cut )
       );
 
     shift_reg #(
