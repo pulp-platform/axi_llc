@@ -174,19 +174,18 @@ module axi_llc_sram #(
         .addr_i  ( addr_i  ),
         .wdata_i ( wdata_i ),
         .be_i    ( be_i    ),
-        // .rdata_o ( rdata_o )
-        .rdata_o ( rdata_cmp )
+        .rdata_o ( rdata_o )
       );
 
-    shift_reg #(
-      .dtype(data_t),
-      .Depth(NumOutputCuts)
-    ) i_rdata_cmp_q (
-      .clk_i,
-      .rst_ni,
-      .d_i   (rdata_cmp),
-      .d_o   (rdata_cmp_q)
-    );
+    // shift_reg #(
+    //   .dtype(data_t),
+    //   .Depth(NumOutputCuts)
+    // ) i_rdata_cmp_q (
+    //   .clk_i,
+    //   .rst_ni,
+    //   .d_i   (rdata_cmp),
+    //   .d_o   (rdata_cmp_q)
+    // );
 
 
   // // Assertions
