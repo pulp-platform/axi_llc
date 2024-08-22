@@ -441,7 +441,7 @@ module axi_llc_tag_store #(
 
     assign ram_rdata_en         [i] = ram_rdata_q_valid_set[i] & ~ram_rdata_q_valid_clr[i] & ~ram_rdata_q_valid[i];
     assign ram_rdata_q_valid_en [i] = ram_rdata_q_valid_set[i] | ram_rdata_q_valid_clr [i];
-    assign ram_rdata_q_valid_set[i] = ~ram_rdata_q_valid[i] & ((|ram_rvalid) | (ram_rvalid_q));
+    assign ram_rdata_q_valid_set[i] = ~ram_rdata_q_valid[i] & ((|ram_rvalid) | (ram_rvalid_q)) & ~bist_valid;
     assign ram_rdata_q_valid_clr[i] = (res_valid && res_ready);
     assign ram_rdata_q_valid_nxt[i] = ram_rdata_q_valid_set[i] & ~ram_rdata_q_valid_clr[i];
 
