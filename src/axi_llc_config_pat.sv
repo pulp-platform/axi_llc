@@ -631,6 +631,12 @@ module axi_llc_config_pat #(
   `FFLARN(to_flush_q, to_flush_d, load_to_flush, '0, clk_i, rst_ni)
   `FFLARN(to_flush_set_q, to_flush_set_d, load_to_flush_set, '0, clk_i, rst_ni)
 
+  // State for the output spm_lock_o
+  set_asso_t spm_lock_d, spm_lock_q;
+  logic load_spm_lock;
+  `FFLARN(spm_lock_q, spm_lock_d, load_spm_lock, '0, clk_i, rst_ni);
+  assign load_spm_lock = (spm_lock_d != spm_lock_q);
+
   // Load enable signals, so that the FF is only active when needed.
   assign switch_state  = (flush_state_d != flush_state_q);
   assign load_to_flush = (to_flush_d    != to_flush_q);
@@ -659,6 +665,10 @@ module axi_llc_config_pat #(
 
   always_comb begin : proc_axi_llc_cfg
     // Default assignments
+
+    // Hw config
+    spm_lock_d = spm_lock_q;
+
     // Registers
     conf_regs_o.cfg_spm       = conf_regs_i.cfg_spm;
     conf_regs_o.cfg_flush     = conf_regs_i.cfg_flush;
@@ -732,6 +742,8 @@ module axi_llc_config_pat #(
         // wait till none of the splitter units still have vectors in them
         if (!aw_unit_busy_i && !ar_unit_busy_i) begin
           flush_state_d = FsmInitFlush;
+          // Now that AXI is free and splitters are empty, update hardware config
+          spm_lock_d = conf_regs_i.cfg_spm;
         end
       end
       FsmInitFlush: begin
@@ -935,7 +947,7 @@ module axi_llc_config_pat #(
   end
 
   // Configuration registers which are used in other modules.
-  assign spm_lock_o = conf_regs_i.cfg_spm;
+  assign spm_lock_o = spm_lock_q;
   assign flushed_o  = conf_regs_i.flushed;
   assign flushed_set_o = conf_regs_i_flushed_set;
 
