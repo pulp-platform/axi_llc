@@ -97,19 +97,17 @@ module axi_llc_read_unit #(
   logic           meta_fifo_pop;
 
   // way_inp assignments
-  assign way_inp_o = '{
-    cache_unit: axi_llc_pkg::RChanUnit,
-    way_ind:    desc_q.way_ind,
-    line_addr:  desc_q.a_x_addr[(Cfg.ByteOffsetLength + Cfg.BlockOffsetLength)+:Cfg.IndexLength],
-    blk_offset: desc_q.a_x_addr[ Cfg.ByteOffsetLength +: Cfg.BlockOffsetLength],
-    default: '0
-  }; // other fields not needed, `we` is `1'b0.
+  assign way_inp_o.cache_unit = axi_llc_pkg::RChanUnit;
+  assign way_inp_o.way_ind    = desc_q.way_ind;
+  assign way_inp_o.line_addr  = desc_q.a_x_addr[(Cfg.ByteOffsetLength + Cfg.BlockOffsetLength)+:Cfg.IndexLength];
+  assign way_inp_o.blk_offset = desc_q.a_x_addr[ Cfg.ByteOffsetLength +: Cfg.BlockOffsetLength];
+  assign way_inp_o.data       = '0;
+  assign way_inp_o.strb       = '0;
+  assign way_inp_o.we         = '0;
 
   // unlock assignment
-  assign r_unlock_o = '{
-    index:   desc_q.a_x_addr[(Cfg.ByteOffsetLength + Cfg.BlockOffsetLength)+:Cfg.IndexLength],
-    way_ind: desc_q.way_ind
-  };
+  assign r_unlock_o.index   = desc_q.a_x_addr[(Cfg.ByteOffsetLength + Cfg.BlockOffsetLength)+:Cfg.IndexLength];
+  assign r_unlock_o.way_ind = desc_q.way_ind;
 
   // control
   always_comb begin
