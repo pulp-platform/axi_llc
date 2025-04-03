@@ -437,18 +437,14 @@ module axi_llc_config #(
         // it also sets up the counters for state-keeping how far
         // the flush operation has progressed
         // define if the user requested a flush
-        if (|conf_regs_i.cfg_flush) begin
-          to_flush_d              = conf_regs_i.cfg_flush & ~conf_regs_i.flushed;
-        end else begin
-          to_flush_d              = conf_regs_i.cfg_spm & ~conf_regs_i.flushed;
-          conf_regs_o.flushed     = conf_regs_i.cfg_spm & conf_regs_i.flushed;
-          conf_regs_o.flushed_en  = 1'b1;
-        end
+        to_flush_d = (conf_regs_i.cfg_flush | conf_regs_i.cfg_spm) & ~conf_regs_i.flushed;
+        conf_regs_o.flushed     = conf_regs_i.cfg_spm & conf_regs_i.flushed;
+        conf_regs_o.flushed_en  = 1'b1;
         // now determine if we have something to do at all
         if (to_flush_d == '0) begin
           // nothing to flush, go to idle
           flush_state_d = FsmIdle;
-          
+          // clear the cfg_flush register.
           conf_regs_o.cfg_flush = set_asso_t'(1'b0);
         end else begin
           flush_state_d = FsmSendFlush;
