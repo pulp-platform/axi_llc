@@ -47,7 +47,7 @@ module synth_axi_llc import axi_pkg::*; #(
   input logic test_i,
 
   /***********************************
-  /* Slave ports request inputs
+  ** Slave ports request inputs
   ***********************************/
   // AW
   input axi_slv_id_t      slv_aw_id,
@@ -88,7 +88,7 @@ module synth_axi_llc import axi_pkg::*; #(
   input logic             slv_r_ready,
 
   /***********************************
-  /* Slave ports response outputs
+  ** Slave ports response outputs
   ***********************************/
   // AW
   output logic           slv_aw_ready,
@@ -110,7 +110,7 @@ module synth_axi_llc import axi_pkg::*; #(
   output axi_user_t      slv_r_user,
 
   /***********************************
-  /* Master ports request outputs
+  ** Master ports request outputs
   ***********************************/
   // AW
   output axi_mst_id_t       mst_aw_id,
@@ -151,7 +151,7 @@ module synth_axi_llc import axi_pkg::*; #(
   output logic              mst_r_ready,
 
   /***********************************
-  /* Master ports response inputs
+  ** Master ports response inputs
   ***********************************/
   // AW
   input logic            mst_aw_ready,
@@ -173,7 +173,7 @@ module synth_axi_llc import axi_pkg::*; #(
   input axi_user_t       mst_r_user,
 
   /*******************************************
-  /* Configuration RegBus interface - request
+  ** Configuration RegBus interface - request
   *******************************************/
   input logic [31:0]     conf_req_addr,
   input logic            conf_req_w,
@@ -182,7 +182,7 @@ module synth_axi_llc import axi_pkg::*; #(
   input logic            conf_req_valid,
 
   /*******************************************
-  /* Configuration RegBus interface - response
+  ** Configuration RegBus interface - response
   *******************************************/
   output logic [31:0]    conf_resp_rdata,
   output logic           conf_resp_error,
