@@ -20,10 +20,12 @@ module axi_llc_sram_data #(
   parameter int unsigned BeWidth   = (DataWidth + ByteWidth - 32'd1) / ByteWidth, // ceil_div
   parameter type         addr_t    = logic [AddrWidth-1:0],
   parameter type         data_t    = logic [DataWidth-1:0],
-  parameter type         be_t      = logic [BeWidth-1:0]
+  parameter type         be_t      = logic [BeWidth-1:0],
+  parameter type         impl_in_t = logic
 ) (
   input  logic                 clk_i,      // Clock
   input  logic                 rst_ni,     // Asynchronous reset active low
+  input  impl_in_t             impl_i,
   // input ports
   input  logic  [NumPorts-1:0] req_i,      // request
   input  logic  [NumPorts-1:0] we_i,       // write enable
@@ -37,17 +39,20 @@ module axi_llc_sram_data #(
   logic [DataWidth-1:0] wen;
   assign wen = (we_i) ? '0 : '1;
 
-  tc_sram #(
+  tc_sram_impl #(
       .NumWords   ( NumWords    ),
       .DataWidth  ( DataWidth   ),
       .ByteWidth  ( ByteWidth   ),
       .NumPorts   ( NumPorts    ),
       .Latency    ( Latency     ),
       .SimInit    ( SimInit     ),
-      .PrintSimCfg( PrintSimCfg )
+      .PrintSimCfg( PrintSimCfg ),
+      .impl_in_t  ( impl_in_t   )
     ) i_data_sram (
       .clk_i   ( clk_i   ),
       .rst_ni  ( rst_ni  ),
+      .impl_i  ( impl_i  ),
+      .impl_o  (         ), // unconnected
       .req_i   ( req_i   ),
       .we_i    ( we_i    ),
       .addr_i  ( addr_i  ),

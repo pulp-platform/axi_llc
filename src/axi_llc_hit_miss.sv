@@ -58,7 +58,8 @@ module axi_llc_hit_miss #(
   /// Cache partition table
   parameter type                       partition_table_t = logic,
   /// Whether to print SRAM configs
-  parameter bit                        PrintSramCfg   = 0
+  parameter bit                        PrintSramCfg   = 0,
+  parameter type                       impl_in_t      = logic
 ) (
   /// Clock, positive edge triggered.
   input  logic     clk_i,
@@ -66,6 +67,7 @@ module axi_llc_hit_miss #(
   input  logic     rst_ni,
   /// Testmode enable, active high.
   input  logic     test_i,
+  input  impl_in_t [Cfg.SetAssociativity-1:0] sram_impl_i,
   /// Input descriptor payload.
   input  desc_t    desc_i,
   /// Input descriptor is valid.
@@ -376,11 +378,13 @@ module axi_llc_hit_miss #(
     .way_ind_t   ( way_ind_t   ),
     .store_req_t ( store_req_t ),
     .store_res_t ( store_res_t ),
-    .PrintSramCfg ( PrintSramCfg )
+    .PrintSramCfg ( PrintSramCfg ),
+    .impl_in_t   ( impl_in_t   )
   ) i_tag_store (
     .clk_i,
     .rst_ni,
     .test_i,
+    .sram_impl_i  ( sram_impl_i     ),
     .spm_lock_i   ( spm_lock_i      ),
     .flushed_i    ( flushed_i       ),
     .req_i        ( store_req       ),

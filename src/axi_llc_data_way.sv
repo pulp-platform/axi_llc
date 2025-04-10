@@ -32,7 +32,8 @@ module axi_llc_data_way #(
   /// } way_oup_t;
   parameter type way_oup_t = logic,
   /// Whether to print SRAM configs.
-  parameter bit  PrintSramCfg = 0
+  parameter bit  PrintSramCfg = 0,
+  parameter type impl_in_t = logic
 ) (
   /// Clock, positive edge triggered
   input logic clk_i,
@@ -40,6 +41,7 @@ module axi_llc_data_way #(
   input logic rst_ni,
   /// Testmode enable
   input logic test_i,
+  input impl_in_t sram_impl_i,
   /// Data way request input
   input way_inp_t inp_i,
   /// Request is valid
@@ -124,10 +126,12 @@ module axi_llc_data_way #(
     .NumPorts   ( 32'd1                        ),
     .Latency    ( 32'd1                        ),
     .SimInit    ( "none"                       ),
-    .PrintSimCfg( PrintSramCfg                 )
+    .PrintSimCfg( PrintSramCfg                 ),
+    .impl_in_t  ( impl_in_t                    )
   ) i_data_sram (
     .clk_i,
     .rst_ni,
+    .impl_i  ( sram_impl_i ),
     .req_i   ( ram_req    ),
     .we_i    ( inp_i.we   ),
     .addr_i  ( addr       ),

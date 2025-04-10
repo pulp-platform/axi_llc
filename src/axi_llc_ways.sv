@@ -22,7 +22,8 @@ module axi_llc_ways #(
   /// Data way response payload type definition.
   parameter type way_oup_t = logic,
   /// Whether to print SRAM configs.
-  parameter bit  PrintSramCfg = 0
+  parameter bit  PrintSramCfg = 0,
+  parameter type impl_in_t = logic
 ) (
   /// Clock, positive edge triggered.
   input logic clk_i,
@@ -30,6 +31,7 @@ module axi_llc_ways #(
   input logic rst_ni,
   /// Testmode enable, active high.
   input logic test_i,
+  input impl_in_t [Cfg.SetAssociativity-1:0] sram_impl_i,
   /// Way request payloads inputs. One array index for each unit which can make request to the
   /// data storage macros.
   input way_inp_t [3:0] way_inp_i,
@@ -136,11 +138,13 @@ module axi_llc_ways #(
       .Cfg          ( Cfg          ),
       .way_inp_t    ( way_inp_t    ),
       .way_oup_t    ( way_oup_t    ),
-      .PrintSramCfg ( PrintSramCfg )
+      .PrintSramCfg ( PrintSramCfg ),
+      .impl_in_t    ( impl_in_t    )
     ) i_data_way (
       .clk_i,
       .rst_ni,
       .test_i,
+      .sram_impl_i ( sram_impl_i[j]  ),
       .inp_i      ( way_inp[j]       ),
       .inp_valid_i( way_inp_valid[j] ),
       .inp_ready_o( way_inp_ready[j] ),

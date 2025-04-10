@@ -199,7 +199,8 @@ module axi_llc_reg_wrap #(
   parameter type axi_addr_t     = logic[AxiAddrWidth-1:0],
   /// Dependent parameter, do **not** overwrite!
   /// Data type of set associativity wide registers
-  parameter type way_ind_t      = logic[SetAssociativity-1:0]
+  parameter type way_ind_t      = logic[SetAssociativity-1:0],
+  parameter type impl_in_t      = logic
 ) (
   /// Rising-edge clock of all ports.
   input logic clk_i,
@@ -207,6 +208,7 @@ module axi_llc_reg_wrap #(
   input logic rst_ni,
   /// Test mode activate, active high.
   input logic test_i,
+  input impl_in_t [2*SetAssociativity-1:0] sram_impl_i,
   /// AXI4+ATOP slave port request, CPU side
   input slv_req_t slv_req_i,
   /// AXI4+ATOP slave port response, CPU side
@@ -293,11 +295,13 @@ module axi_llc_reg_wrap #(
     .mst_req_t        ( mst_req_t             ),
     .mst_resp_t       ( mst_resp_t            ),
     .rule_full_t      ( rule_full_t           ),
-    .PrintSramCfg     ( PrintSramCfg          )
+    .PrintSramCfg     ( PrintSramCfg          ),
+    .impl_in_t        ( impl_in_t             )
   ) i_axi_llc_top_raw (
     .clk_i,
     .rst_ni,
     .test_i,
+    .sram_impl_i,
     .slv_req_i,
     .slv_resp_o,
     .mst_req_o,

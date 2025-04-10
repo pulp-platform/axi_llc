@@ -218,7 +218,8 @@ module axi_llc_top #(
   parameter type way_ind_t      = logic[SetAssociativity-1:0],
   /// Dependent parameter, do **not** overwrite!
   /// Data type of set wide registers
-  parameter type set_ind_t      = logic[NumLines-1:0]
+  parameter type set_ind_t      = logic[NumLines-1:0],
+  parameter type impl_in_t      = logic
 ) (
   /// Rising-edge clock of all ports.
   input logic clk_i,
@@ -226,6 +227,7 @@ module axi_llc_top #(
   input logic rst_ni,
   /// Test mode activate, active high.
   input logic test_i,
+  input impl_in_t [2*SetAssociativity-1:0] sram_impl_i,
   /// AXI4+ATOP slave port request, CPU side
   input slv_req_t slv_req_i,
   /// AXI4+ATOP slave port response, CPU side
@@ -709,11 +711,13 @@ endgenerate
     .way_ind_t         ( way_ind_t         ),
     .set_ind_t         ( set_ind_t         ),
     .partition_table_t ( partition_table_t ),
-    .PrintSramCfg      ( PrintSramCfg      )
+    .PrintSramCfg      ( PrintSramCfg      ),
+    .impl_in_t         ( impl_in_t         )
   ) i_hit_miss_unit (
     .clk_i,
     .rst_ni,
     .test_i,
+    .sram_impl_i    ( sram_impl_i[SetAssociativity-1:0] ),
     .desc_i         ( spill_desc   ),
     .valid_i        ( spill_valid  ),
     .ready_o        ( spill_ready  ),
@@ -894,11 +898,13 @@ endgenerate
     .Cfg          ( Cfg          ),
     .way_inp_t    ( way_inp_t    ),
     .way_oup_t    ( way_oup_t    ),
-    .PrintSramCfg ( PrintSramCfg )
+    .PrintSramCfg ( PrintSramCfg ),
+    .impl_in_t    ( impl_in_t    )
   ) i_llc_ways (
     .clk_i                ( clk_i               ),
     .rst_ni               ( rst_ni              ),
     .test_i               ( test_i              ),
+    .sram_impl_i          ( sram_impl_i[2*SetAssociativity-1:SetAssociativity] ),
     .way_inp_i            ( to_way              ),
     .way_inp_valid_i      ( to_way_valid        ),
     .way_inp_ready_o      ( to_way_ready        ),

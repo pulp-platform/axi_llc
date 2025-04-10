@@ -27,7 +27,8 @@ module axi_llc_tag_store #(
   /// Type of the response payload expected from the tag storage
   parameter type store_res_t = logic,
   /// Whether to print SRAM configs
-  parameter bit  PrintSramCfg = 0
+  parameter bit  PrintSramCfg = 0,
+  parameter type impl_in_t = logic
 ) (
   /// Clock, positive edge triggered
   input  logic       clk_i,
@@ -35,6 +36,7 @@ module axi_llc_tag_store #(
   input  logic       rst_ni,
   /// Testmode enable
   input  logic       test_i,
+  input  impl_in_t [Cfg.SetAssociativity-1:0] sram_impl_i,
   /// SPM lock signal input.
   ///
   /// For each way there is one signal. When high the way is configured as SPM. They are disabled
@@ -284,10 +286,12 @@ module axi_llc_tag_store #(
       .NumPorts    ( 32'd1                        ),
       .Latency     ( axi_llc_pkg::TagMacroLatency ),
       .SimInit     ( "none"                       ),
-      .PrintSimCfg ( PrintSramCfg                 )
+      .PrintSimCfg ( PrintSramCfg                 ),
+      .impl_in_t   ( impl_in_t                    )
     ) i_tag_store (
       .clk_i,
       .rst_ni,
+      .impl_i  ( sram_impl_i[i] ),
       .req_i   ( ram_req[i] ),
       .we_i    ( ram_we[i]  ),
       .addr_i  ( ram_index  ),
