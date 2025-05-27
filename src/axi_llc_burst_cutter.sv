@@ -105,7 +105,10 @@ module axi_llc_burst_cutter #(
     // calculate the next line address (tag included)
     next_line_address   = this_line_address + (addr_t'(1) << LineOffset);
     // how many bytes are on the line from curr addr to the end
-    bytes_on_line       = next_line_address - curr_chan_i.addr;
+    if (curr_chan_i.burst == axi_pkg::BURST_WRAP)
+      bytes_on_line     = addr_t'(1) << LineOffset; // Wrapped burst will never cross line boundary
+    else
+      bytes_on_line     = next_line_address - curr_chan_i.addr;
     // how many transaction beats map onto the current line
     beats_on_line       = axi_pkg::len_t'((bytes_on_line - 1) >> curr_chan_i.size) + 1;
 
