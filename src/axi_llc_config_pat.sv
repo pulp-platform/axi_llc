@@ -645,7 +645,7 @@ module axi_llc_config_pat #(
   // Constant hardware registers
   assign conf_regs_o.bist_out       = bist_res_i;
   assign conf_regs_o.set_asso       = Cfg.SetAssociativity;
-  assign conf_regs_o.num_lines      = Cfg.NumBlocks;
+  assign conf_regs_o.num_lines      = Cfg.NumLines;
   assign conf_regs_o.num_blocks     = Cfg.NumBlocks;
   assign conf_regs_o.version        = axi_llc_pkg::AxiLlcVersion;
   assign conf_regs_o.bist_status_done = bist_valid_i;
