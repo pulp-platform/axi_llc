@@ -70,6 +70,11 @@ module axi_llc_read_unit #(
   `include "common_cells/registers.svh"
   typedef logic [AxiCfg.SlvPortIdWidth-1:0] id_t;
   typedef logic [AxiCfg.DataWidthFull-1:0]  data_t;
+  typedef logic [AxiCfg.AddrWidthFull-1:0]  addr_t;
+  // line offset is the index where we are interested in, or where the line index starts
+  localparam int unsigned LineOffset = Cfg.ByteOffsetLength + Cfg.BlockOffsetLength;
+  typedef logic [LineOffset-1:0]            lofs_t;
+
   // this struct saves the r channel meta information before it goes to the R FIFO
   typedef struct packed {
     id_t            id;
@@ -111,6 +116,10 @@ module axi_llc_read_unit #(
     way_ind: desc_q.way_ind
   };
 
+  // static cast of transaction size in bytes
+  addr_t          a_x_bytes;
+  assign a_x_bytes = addr_t'(axi_pkg::num_bytes(desc_q.a_x_size));
+
   // control
   always_comb begin
     // default assignments
@@ -141,11 +150,16 @@ module axi_llc_read_unit #(
             load_new_desc();
           end else begin
             // more read requests have to be made, update the address and update the length
-            if (desc_q.a_x_burst != axi_pkg::BURST_FIXED) begin
-              // update the address
-              desc_d.a_x_addr = axi_pkg::aligned_addr(desc_q.a_x_addr +
-                                    axi_pkg::num_bytes(desc_q.a_x_size), desc_q.a_x_size);
-            end
+            unique case (desc_q.a_x_burst)
+              axi_pkg::BURST_INCR: begin // update the address
+                desc_d.a_x_addr = axi_pkg::aligned_addr(desc_q.a_x_addr + a_x_bytes, desc_q.a_x_size);
+              end
+              axi_pkg::BURST_WRAP: begin // update the address (inside current burst)
+                // AXI4 spec requires already aligned address for BURST_WRAP
+                desc_d.a_x_addr[LineOffset -1:0] = desc_q.a_x_addr[LineOffset -1:0] + lofs_t'(a_x_bytes);
+              end
+              default: ; // Do nothing
+            endcase
             desc_d.a_x_len  = desc_q.a_x_len - axi_pkg::len_t'(1);
             load_desc       = 1'b1;
           end
