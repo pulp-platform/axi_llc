@@ -440,6 +440,9 @@ module axi_llc_top #(
   // global flush signals
   logic llc_isolate, llc_isolated, aw_unit_busy, ar_unit_busy, flush_recv;
 
+  // clear control state
+  logic ctrl_clr;
+
   // define address rules from the address ports, propagate it throughout the design
   rule_full_t cached_addr_rule;
   rule_full_t spm_addr_rule;
@@ -512,7 +515,9 @@ generate
       .axi_cached_rule_i ( cached_addr_rule                       ),
       .axi_spm_rule_i    ( spm_addr_rule                          ),
       // partition table
-      .partition_table_o ( partition_table                        )
+      .partition_table_o ( partition_table                        ),
+      // Clear control state
+      .ctrl_clr_o        ( ctrl_clr                               )
     );
   end else begin
     // configuration for LLC partitioning disabled, also has control over bypass logic and flush
@@ -600,7 +605,7 @@ endgenerate
     .SpillR         ( 1'b0                   )
   ) i_axi_bypass_demux (
     .clk_i           ( clk_i                    ),
-    .rst_ni          ( rst_ni                   ),
+    .rst_ni          ( rst_ni & ~ctrl_clr       ),
     .test_i          ( test_i                   ),
     .slv_req_i       ( to_demux_req             ),
     .slv_aw_select_i ( slv_aw_bypass            ),
@@ -624,7 +629,7 @@ endgenerate
     .partition_table_t (partition_table_t)
   ) i_aw_splitter    (
     .clk_i           ( clk_i                                  ),
-    .rst_ni          ( rst_ni                                 ),
+    .rst_ni          ( rst_ni & ~ctrl_clr                     ),
     .ax_chan_slv_i   ( to_llc_req.aw                          ),
     .ax_chan_valid_i ( to_llc_req.aw_valid                    ),
     .ax_chan_ready_o ( to_llc_resp.aw_ready                   ),
@@ -652,7 +657,7 @@ endgenerate
     .partition_table_t ( partition_table_t )
   ) i_ar_splitter    (
     .clk_i           ( clk_i                                  ),
-    .rst_ni          ( rst_ni                                 ),
+    .rst_ni          ( rst_ni  & ~ctrl_clr                                ),
     .ax_chan_slv_i   ( to_llc_req.ar                          ),
     .ax_chan_valid_i ( to_llc_req.ar_valid                    ),
     .ax_chan_ready_o ( to_llc_resp.ar_ready                   ),
@@ -673,7 +678,7 @@ endgenerate
     .LockIn   ( 1'b1       )
   ) i_rw_arb_tree (
     .clk_i  ( clk_i         ),
-    .rst_ni ( rst_ni        ),
+    .rst_ni ( rst_ni & ~ctrl_clr       ),
     .flush_i( '0            ),
     .rr_i   ( '0            ),
     .req_i  ( ax_desc_valid ),
@@ -689,7 +694,7 @@ endgenerate
     .T       ( llc_desc_t )
   ) i_rw_spill (
     .clk_i   ( clk_i         ),
-    .rst_ni  ( rst_ni        ),
+    .rst_ni  ( rst_ni & ~ctrl_clr       ),
     .valid_i ( rw_desc_valid ),
     .ready_o ( rw_desc_ready ),
     .data_i  ( rw_desc       ),
@@ -733,7 +738,8 @@ endgenerate
     .r_unlock_gnt_o ( r_unlock_gnt ),
     .cnt_down_i     ( cnt_down     ),
     .bist_res_o     ( bist_res     ),
-    .bist_valid_o   ( bist_valid   )
+    .bist_valid_o   ( bist_valid   ),
+    .ctrl_clr_i     ( ctrl_clr     )
   );
 
   axi_llc_evict_unit #(
@@ -748,7 +754,7 @@ endgenerate
     .b_chan_t       ( slv_b_chan_t   )
   ) i_evict_unit (
     .clk_i             ( clk_i                                ),
-    .rst_ni            ( rst_ni                               ),
+    .rst_ni            ( rst_ni & ~ctrl_clr                   ),
     .test_i            ( test_i                               ),
     .desc_i            ( desc                                 ),
     .desc_valid_i      ( miss_valid                           ),
@@ -785,7 +791,7 @@ endgenerate
     .r_chan_t       ( slv_r_chan_t   )
   ) i_refill_unit (
     .clk_i           ( clk_i                                ),
-    .rst_ni          ( rst_ni                               ),
+    .rst_ni          ( rst_ni & ~ctrl_clr                   ),
     .test_i          ( test_i                               ),
     .desc_i          ( evict_desc                           ),
     .desc_valid_i    ( evict_desc_valid                     ),
@@ -811,7 +817,7 @@ endgenerate
     .cnt_t  ( cnt_t      )
   ) i_merge_unit (
     .clk_i,
-    .rst_ni,
+    .rst_ni ( rst_ni & ~ctrl_clr ),
     .bypass_desc_i ( desc              ),
     .bypass_valid_i( hit_valid         ),
     .bypass_ready_o( hit_ready         ),
@@ -839,7 +845,7 @@ endgenerate
     .b_chan_t       ( slv_b_chan_t   )
   ) i_write_unit  (
     .clk_i           ( clk_i                                ),
-    .rst_ni          ( rst_ni                               ),
+    .rst_ni          ( rst_ni & ~ctrl_clr                   ),
     .test_i          ( test_i                               ),
     .desc_i          ( write_desc                           ),
     .desc_valid_i    ( write_desc_valid                     ),
@@ -870,7 +876,7 @@ endgenerate
     .r_chan_t       ( slv_r_chan_t   )
   ) i_read_unit (
     .clk_i           ( clk_i                                ),
-    .rst_ni          ( rst_ni                               ),
+    .rst_ni          ( rst_ni & ~ctrl_clr                   ),
     .test_i          ( test_i                               ),
     .desc_i          ( read_desc                            ),
     .desc_valid_i    ( read_desc_valid                      ),
@@ -899,6 +905,7 @@ endgenerate
     .clk_i                ( clk_i               ),
     .rst_ni               ( rst_ni              ),
     .test_i               ( test_i              ),
+    .ctrl_clr_i           ( ctrl_clr            ),
     .way_inp_i            ( to_way              ),
     .way_inp_valid_i      ( to_way_valid        ),
     .way_inp_ready_o      ( to_way_ready        ),
@@ -936,7 +943,7 @@ endgenerate
     .SpillR        ( 1'b0                      )  // No registers
   ) i_axi_bypass_mux (
     .clk_i       ( clk_i                      ),
-    .rst_ni      ( rst_ni                     ),
+    .rst_ni      ( rst_ni & ~ctrl_clr                    ),
     .test_i      ( test_i                     ),
     .slv_reqs_i  ({bypass_req,  from_llc_req }),
     .slv_resps_o ({bypass_resp, from_llc_resp}),
