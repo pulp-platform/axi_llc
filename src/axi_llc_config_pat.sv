@@ -356,7 +356,9 @@ module axi_llc_config_pat #(
   /// If the entry is 0, then it means that the partition uses the shared region of cache. 
   /// When we process data access of such partition, we should look up partition_table_o[MaxPartition]
   /// for hit/miss information.
-  output partition_table_t [MaxPartition:0] partition_table_o
+  output partition_table_t [MaxPartition:0] partition_table_o,
+  /// Flush control state.
+  output logic ctrl_clr_o
 );
   // register macros from `common_cells`
   `include "common_cells/registers.svh"
@@ -619,6 +621,7 @@ module axi_llc_config_pat #(
     FsmSendFlush,
     FsmWaitFlush,
     FsmEndFlush,
+    FsmCtrlFlush,
     FsmPreInit
   } flush_fsm_e;
   flush_fsm_e flush_state_d, flush_state_q;
@@ -705,6 +708,8 @@ module axi_llc_config_pat #(
     flush_set_partition_d = flush_set_partition_q;
     // Emit flush descriptors.
     desc_valid_o   = 1'b0;
+    // Clear control state.
+    ctrl_clr_o = 1'b0;
     // Default signal definitions for the descriptor send and receive counter control.
     clear_cnt      = 1'b0;
     en_send_cnt    = 1'b0;
@@ -755,7 +760,7 @@ module axi_llc_config_pat #(
           flush_set_partition_d  = partition_table_o[conf_regs_i.cfg_flush_partition].NumIndex ? conf_regs_i.cfg_flush_partition : MaxPartition;
           if (to_flush_set_d == '0) begin
             // nothing to flush, go to idle, reset flushing type and partition flushing ID signal
-            flush_state_d = FsmIdle;
+            flush_state_d = FsmCtrlFlush;
             index_based_flush_d = 1'b0;
             flush_set_partition_d = -1;
             conf_regs_o.cfg_flush_partition = -1;
@@ -772,7 +777,7 @@ module axi_llc_config_pat #(
           index_based_flush_d = 1'b0; //meaning that the current flush operation is way-based
           if (to_flush_d == '0) begin
             // nothing to flush, go to idle
-            flush_state_d = FsmIdle;
+            flush_state_d = FsmCtrlFlush;
             
             conf_regs_o.cfg_flush = set_asso_t'(1'b0);
           end else begin
@@ -786,7 +791,7 @@ module axi_llc_config_pat #(
           index_based_flush_d = 1'b0; //meaning that the current flush operation is way-based
           if (to_flush_d == '0) begin
             // nothing to flush, go to idle
-            flush_state_d = FsmIdle;
+            flush_state_d = FsmCtrlFlush;
             
             conf_regs_o.cfg_flush = set_asso_t'(1'b0);
           end else begin
@@ -852,7 +857,7 @@ module axi_llc_config_pat #(
           clear_cnt_set = 1'b1;
           if (to_flush_set_q == flush_set_ind) begin
             // No pending set to be flushed
-            flush_state_d = FsmIdle;
+            flush_state_d = FsmCtrlFlush;
             // reset the flushed register to SPM as new requests can enter the cache
             for (int unsigned i = 0; i < num_set_flush_reg; i++) begin
                 conf_regs_o.flushed_set[i]    = 64'b0;
@@ -880,7 +885,7 @@ module axi_llc_config_pat #(
         end else begin
           clear_cnt = 1'b1;
           if (to_flush_q == flush_way_ind) begin
-            flush_state_d = FsmIdle;
+            flush_state_d = FsmCtrlFlush;
             // reset the flushed register to SPM as new requests can enter the cache
             conf_regs_o.flushed     = conf_regs_i.cfg_spm;
             conf_regs_o.flushed_en  = 1'b1;
@@ -894,6 +899,10 @@ module axi_llc_config_pat #(
             conf_regs_o.flushed_en  = 1'b1;
           end
         end
+      end
+      FsmCtrlFlush: begin
+        ctrl_clr_o = 1'b1;
+        flush_state_d = FsmIdle;
       end
       FsmPreInit: begin
         // The state machine starts in this state. It remains in this state until the

@@ -32,7 +32,9 @@ module axi_llc_evict_box #(
   /// Evict the line.
   output logic evict_o,
   /// Output is valid. This signal will eventually go to high if `req_i` is 1.
-  output logic valid_o
+  output logic valid_o,
+  /// Clear control state.
+  input  logic ctrl_clr_i
 );
   `include "common_cells/registers.svh"
   // Mask which tells us which way have something in them (valid or spm)
@@ -80,10 +82,10 @@ module axi_llc_evict_box #(
     // A shift register where a 1 runs around
     for (genvar i = 0; unsigned'(i) < Cfg.SetAssociativity; i++) begin : gen_shift
       if (unsigned'(i) == 32'd0) begin : gen_first
-        `FFLARN(onehot_ind_q[i], onehot_ind_d[i], en_cnt, 1'b1, clk_i, rst_ni)
+        `FFLARNC(onehot_ind_q[i], onehot_ind_d[i], en_cnt, ctrl_clr_i, 1'b1, clk_i, rst_ni)
         assign onehot_ind_d[Cfg.SetAssociativity-1] = onehot_ind_q[i];
       end else begin : gen_others
-        `FFLARN(onehot_ind_q[i], onehot_ind_d[i], en_cnt, 1'b0, clk_i, rst_ni)
+        `FFLARNC(onehot_ind_q[i], onehot_ind_d[i], en_cnt, ctrl_clr_i, 1'b0, clk_i, rst_ni)
         assign onehot_ind_d[i-1] = onehot_ind_q[i];
       end
     end

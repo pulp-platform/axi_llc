@@ -63,7 +63,9 @@ module axi_llc_tag_store #(
   /// corresponding tag storage SRAM macro failed the test.
   output way_ind_t   bist_res_o,
   /// BIST output is valid.
-  output logic       bist_valid_o
+  output logic       bist_valid_o,
+  /// Clear control state.
+  input  logic       ctrl_clr_i
 );
 
   // typedef, because we use in this module many signals with the width of SetAssiciativity
@@ -400,7 +402,8 @@ module axi_llc_tag_store #(
     .spm_lock_i  ( spm_lock_i    ),
     .way_ind_o   ( evict_way_ind ),
     .evict_o     ( evict_flag    ),
-    .valid_o     ( evict_valid   )
+    .valid_o     ( evict_valid   ),
+    .ctrl_clr_i  ( ctrl_clr_i    )
   );
 
   onehot_to_bin #(

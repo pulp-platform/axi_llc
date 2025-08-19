@@ -95,7 +95,9 @@ module axi_llc_hit_miss #(
   input  cnt_t     cnt_down_i,
   // bist aoutput
   output way_ind_t bist_res_o,
-  output logic     bist_valid_o
+  output logic     bist_valid_o,
+  // clear control state
+  input  logic     ctrl_clr_i
 );
   `include "common_cells/registers.svh"
   localparam int unsigned IndexBase = Cfg.ByteOffsetLength + Cfg.BlockOffsetLength;
@@ -394,7 +396,8 @@ module axi_llc_hit_miss #(
     .valid_o      ( store_res_valid ),
     .ready_i      ( store_res_ready ),
     .bist_res_o   ( bist_res_o      ),
-    .bist_valid_o ( bist_valid_o    )
+    .bist_valid_o ( bist_valid_o    ),
+    .ctrl_clr_i   ( ctrl_clr_i      )
   );
 
   // inputs to the miss counter unit
@@ -408,7 +411,7 @@ module axi_llc_hit_miss #(
     .cnt_t   ( cnt_t  )
   ) i_miss_counters (
     .clk_i      (      clk_i ),
-    .rst_ni     (     rst_ni ),
+    .rst_ni     ( rst_ni & ~ctrl_clr_i ),
     .cnt_up_i   (     cnt_up ),
     .cnt_down_i ( cnt_down_i ),
     .to_miss_o  (    to_miss ),
@@ -430,7 +433,7 @@ module axi_llc_hit_miss #(
     .lock_t    ( lock_t )
   ) i_lock_box_bloom (
     .clk_i          ( clk_i      ),  // Clock
-    .rst_ni         ( rst_ni     ),  // Asynchronous reset active low
+    .rst_ni         ( rst_ni & ~ctrl_clr_i ),  // Asynchronous reset active low
     .test_i         ( test_i     ),
     .lock_i         ( lock       ),
     .lock_req_i     ( lock_req   ),
@@ -458,9 +461,9 @@ generate
 endgenerate
 
   // registers
-  `FFLARN(busy_q, busy_d, load_busy, '0, clk_i, rst_ni)
+  `FFLARNC(busy_q, busy_d, load_busy, ctrl_clr_i, '0, clk_i, rst_ni)
   `FFLARN(init_q, init_d, load_init, '0, clk_i, rst_ni)
-  `FFLARN(desc_q, desc_d, load_desc, '0, clk_i, rst_ni)
+  `FFLARNC(desc_q, desc_d, load_desc, ctrl_clr_i, '0, clk_i, rst_ni)
 
   // pragma translate_off
   `ifndef VERILATOR

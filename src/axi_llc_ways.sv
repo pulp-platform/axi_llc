@@ -31,6 +31,8 @@ module axi_llc_ways #(
   input logic rst_ni,
   /// Testmode enable, active high.
   input logic test_i,
+  /// Clear control state, active high.
+  input logic ctrl_clr_i,
   input impl_in_t [Cfg.SetAssociativity-1:0] sram_impl_i,
   /// Way request payloads inputs. One array index for each unit which can make request to the
   /// data storage macros.
@@ -119,7 +121,7 @@ module axi_llc_ways #(
     .LockIn      ( 1'b1                 )
   ) i_stream_xbar (
     .clk_i,
-    .rst_ni,
+    .rst_ni  ( rst_ni & ~ctrl_clr_i),
     .flush_i ( '0              ),
     .rr_i    ( '0              ),
     .data_i  ( way_inp_i       ),
@@ -144,6 +146,7 @@ module axi_llc_ways #(
       .clk_i,
       .rst_ni,
       .test_i,
+      .ctrl_clr_i,
       .sram_impl_i ( sram_impl_i[j]  ),
       .inp_i      ( way_inp[j]       ),
       .inp_valid_i( way_inp_valid[j] ),
@@ -170,7 +173,7 @@ module axi_llc_ways #(
     .dtype        ( way_ind_t                                            )
   ) i_r_switch_fifo (
     .clk_i,                                                     // Clock
-    .rst_ni,                                                    // Asynchronous reset active low
+    .rst_ni     ( rst_ni & ~ctrl_clr_i                      ),  // Asynchronous reset active low
     .flush_i    ( '0                                        ),  // flush the queue
     .testmode_i ( test_i                                    ),  // test_mode
     .full_o     ( r_switch_full                             ),  // queue is full
@@ -187,7 +190,7 @@ module axi_llc_ways #(
     .dtype        ( way_ind_t                                            )
   ) i_e_switch_fifo (
     .clk_i,                                                     // Clock
-    .rst_ni,                                                    // Asynchronous reset active low
+    .rst_ni     ( rst_ni & ~ctrl_i                          ),  // Asynchronous reset active low
     .flush_i    ( '0                                        ),  // flush the queue
     .testmode_i ( test_i                                    ),  // test_mode
     .full_o     ( e_switch_full                             ),  // queue is full

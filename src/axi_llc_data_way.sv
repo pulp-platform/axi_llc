@@ -41,6 +41,7 @@ module axi_llc_data_way #(
   input logic rst_ni,
   /// Testmode enable
   input logic test_i,
+  input logic ctrl_clr_i,
   input impl_in_t sram_impl_i,
   /// Data way request input
   input way_inp_t inp_i,
@@ -163,8 +164,8 @@ module axi_llc_data_way #(
   // );
 
   // Flip Flops to hold the read request meta information
-  `FFLARN(outp_valid_q, outp_valid_d, load_valid, '0, clk_i, rst_ni)
-  `FFLARN(cache_unit_q, cache_unit_d, load_unit, axi_llc_pkg::EvictUnit, clk_i, rst_ni)
+  `FFLARNC(outp_valid_q, outp_valid_d, load_valid, ctrl_clr_i, '0, clk_i, rst_ni)
+  `FFLARNC(cache_unit_q, cache_unit_d, load_unit, ctrl_clr_i, axi_llc_pkg::EvictUnit, clk_i, rst_ni)
 
 // pragma translate_off
 `ifndef VERILATOR
