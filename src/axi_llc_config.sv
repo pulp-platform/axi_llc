@@ -450,7 +450,6 @@ module axi_llc_config #(
         // the flush operation has progressed
         // define if the user requested a flush
         to_flush_d = (conf_regs_i.cfg_flush | conf_regs_i.cfg_spm) & ~conf_regs_i.flushed;
-        conf_regs_o.flushed     = conf_regs_i.cfg_spm & conf_regs_i.flushed;
         conf_regs_o.flushed_en  = 1'b1;
         // now determine if we have something to do at all
         if (to_flush_d == '0) begin
@@ -458,7 +457,11 @@ module axi_llc_config #(
           flush_state_d = FsmIdle;
           // clear the cfg_flush register.
           conf_regs_o.cfg_flush = set_asso_t'(1'b0);
+          // Apply new SPM configuration, if changed
+          conf_regs_o.flushed     = conf_regs_i.cfg_spm & conf_regs_i.flushed;
         end else begin
+          // Some ways must be flushed, update conf_reg_o.flushed
+          conf_regs_o.flushed = (conf_regs_i.cfg_flush | conf_regs_i.cfg_spm) & conf_regs_i.flushed;
           flush_state_d = FsmSendFlush;
           load_cnt      = 1'b1;
         end
