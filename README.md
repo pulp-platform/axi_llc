@@ -9,7 +9,7 @@ Home of the AXI LLC - a parameterizable and runtime-configurable AXI4-compliant 
 The [`latest documentation`](doc/axi_llc.md) can be accessed pre-built.
 
 ## License
-iDMA is released under Solderpad v0.51 (SHL-0.51) see [`LICENSE`](LICENSE):
+AXI LLC is released under Solderpad v0.51 (SHL-0.51) see [`LICENSE`](LICENSE):
 
 ## Contributing
 We are happy to accept pull requests and issues from any contributors. See [`CONTRIBUTING.md`](CONTRIBUTING.md)
