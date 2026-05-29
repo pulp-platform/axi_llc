@@ -186,7 +186,7 @@ module tb_axi_llc #(
   conf_req_t     reg_cfg_req;
   conf_rsp_t     reg_cfg_rsp;
   // Tb signals
-  logic enable_counters, print_counters, enable_progress;
+  logic enable_counters, print_counters, reset_counters, enable_progress;
 
   ///////////////////////
   // AXI DV interfaces //
@@ -283,6 +283,7 @@ module tb_axi_llc #(
     reg_conf_driver.reset_master();
     enable_counters = 1'b0;
     print_counters  = 1'b0;
+    reset_counters  = 1'b0;
     enable_progress = 1'b0;
 
     // Set some mem regions for rand axi master
@@ -328,7 +329,10 @@ module tb_axi_llc #(
     reg_conf_driver.send_read(VersionHigh,    cfg_data, cfg_error);
 
     $info("Random read and write");
+    reset_perf_counters();
     axi_master.run(TbNumReads, TbNumWrites);
+    print_perf_counters();
+
     flush_all(reg_conf_driver);
     compare_mems(cpu_scoreboard, mem_scoreboard);
     clear_spm_cpu(cpu_scoreboard);
@@ -342,7 +346,11 @@ module tb_axi_llc #(
     cfg_data  = 32'd1;
     cfg_wstrb = 4'hF;
     reg_conf_driver.send_write(cfg_addr, cfg_data, cfg_wstrb, cfg_error);
+
+    reset_perf_counters();
     axi_master.run(TbNumReads, TbNumWrites);
+    print_perf_counters();
+
     flush_all(reg_conf_driver);
     compare_mems(cpu_scoreboard, mem_scoreboard);
     clear_spm_cpu(cpu_scoreboard);
@@ -360,7 +368,11 @@ module tb_axi_llc #(
     cfg_data  = 32'd1;
     cfg_wstrb = 4'hF;
     reg_conf_driver.send_write(cfg_addr, cfg_data, cfg_wstrb, cfg_error);
+
+    reset_perf_counters();
     axi_master.run(TbNumReads, TbNumWrites);
+    print_perf_counters();
+
     flush_all(reg_conf_driver);
     compare_mems(cpu_scoreboard, mem_scoreboard);
     clear_spm_cpu(cpu_scoreboard);
@@ -378,14 +390,14 @@ module tb_axi_llc #(
     cfg_data  = 32'd1;
     cfg_wstrb = 4'hF;
     reg_conf_driver.send_write(cfg_addr, cfg_data, cfg_wstrb, cfg_error);
-    axi_master.run(TbNumReads, TbNumWrites);
 
-    print_perf_couters();
+    reset_perf_counters();
+    axi_master.run(TbNumReads, TbNumWrites);
+    print_perf_counters();
 
     flush_all(reg_conf_driver);
     compare_mems(cpu_scoreboard, mem_scoreboard);
     clear_spm_cpu(cpu_scoreboard);
-
 
     $display("Tests ended!");
     $finish();
@@ -440,13 +452,19 @@ module tb_axi_llc #(
     $info("Finished flushing the cache!");
   endtask : flush_all
 
-  task print_perf_couters();
+  task print_perf_counters();
     @(negedge clk);
     print_counters = 1'b1;
     @(negedge clk);
     print_counters = 1'b0;
-  endtask : print_perf_couters
+  endtask : print_perf_counters
 
+  task reset_perf_counters();
+    @(negedge clk);
+    reset_counters = 1'b1;
+    @(negedge clk);
+    reset_counters = 1'b0;
+  endtask : reset_perf_counters
 
   ///////////////////////
   // Design under test //
@@ -704,12 +722,15 @@ module tb_axi_llc #(
         $display("w_chan_unit_req:    %f", real'(count[50]) / real'(cycle_count));
         $display("r_chan_unit_req:    %f", real'(count[51]) / real'(cycle_count));
         $display("##################################################################");
-        // After printing, reset the counters.
+      end // print counters
+
+      if (reset_counters) begin
+        // Reset the counters.
         cycle_count = 0;
         for (int unsigned i = 0; i < NumCounters; i++) begin
           count[i] = 0;
         end
-      end // print counters
+      end // reset counters
     end // forever begin
   end : proc_counters
 endmodule
