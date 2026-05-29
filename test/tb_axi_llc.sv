@@ -328,7 +328,7 @@ module tb_axi_llc #(
     reg_conf_driver.send_read(VersionLow,     cfg_data, cfg_error);
     reg_conf_driver.send_read(VersionHigh,    cfg_data, cfg_error);
 
-    $info("Random read and write");
+    $info("\n\nRandom read and write");
     reset_perf_counters();
     axi_master.run(TbNumReads, TbNumWrites);
     print_perf_counters();
@@ -337,7 +337,7 @@ module tb_axi_llc #(
     compare_mems(cpu_scoreboard, mem_scoreboard);
     clear_spm_cpu(cpu_scoreboard);
 
-    $info("Enable lower half SPM");
+    $info("\n\nEnable lower half SPM");
     cfg_addr  = CfgSpmLow;
     cfg_data  = {((TbSetAssociativity == 32'd1) ? 32'd1 : (TbSetAssociativity/2)){1'b1}};
     cfg_wstrb = 4'hF;
@@ -355,7 +355,7 @@ module tb_axi_llc #(
     compare_mems(cpu_scoreboard, mem_scoreboard);
     clear_spm_cpu(cpu_scoreboard);
 
-    $info("All SPM");
+    $info("\n\nAll SPM");
     cfg_addr  = CfgSpmLow;
     cfg_data  = {32{1'b1}};
     cfg_wstrb = 4'hF;
@@ -377,7 +377,7 @@ module tb_axi_llc #(
     compare_mems(cpu_scoreboard, mem_scoreboard);
     clear_spm_cpu(cpu_scoreboard);
 
-    $info("Random read and write");
+    $info("\n\nRandom read and write");
     cfg_addr  = CfgSpmLow;
     cfg_data  = 32'b0;
     cfg_wstrb = 4'hF;
@@ -399,7 +399,7 @@ module tb_axi_llc #(
     compare_mems(cpu_scoreboard, mem_scoreboard);
     clear_spm_cpu(cpu_scoreboard);
 
-    $display("Tests ended!");
+    $display("\n\nTests ended!");
     $finish();
   end
 
