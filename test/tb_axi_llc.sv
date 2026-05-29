@@ -187,6 +187,7 @@ module tb_axi_llc #(
   conf_rsp_t     reg_cfg_rsp;
   // Tb signals
   logic enable_counters, print_counters, reset_counters, enable_progress;
+  logic assert_cache_hits, assert_no_cache_hits;
 
   ///////////////////////
   // AXI DV interfaces //
@@ -285,6 +286,8 @@ module tb_axi_llc #(
     print_counters  = 1'b0;
     reset_counters  = 1'b0;
     enable_progress = 1'b0;
+    assert_cache_hits = 1'b0;
+    assert_no_cache_hits = 1'b0;
 
     // Set some mem regions for rand axi master
     axi_master.add_memory_region(CachedRegionStart, CachedRegionStart + 2*CachedRegionLength,
@@ -331,6 +334,7 @@ module tb_axi_llc #(
     $info("\n\nRandom read and write");
     reset_perf_counters();
     axi_master.run(TbNumReads, TbNumWrites);
+    assert_cache_hits = 1;
     print_perf_counters();
 
     flush_all(reg_conf_driver);
@@ -349,6 +353,8 @@ module tb_axi_llc #(
 
     reset_perf_counters();
     axi_master.run(TbNumReads, TbNumWrites);
+    // TODO: How to check SPM; when cache-only also indicates SPM hits/misses?
+    assert_cache_hits = 1;
     print_perf_counters();
 
     flush_all(reg_conf_driver);
@@ -371,6 +377,7 @@ module tb_axi_llc #(
 
     reset_perf_counters();
     axi_master.run(TbNumReads, TbNumWrites);
+    assert_no_cache_hits = 1;
     print_perf_counters();
 
     flush_all(reg_conf_driver);
@@ -379,7 +386,6 @@ module tb_axi_llc #(
 
     // Note: depends on the previous test being "All SPM"
     $info("\n\nCoalesced explicit and SPM flushes");
-    print_perf_counters();
     cfg_addr  = CfgSpmLow;
     cfg_data  = '0;
     cfg_wstrb = 4'hF;
@@ -403,6 +409,7 @@ module tb_axi_llc #(
 
     reset_perf_counters();
     axi_master.run(TbNumReads, TbNumWrites);
+    assert_cache_hits = 1;
     print_perf_counters();
 
     flush_all(reg_conf_driver);
@@ -425,6 +432,7 @@ module tb_axi_llc #(
 
     reset_perf_counters();
     axi_master.run(TbNumReads, TbNumWrites);
+    assert_cache_hits = 1;
     print_perf_counters();
 
     flush_all(reg_conf_driver);
@@ -754,6 +762,37 @@ module tb_axi_llc #(
         $display("w_chan_unit_req:    %f", real'(count[50]) / real'(cycle_count));
         $display("r_chan_unit_req:    %f", real'(count[51]) / real'(cycle_count));
         $display("##################################################################");
+
+        // Note: these assertions may, in theory, not be hit given random
+        // test input data. We fix a random seed for the test to prevent this.
+        if (assert_cache_hits) begin
+            assert (count[17] != 0) else $error("aw_desc_cache is zero");
+            assert (count[19] != 0) else $error("ar_desc_cache is zero");
+            assert (count[31] != 0) else $error("hit_write_cache is zero");
+            assert (count[33] != 0) else $error("hit_read_cache is zero");
+            assert (count[35] != 0) else $error("miss_write_cache is zero");
+            assert (count[37] != 0) else $error("miss_read_cache is zero");
+            assert (count[39] != 0) else $error("refill_write is zero");
+            assert (count[41] != 0) else $error("refill_read is zero");
+            assert (count[43] != 0) else $error("evict_write is zero");
+            assert (count[45] != 0) else $error("evict_read is zero");
+        end
+
+        if (assert_no_cache_hits) begin
+            assert (count[17] == 0) else $error("aw_desc_cache is non-zero");
+            assert (count[19] == 0) else $error("ar_desc_cache is non-zero");
+            assert (count[31] == 0) else $error("hit_write_cache is non-zero");
+            assert (count[33] == 0) else $error("hit_read_cache is non-zero");
+            assert (count[35] == 0) else $error("miss_write_cache is non-zero");
+            assert (count[37] == 0) else $error("miss_read_cache is non-zero");
+            assert (count[39] == 0) else $error("refill_write is non-zero");
+            assert (count[41] == 0) else $error("refill_read is non-zero");
+            assert (count[43] == 0) else $error("evict_write is non-zero");
+            assert (count[45] == 0) else $error("evict_read is non-zero");
+        end
+
+        assert_cache_hits = 0;
+        assert_no_cache_hits = 0;
       end // print counters
 
       if (reset_counters) begin
