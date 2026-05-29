@@ -377,6 +377,38 @@ module tb_axi_llc #(
     compare_mems(cpu_scoreboard, mem_scoreboard);
     clear_spm_cpu(cpu_scoreboard);
 
+    // Note: depends on the previous test being "All SPM"
+    $info("\n\nCoalesced explicit and SPM flushes");
+    print_perf_counters();
+    cfg_addr  = CfgSpmLow;
+    cfg_data  = '0;
+    cfg_wstrb = 4'hF;
+    reg_conf_driver.send_write(cfg_addr, cfg_data, cfg_wstrb, cfg_error);
+    cfg_addr  = CfgSpmHigh;
+    cfg_data  = '0;
+    cfg_wstrb = 4'hF;
+    reg_conf_driver.send_write(cfg_addr, cfg_data, cfg_wstrb, cfg_error);
+    cfg_addr  = CfgFlushLow;
+    cfg_data  = '1;
+    cfg_wstrb = 4'hF;
+    reg_conf_driver.send_write(cfg_addr, cfg_data, cfg_wstrb, cfg_error);
+    cfg_addr  = CfgFlushHigh;
+    cfg_data  = '1;
+    cfg_wstrb = 4'hF;
+    reg_conf_driver.send_write(cfg_addr, cfg_data, cfg_wstrb, cfg_error);
+    cfg_addr  = CommitCfg;
+    cfg_data  = 32'd1;
+    cfg_wstrb = 4'hF;
+    reg_conf_driver.send_write(cfg_addr, cfg_data, cfg_wstrb, cfg_error);
+
+    reset_perf_counters();
+    axi_master.run(TbNumReads, TbNumWrites);
+    print_perf_counters();
+
+    flush_all(reg_conf_driver);
+    compare_mems(cpu_scoreboard, mem_scoreboard);
+    clear_spm_cpu(cpu_scoreboard);
+
     $info("\n\nRandom read and write");
     cfg_addr  = CfgSpmLow;
     cfg_data  = '0;
