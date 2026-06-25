@@ -357,11 +357,11 @@ module tb_axi_llc #(
 
     $info("\n\nAll SPM");
     cfg_addr  = CfgSpmLow;
-    cfg_data  = {32{1'b1}};
+    cfg_data  = '1;
     cfg_wstrb = 4'hF;
     reg_conf_driver.send_write(cfg_addr, cfg_data, cfg_wstrb, cfg_error);
     cfg_addr  = CfgSpmHigh;
-    cfg_data  = {32{1'b1}};
+    cfg_data  = '1;
     cfg_wstrb = 4'hF;
     reg_conf_driver.send_write(cfg_addr, cfg_data, cfg_wstrb, cfg_error);
     cfg_addr  = CommitCfg;
@@ -379,11 +379,11 @@ module tb_axi_llc #(
 
     $info("\n\nRandom read and write");
     cfg_addr  = CfgSpmLow;
-    cfg_data  = 32'b0;
+    cfg_data  = '0;
     cfg_wstrb = 4'hF;
     reg_conf_driver.send_write(cfg_addr, cfg_data, cfg_wstrb, cfg_error);
     cfg_addr  = CfgSpmHigh;
-    cfg_data  = 32'b0;
+    cfg_data  = '0;
     cfg_wstrb = 4'hF;
     reg_conf_driver.send_write(cfg_addr, cfg_data, cfg_wstrb, cfg_error);
     cfg_addr  = CommitCfg;
