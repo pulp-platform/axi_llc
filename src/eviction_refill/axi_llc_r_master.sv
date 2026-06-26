@@ -173,7 +173,7 @@ module axi_llc_r_master #(
   endfunction : load_new_desc
 
   // counter to count up the block offset, as the refill will always be all blocks
-  counter #(
+  cc_counter #(
     .WIDTH        ( Cfg.BlockOffsetLength ) // maximum AXI x_len signal width
   ) i_block_offset_counter (
     .clk_i        ( clk_i        ),
@@ -188,7 +188,7 @@ module axi_llc_r_master #(
   );
 
   // Flip Flops
-  `FFLARN(desc_q, desc_d, load_desc, '0, clk_i, rst_ni) // descriptor
-  `FFLARN(busy_q, busy_d, load_busy, '0, clk_i, rst_ni) // unit busy flag
-  `FFLARN(send_q, send_d, load_send, '0, clk_i, rst_ni) // send descriptor along
+  `FFL(desc_q, desc_d, load_desc, '0, clk_i, rst_ni) // descriptor
+  `FFL(busy_q, busy_d, load_busy, '0, clk_i, rst_ni) // unit busy flag
+  `FFL(send_q, send_d, load_send, '0, clk_i, rst_ni) // send descriptor along
 endmodule

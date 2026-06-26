@@ -71,7 +71,7 @@ module axi_llc_lock_box_bloom #(
 
   assign w_unlock_gnt_o = ~w_full;
   assign w_push         = ~w_full & w_unlock_req_i;
-  fifo_v3 #(
+  cc_fifo #(
     .FALL_THROUGH ( 1'b1      ),
     .DATA_WIDTH   ( DataWidth ),
     .DEPTH        ( 32'd2     ) // fixed, because not often happening
@@ -79,7 +79,6 @@ module axi_llc_lock_box_bloom #(
     .clk_i,
     .rst_ni,
     .flush_i    ( 1'b0         ),
-    .testmode_i ( test_i       ),
     .full_o     ( w_full       ),
     .empty_o    ( w_empty      ),
     .usage_o    ( /*not used*/ ),
@@ -92,7 +91,7 @@ module axi_llc_lock_box_bloom #(
 
   assign r_unlock_gnt_o = ~r_full;
   assign r_push         = ~r_full & r_unlock_req_i;
-  fifo_v3 #(
+  cc_fifo #(
     .FALL_THROUGH ( 1'b1      ),
     .DATA_WIDTH   ( DataWidth ),
     .DEPTH        ( 32'd2     ) // fixed, because not often happening
@@ -100,7 +99,6 @@ module axi_llc_lock_box_bloom #(
     .clk_i,
     .rst_ni,
     .flush_i    ( 1'b0         ),
-    .testmode_i ( test_i       ),
     .full_o     ( r_full       ),
     .empty_o    ( r_empty      ),
     .usage_o    ( /*not used*/ ),
@@ -111,7 +109,7 @@ module axi_llc_lock_box_bloom #(
   );
   assign r_pop = ~r_empty & r_gnt;
 
-  rr_arb_tree #(
+  cc_rr_arb_tree #(
     .NumIn     ( 32'd2     ),
     .DataWidth ( DataWidth ),
     .AxiVldRdy ( 1'b1      ),
@@ -134,7 +132,7 @@ module axi_llc_lock_box_bloom #(
   // Safety for if for some reason the data width is not bigger than the hash width in `llc_pkg`.
   localparam int unsigned HashWidth = (DataWidth > axi_llc_pkg::BloomHashWidth) ?
                                       axi_llc_pkg::BloomHashWidth : (DataWidth - 1);
-  cb_filter #(
+  cc_cb_filter #(
     .KHashes     ( axi_llc_pkg::BloomKHashes     ),
     .HashWidth   ( HashWidth                     ),
     .HashRounds  ( axi_llc_pkg::BloomHashRounds  ),

@@ -164,6 +164,6 @@ module axi_llc_chan_splitter #(
   );
 
   // Flip Flops
-  `FFLARN(busy_q, busy_d, load_busy, '0, clk_i, rst_ni)
-  `FFLARN(chan_q, chan_d, load_chan, '0, clk_i, rst_ni)
+  `FFL(busy_q, busy_d, load_busy, '0, clk_i, rst_ni)
+  `FFL(chan_q, chan_d, load_chan, '0, clk_i, rst_ni)
 endmodule

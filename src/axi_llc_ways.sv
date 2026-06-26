@@ -50,7 +50,7 @@ module axi_llc_ways #(
   /// Read unit is ready for the response.
   input logic read_way_out_ready_i
 );
-  localparam int unsigned SelIdxWidth = cf_math_pkg::idx_width(Cfg.SetAssociativity);
+  localparam int unsigned SelIdxWidth = cc_pkg::idx_width(Cfg.SetAssociativity);
   typedef logic [SelIdxWidth-1:0]          way_sel_t; // Binary representation of the way selection
   typedef logic [Cfg.SetAssociativity-1:0] way_ind_t; // way indicator for switching decision
 
@@ -99,7 +99,7 @@ module axi_llc_ways #(
 
   // Selection signal of each unit to the ways.
   for (genvar i = 0; unsigned'(i) < 32'd4; i++) begin : gen_connect_demux
-    onehot_to_bin #(
+    cc_onehot_to_bin #(
       .ONEHOT_WIDTH ( Cfg.SetAssociativity )
     ) i_onehot_to_bin (
       .onehot ( way_inp_i[i].way_ind ),
@@ -107,7 +107,7 @@ module axi_llc_ways #(
     );
   end
 
-  stream_xbar #(
+  cc_stream_xbar #(
     .NumInp      ( 32'd4                ),
     .NumOut      ( Cfg.SetAssociativity ),
     .payload_t   ( way_inp_t            ),
@@ -160,7 +160,7 @@ module axi_llc_ways #(
 
   // SRAM has usually at least one cycle latency anyway.
   // Each way could have a read response request, and have buffer for latency.
-  fifo_v3 #(
+  cc_fifo #(
     .FALL_THROUGH ( 1'b0                                                 ),
     .DEPTH        ( Cfg.SetAssociativity + axi_llc_pkg::DataMacroLatency ),
     .dtype        ( way_ind_t                                            )
@@ -168,7 +168,6 @@ module axi_llc_ways #(
     .clk_i,                                                     // Clock
     .rst_ni,                                                    // Asynchronous reset active low
     .flush_i    ( '0                                        ),  // flush the queue
-    .testmode_i ( test_i                                    ),  // test_mode
     .full_o     ( r_switch_full                             ),  // queue is full
     .empty_o    ( r_switch_empty                            ),  // queue is empty
     .usage_o    (                                           ),  // fill pointer
@@ -177,7 +176,7 @@ module axi_llc_ways #(
     .data_o     ( r_switch                                  ),  // output data
     .pop_i      ( r_switch_pop                              )   // pop head from queue
   );
-  fifo_v3 #(
+  cc_fifo #(
     .FALL_THROUGH ( 1'b0                                                 ),
     .DEPTH        ( Cfg.SetAssociativity + axi_llc_pkg::DataMacroLatency ),
     .dtype        ( way_ind_t                                            )
@@ -185,7 +184,6 @@ module axi_llc_ways #(
     .clk_i,                                                     // Clock
     .rst_ni,                                                    // Asynchronous reset active low
     .flush_i    ( '0                                        ),  // flush the queue
-    .testmode_i ( test_i                                    ),  // test_mode
     .full_o     ( e_switch_full                             ),  // queue is full
     .empty_o    ( e_switch_empty                            ),  // queue is empty
     .usage_o    (                                           ),  // fill pointer

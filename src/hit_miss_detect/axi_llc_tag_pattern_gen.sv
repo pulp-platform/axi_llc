@@ -213,7 +213,7 @@ module axi_llc_tag_pattern_gen #(
     end
   end
 
-  counter #(
+  cc_counter #(
     .WIDTH     ( Cfg.IndexLength )
   ) i_index_cnt (
     .clk_i     (        clk_i ),
@@ -228,10 +228,10 @@ module axi_llc_tag_pattern_gen #(
   );
 
   // Flip Flops
-  `FFLARN(busy_q,     busy_d,     switch_busy,      '0, clk_i, rst_ni)
-  `FFLARN(eoc_q,      eoc_d,      '1,               '0, clk_i, rst_ni)
-  `FFLARN(bist_q,     bist_d,     update_bist, WZEROUP, clk_i, rst_ni)
-  `FFLARN(bist_res_q, bist_res_d, error_bist,       '0, clk_i, rst_ni)
+  `FFL(busy_q,     busy_d,     switch_busy,      '0, clk_i, rst_ni)
+  `FFL(eoc_q,      eoc_d,      '1,               '0, clk_i, rst_ni)
+  `FFL(bist_q,     bist_d,     update_bist, WZEROUP, clk_i, rst_ni)
+  `FFL(bist_res_q, bist_res_d, error_bist,       '0, clk_i, rst_ni)
 
   // assign outputs
   assign eoc_o = eoc_q;

@@ -80,10 +80,10 @@ module axi_llc_evict_box #(
     // A shift register where a 1 runs around
     for (genvar i = 0; unsigned'(i) < Cfg.SetAssociativity; i++) begin : gen_shift
       if (unsigned'(i) == 32'd0) begin : gen_first
-        `FFLARN(onehot_ind_q[i], onehot_ind_d[i], en_cnt, 1'b1, clk_i, rst_ni)
+        `FFL(onehot_ind_q[i], onehot_ind_d[i], en_cnt, 1'b1, clk_i, rst_ni)
         assign onehot_ind_d[Cfg.SetAssociativity-1] = onehot_ind_q[i];
       end else begin : gen_others
-        `FFLARN(onehot_ind_q[i], onehot_ind_d[i], en_cnt, 1'b0, clk_i, rst_ni)
+        `FFL(onehot_ind_q[i], onehot_ind_d[i], en_cnt, 1'b0, clk_i, rst_ni)
         assign onehot_ind_d[i-1] = onehot_ind_q[i];
       end
     end

@@ -364,8 +364,8 @@ module axi_llc_config_pat #(
   // Type for the Set Associativity puls padding
   localparam int unsigned SetAssoPadWidth = RegWidth - Cfg.SetAssociativity;
    
-  localparam int unsigned FlushIdxWidth = cf_math_pkg::idx_width(Cfg.SetAssociativity);
-  localparam int unsigned FlushSetIdxWidth = cf_math_pkg::idx_width(Cfg.NumLines);
+  localparam int unsigned FlushIdxWidth = cc_pkg::idx_width(Cfg.SetAssociativity);
+  localparam int unsigned FlushSetIdxWidth = cc_pkg::idx_width(Cfg.NumLines);
   typedef logic [FlushIdxWidth-1:0] flush_idx_t;
   typedef logic [FlushSetIdxWidth-1:0] flush_set_idx_t;
 
@@ -445,14 +445,14 @@ module axi_llc_config_pat #(
   logic index_based_flush_d, index_based_flush_q;
   logic load_index_based_flush;
   assign load_index_based_flush = (index_based_flush_d != index_based_flush_q);
-  `FFLARN(index_based_flush_q, index_based_flush_d, load_index_based_flush, '0, clk_i, rst_ni)
+  `FFL(index_based_flush_q, index_based_flush_d, load_index_based_flush, '0, clk_i, rst_ni)
 
   logic partition_table_valid_d, partition_table_valid_q;
-  `FFLARN(partition_table_valid_q, partition_table_valid_d, 1'b1, 1'b0, clk_i, rst_ni)
+  `FFL(partition_table_valid_q, partition_table_valid_d, 1'b1, 1'b0, clk_i, rst_ni)
 
   logic [$clog2(MaxPartition):0] flush_set_partition_d, flush_set_partition_q; 
   logic load_flush_set_partition;
-  `FFLARN(flush_set_partition_q, flush_set_partition_d, load_flush_set_partition, -1, clk_i, rst_ni)
+  `FFL(flush_set_partition_q, flush_set_partition_d, load_flush_set_partition, -1, clk_i, rst_ni)
   assign load_flush_set_partition = (flush_set_partition_d != flush_set_partition_q);
 
   logic start_addr_valid;
@@ -577,7 +577,7 @@ module axi_llc_config_pat #(
     axi_addr_map_ar[1].idx[0] = index_based_flush_q ? ar_bypass : (&conf_regs_i.flushed);  
   end
 
-  addr_decode #(
+  cc_addr_decode #(
     .NoIndices ( 32'd2       ),
     .NoRules   ( 32'd2       ),
     .addr_t    ( addr_full_t ),
@@ -592,7 +592,7 @@ module axi_llc_config_pat #(
     .default_idx_i    ( 1'b1            )  // on decerror go through bypass
   );
 
-  addr_decode #(
+  cc_addr_decode #(
     .NoIndices ( 32'd2       ),
     .NoRules   ( 32'd2       ),
     .addr_t    ( addr_full_t ),
@@ -627,14 +627,14 @@ module axi_llc_config_pat #(
   set_t       to_flush_set_d, to_flush_set_q;
   logic       load_to_flush,  load_to_flush_set;
 
-  `FFLARN(flush_state_q, flush_state_d, switch_state, FsmPreInit, clk_i, rst_ni)
-  `FFLARN(to_flush_q, to_flush_d, load_to_flush, '0, clk_i, rst_ni)
-  `FFLARN(to_flush_set_q, to_flush_set_d, load_to_flush_set, '0, clk_i, rst_ni)
+  `FFL(flush_state_q, flush_state_d, switch_state, FsmPreInit, clk_i, rst_ni)
+  `FFL(to_flush_q, to_flush_d, load_to_flush, '0, clk_i, rst_ni)
+  `FFL(to_flush_set_q, to_flush_set_d, load_to_flush_set, '0, clk_i, rst_ni)
 
   // State for the output spm_lock_o
   set_asso_t spm_lock_d, spm_lock_q;
   logic load_spm_lock;
-  `FFLARN(spm_lock_q, spm_lock_d, load_spm_lock, '0, clk_i, rst_ni);
+  `FFL(spm_lock_q, spm_lock_d, load_spm_lock, '0, clk_i, rst_ni);
   assign load_spm_lock = (spm_lock_d != spm_lock_q);
 
   // Load enable signals, so that the FF is only active when needed.
@@ -953,9 +953,9 @@ module axi_llc_config_pat #(
 
   // This trailing zero counter determines which way should be flushed next.
   // Determining next cache line to flush (for index-based flush)
-   lzc #(
+   cc_lzc #(
     .WIDTH ( Cfg.NumLines ),
-    .MODE  ( 1'b0         )
+    .MODE  ( cc_pkg::LZC_TRAILING_ZERO_CNT )
   ) i_lzc_flush_set (
     .in_i    ( to_flush_set_q   ),
     .cnt_o   ( to_flush_set_nub ),
@@ -963,9 +963,9 @@ module axi_llc_config_pat #(
   );
 
   // Determining next way to flush (for way-based flush)
-  lzc #(
+  cc_lzc #(
     .WIDTH ( Cfg.SetAssociativity ),
-    .MODE  ( 1'b0                 )
+    .MODE  ( cc_pkg::LZC_TRAILING_ZERO_CNT )
   ) i_lzc_flush (
     .in_i    ( to_flush_q   ),
     .cnt_o   ( to_flush_nub ),
@@ -980,7 +980,7 @@ module axi_llc_config_pat #(
   // Counter for flush control //
   ///////////////////////////////
   // This counts how many flush descriptors have been sent. (For way-based flushing)
-  counter #(
+  cc_counter #(
     .WIDTH ( Cfg.IndexLength )
   ) i_flush_send_counter (
     .clk_i      ( clk_i                   ),
@@ -995,7 +995,7 @@ module axi_llc_config_pat #(
   );
 
   // This counts how many flush descriptors are not done flushing. (For way-based flushing)
-  counter #(
+  cc_counter #(
     .WIDTH ( Cfg.IndexLength )
   ) i_flush_recv_counter (
     .clk_i      ( clk_i                   ),
@@ -1010,7 +1010,7 @@ module axi_llc_config_pat #(
   );
 
   // This counts how many flush descriptors have been sent. (For index-based flushing)
-  counter #(
+  cc_counter #(
     .WIDTH ( FlushIdxWidth )
   ) i_flush_set_send_counter (
     .clk_i      ( clk_i                   ),
@@ -1025,7 +1025,7 @@ module axi_llc_config_pat #(
   );
 
   // This counts how many flush descriptors are not done flushing. (For index-based flushing)
-  counter #(
+  cc_counter #(
     .WIDTH ( FlushIdxWidth )
   ) i_flush_set_recv_counter (
     .clk_i      ( clk_i                   ),
