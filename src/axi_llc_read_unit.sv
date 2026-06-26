@@ -206,15 +206,15 @@ module axi_llc_read_unit #(
     default: '0
   };
 
-  fifo_v3 #(
-    .FALL_THROUGH ( 1'b0                                    ), // No fallthrough
-    .DEPTH        ( axi_llc_pkg::DataMacroLatency + 32'd2   ), // two places for stalling
-    .dtype        ( r_meta_t )
+  cc_fifo #(
+    .FallThrough ( 1'b0                                    ), // No fallthrough
+    .Depth       ( axi_llc_pkg::DataMacroLatency + 32'd2   ), // two places for stalling
+    .data_t      ( r_meta_t )
   ) i_r_meta_fifo (
     .clk_i,                             // Clock
     .rst_ni,                            // Asynchronous reset active low
+    .clr_i        ( 1'b0            ),
     .flush_i      ( '0              ),  // flush the queue
-    .testmode_i   ( test_i          ),  // test_mode to bypass clock gating
     .full_o       ( meta_fifo_full  ),  // queue is full
     .empty_o      ( meta_fifo_empty ),  // queue is empty
     .usage_o      (                 ),  // fill pointer
@@ -223,15 +223,15 @@ module axi_llc_read_unit #(
     .data_o       ( meta_fifo_outp  ),  // output data
     .pop_i        ( meta_fifo_pop   )   // pop when data is pushed to R FIFO
   );
-  fifo_v3 #(
-    .FALL_THROUGH ( 1'b1          ),  // FIFO is in fall-through mode, for read response latency
-    .DEPTH        ( Cfg.NumBlocks ),  // can store a whole cache line, when the request size is max
-    .dtype        ( r_chan_t      )
+  cc_fifo #(
+    .FallThrough ( 1'b1          ),  // FIFO is in fall-through mode, for read response latency
+    .Depth       ( Cfg.NumBlocks ),  // can store a whole cache line, when the request size is max
+    .data_t      ( r_chan_t      )
   ) i_r_fifo (
     .clk_i,                          // Clock
     .rst_ni,                         // Asynchronous reset active low
+    .clr_i        ( 1'b0         ),
     .flush_i      ( '0           ),  // flush the queue
-    .testmode_i   ( test_i       ),  // test_mode to bypass clock gating
     .full_o       ( r_fifo_full  ),  // queue is full
     .empty_o      ( r_fifo_empty ),  // queue is empty
     .usage_o      (              ),  // fill pointer
@@ -242,6 +242,6 @@ module axi_llc_read_unit #(
 );
 
   // Flip Flops
-  `FFLARN(desc_q, desc_d, load_desc, '0, clk_i, rst_ni)
-  `FFLARN(busy_q, busy_d, load_busy, '0, clk_i, rst_ni)
+  `FFL(desc_q, desc_d, load_desc, '0, clk_i, rst_ni)
+  `FFL(busy_q, busy_d, load_busy, '0, clk_i, rst_ni)
 endmodule

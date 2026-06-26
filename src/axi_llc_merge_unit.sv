@@ -65,7 +65,7 @@ module axi_llc_merge_unit #(
   assign cnt_down_o.valid = refill_valid_i & refill_ready_o;
 
   // The rw field is write = 1, read = 0.
-  stream_xbar #(
+  cc_stream_xbar #(
     .NumInp     ( 32'd2  ),
     .NumOut     ( 32'd2  ),
     .payload_t  ( desc_t ),
@@ -76,7 +76,8 @@ module axi_llc_merge_unit #(
   ) i_stream_xbar (
     .clk_i,
     .rst_ni,
-    .flush_i ( '0                                 ),
+    .clr_arb_i ( 1'b0                             ),
+    .clr_i   ( '0                                 ),
     .rr_i    ( '0                                 ),
     .data_i  ({bypass_desc_i,    refill_desc_i   }),
     .sel_i   ({bypass_desc_i.rw, refill_desc_i.rw}),

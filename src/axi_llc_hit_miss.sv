@@ -457,9 +457,9 @@ generate
 endgenerate
 
   // registers
-  `FFLARN(busy_q, busy_d, load_busy, '0, clk_i, rst_ni)
-  `FFLARN(init_q, init_d, load_init, '0, clk_i, rst_ni)
-  `FFLARN(desc_q, desc_d, load_desc, '0, clk_i, rst_ni)
+  `FFL(busy_q, busy_d, load_busy, '0, clk_i, rst_ni)
+  `FFL(init_q, init_d, load_init, '0, clk_i, rst_ni)
+  `FFL(desc_q, desc_d, load_desc, '0, clk_i, rst_ni)
 
   // pragma translate_off
   `ifndef VERILATOR

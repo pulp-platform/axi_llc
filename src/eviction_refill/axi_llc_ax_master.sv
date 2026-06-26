@@ -165,10 +165,10 @@ module axi_llc_ax_master #(
   end
 
   // Flip Flops
-  `FFLARN(desc_q, desc_d, load_desc, desc_t'{default: '0}, clk_i, rst_ni)
-  `FFLARN(desc_valid_q, desc_valid_d, load_desc_valid, 1'b0, clk_i, rst_ni)
-  `FFLARN(chan_q, chan_d, load_chan, ax_chan_t'{default: '0}, clk_i, rst_ni)
-  `FFLARN(chan_valid_q, chan_valid_d, load_chan_valid, 1'b0, clk_i, rst_ni)
+  `FFL(desc_q, desc_d, load_desc, desc_t'{default: '0}, clk_i, rst_ni)
+  `FFL(desc_valid_q, desc_valid_d, load_desc_valid, 1'b0, clk_i, rst_ni)
+  `FFL(chan_q, chan_d, load_chan, ax_chan_t'{default: '0}, clk_i, rst_ni)
+  `FFL(chan_valid_q, chan_valid_d, load_chan_valid, 1'b0, clk_i, rst_ni)
 
   // these assumptions check if the module has valid parameters
   // pragma translate_off

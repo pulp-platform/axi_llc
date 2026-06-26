@@ -277,7 +277,7 @@ module axi_llc_config_no_pat #(
   // Type for the Set Associativity puls padding
   localparam int unsigned SetAssoPadWidth = RegWidth - Cfg.SetAssociativity;
    
-  localparam int unsigned FlushIdxWidth = cf_math_pkg::idx_width(Cfg.SetAssociativity);
+  localparam int unsigned FlushIdxWidth = cc_pkg::idx_width(Cfg.SetAssociativity);
   typedef logic [FlushIdxWidth-1:0] flush_idx_t;
 
   // Counter signals for flush control
@@ -305,7 +305,7 @@ module axi_llc_config_no_pat #(
     axi_addr_map[1].idx[0] = &conf_regs_i.flushed;
   end
 
-  addr_decode #(
+  cc_addr_decode #(
     .NoIndices ( 32'd2       ),
     .NoRules   ( 32'd2       ),
     .addr_t    ( addr_full_t ),
@@ -320,7 +320,7 @@ module axi_llc_config_no_pat #(
     .default_idx_i    ( 1'b1            )  // on decerror go through bypass
   );
 
-  addr_decode #(
+  cc_addr_decode #(
     .NoIndices ( 32'd2       ),
     .NoRules   ( 32'd2       ),
     .addr_t    ( addr_full_t ),
@@ -354,13 +354,13 @@ module axi_llc_config_no_pat #(
   set_asso_t  to_flush_d,    to_flush_q;
   logic       load_to_flush;
 
-  `FFLARN(flush_state_q, flush_state_d, switch_state, FsmPreInit, clk_i, rst_ni)
-  `FFLARN(to_flush_q, to_flush_d, load_to_flush, '0, clk_i, rst_ni)
+  `FFL(flush_state_q, flush_state_d, switch_state, FsmPreInit, clk_i, rst_ni)
+  `FFL(to_flush_q, to_flush_d, load_to_flush, '0, clk_i, rst_ni)
 
   // State for the output spm_lock_o
   set_asso_t spm_lock_d, spm_lock_q;
   logic load_spm_lock;
-  `FFLARN(spm_lock_q, spm_lock_d, load_spm_lock, '0, clk_i, rst_ni);
+  `FFL(spm_lock_q, spm_lock_d, load_spm_lock, '0, clk_i, rst_ni);
   assign load_spm_lock = (spm_lock_d != spm_lock_q);
 
   // Load enable signals, so that the FF is only active when needed.
@@ -549,9 +549,9 @@ module axi_llc_config_no_pat #(
   assign flushed_o  = conf_regs_i.flushed;
 
   // This trailing zero counter determines which way should be flushed next.
-  lzc #(
-    .WIDTH ( Cfg.SetAssociativity ),
-    .MODE  ( 1'b0                 )
+  cc_lzc #(
+    .Width ( Cfg.SetAssociativity ),
+    .Mode  ( cc_pkg::LZC_TRAILING_ZERO_CNT )
   ) i_lzc_flush (
     .in_i    ( to_flush_q   ),
     .cnt_o   ( to_flush_nub ),
@@ -564,12 +564,12 @@ module axi_llc_config_no_pat #(
   // Counter for flush control //
   ///////////////////////////////
   // This counts how many flush descriptors have been sent.
-  counter #(
-    .WIDTH ( Cfg.IndexLength )
+  cc_counter #(
+    .Width ( Cfg.IndexLength )
   ) i_flush_send_counter (
     .clk_i      ( clk_i                   ),
     .rst_ni     ( rst_ni                  ),
-    .clear_i    ( clear_cnt               ),
+    .clr_i      ( clear_cnt               ),
     .en_i       ( en_send_cnt             ),
     .load_i     ( load_cnt                ),
     .down_i     ( 1'b0                    ),
@@ -579,12 +579,12 @@ module axi_llc_config_no_pat #(
   );
 
   // This counts how many flush descriptors are not done flushing.
-  counter #(
-    .WIDTH ( Cfg.IndexLength )
+  cc_counter #(
+    .Width ( Cfg.IndexLength )
   ) i_flush_recv_counter (
     .clk_i      ( clk_i                   ),
     .rst_ni     ( rst_ni                  ),
-    .clear_i    ( clear_cnt               ),
+    .clr_i      ( clear_cnt               ),
     .en_i       ( en_recv_cnt             ),
     .load_i     ( load_cnt                ),
     .down_i     ( 1'b1                    ),

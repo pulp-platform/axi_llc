@@ -123,15 +123,15 @@ module axi_llc_evict_unit #(
   );
 
   // FIFO between AW master and W master, this many evictions transactions can be in flight
-  stream_fifo #(
-    .FALL_THROUGH ( 1'b1                        ),
-    .DEPTH        ( axi_llc_pkg::EvictFifoDepth ),
-    .T            ( desc_t                      )
+  cc_stream_fifo #(
+    .FallThrough ( 1'b1                        ),
+    .Depth       ( axi_llc_pkg::EvictFifoDepth ),
+    .data_t      ( desc_t                      )
   ) i_stream_fifo_evict (
     .clk_i,
     .rst_ni,
+    .clr_i      ( 1'b0          ),
     .flush_i    ( 1'b0          ),
-    .testmode_i ( test_i        ),
     .usage_o    ( /*not used*/  ),
     .data_i     ( desc_aw       ),
     .valid_i    ( desc_aw_valid ),
@@ -182,15 +182,15 @@ module axi_llc_evict_unit #(
     .flush_desc_recv_o(flush_desc_recv_o)
   );
 
-  stream_fifo #(
-    .FALL_THROUGH ( 1'b1                         ),
-    .DEPTH        ( axi_llc_pkg::MissBufferDepth ),
-    .T            ( desc_t                       )
+  cc_stream_fifo #(
+    .FallThrough ( 1'b1                         ),
+    .Depth       ( axi_llc_pkg::MissBufferDepth ),
+    .data_t      ( desc_t                       )
   ) i_stream_fifo_miss_buffer (
     .clk_i,
     .rst_ni,
+    .clr_i      ( 1'b0         ),
     .flush_i    ( 1'b0         ),
-    .testmode_i ( test_i       ),
     .usage_o    ( /*not used*/ ),
     .data_i     (desc_b        ),
     .valid_i    (desc_b_valid  ),

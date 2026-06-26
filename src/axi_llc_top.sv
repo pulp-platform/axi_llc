@@ -607,7 +607,6 @@ endgenerate
   ) i_axi_bypass_demux (
     .clk_i           ( clk_i                    ),
     .rst_ni          ( rst_ni                   ),
-    .test_i          ( test_i                   ),
     .slv_req_i       ( to_demux_req             ),
     .slv_aw_select_i ( slv_aw_bypass            ),
     .slv_ar_select_i ( slv_ar_bypass            ),
@@ -672,15 +671,15 @@ endgenerate
   );
 
   // arbitration tree which funnels the flush, read and write descriptors together
-  rr_arb_tree #(
+  cc_rr_arb_tree #(
     .NumIn    ( 32'd3      ),
-    .DataType ( llc_desc_t ),
+    .data_t   ( llc_desc_t ),
     .AxiVldRdy( 1'b1       ),
     .LockIn   ( 1'b1       )
   ) i_rw_arb_tree (
     .clk_i  ( clk_i         ),
     .rst_ni ( rst_ni        ),
-    .flush_i( '0            ),
+    .clr_i  ( '0            ),
     .rr_i   ( '0            ),
     .req_i  ( ax_desc_valid ),
     .gnt_o  ( ax_desc_ready ),
@@ -691,11 +690,12 @@ endgenerate
     .idx_o  ()
   );
 
-  spill_register #(
-    .T       ( llc_desc_t )
+  cc_spill_register #(
+    .data_t ( llc_desc_t )
   ) i_rw_spill (
     .clk_i   ( clk_i         ),
     .rst_ni  ( rst_ni        ),
+    .clr_i   ( 1'b0          ),
     .valid_i ( rw_desc_valid ),
     .ready_o ( rw_desc_ready ),
     .data_i  ( rw_desc       ),
@@ -944,7 +944,6 @@ endgenerate
   ) i_axi_bypass_mux (
     .clk_i       ( clk_i                      ),
     .rst_ni      ( rst_ni                     ),
-    .test_i      ( test_i                     ),
     .slv_reqs_i  ({bypass_req,  from_llc_req }),
     .slv_resps_o ({bypass_resp, from_llc_resp}),
     .mst_req_o   ( mst_req_o                  ),

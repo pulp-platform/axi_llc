@@ -91,12 +91,12 @@ module axi_llc_miss_counters #(
   assign down_w = ~cnt_up_i.rw | ~cnt_up_i.valid;
 
   for (genvar j = 0; unsigned'(j) < NoCounters; j++) begin : gen_cmiss_counters
-    counter #(
-      .WIDTH      ( axi_llc_pkg::MissCntWidth )
+    cc_counter #(
+      .Width ( axi_llc_pkg::MissCntWidth )
     ) i_miss_cnt (
       .clk_i      (     clk_i ),
       .rst_ni     (    rst_ni ),
-      .clear_i    (        '0 ),
+      .clr_i      ( '0        ),
       .en_i       (     en[j] ),
       .load_i     (        '0 ),
       .down_i     (   down[j] ),
@@ -106,12 +106,12 @@ module axi_llc_miss_counters #(
     );
   end
 
-  counter #(
-    .WIDTH      ( axi_llc_pkg::MissCntMaxWWidth )
+  cc_counter #(
+    .Width ( axi_llc_pkg::MissCntMaxWWidth )
   ) i_miss_w_cnt (
     .clk_i      ( clk_i             ),
     .rst_ni     ( rst_ni            ),
-    .clear_i    ( '0                ),
+    .clr_i      ( '0                ),
     .en_i       ( en_w              ),
     .load_i     ( '0                ),
     .down_i     ( down_w            ),

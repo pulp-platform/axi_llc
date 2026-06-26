@@ -81,7 +81,7 @@ module axi_llc_tag_store #(
   } tag_data_t;
 
   // Binary indicator of the output way selected.
-  localparam int unsigned BinIndicatorWidth = cf_math_pkg::idx_width(Cfg.SetAssociativity);
+  localparam int unsigned BinIndicatorWidth = cc_pkg::idx_width(Cfg.SetAssociativity);
   typedef logic [BinIndicatorWidth-1:0] bin_ind_t;
 
   // The module can be busy or not.
@@ -257,10 +257,10 @@ module axi_llc_tag_store #(
     end
   end
 
-  `FFLARN(req_q, req_i, load_req, store_req_t'(0), clk_i, rst_ni)
-  `FFLARN(busy_q, busy_d, switch_busy, 1'b0, clk_i, rst_ni)
+  `FFL(req_q, req_i, load_req, store_req_t'(0), clk_i, rst_ni)
+  `FFL(busy_q, busy_d, switch_busy, 1'b0, clk_i, rst_ni)
   assign busy_d = ~busy_q;
-  `FFLARN(ram_rvalid_q, ram_rvalid_d, lock_rvalid, way_ind_t'(0), clk_i, rst_ni)
+  `FFL(ram_rvalid_q, ram_rvalid_d, lock_rvalid, way_ind_t'(0), clk_i, rst_ni)
   assign ram_rvalid_d = (res_valid & res_ready) ? way_ind_t'(0) : ram_rvalid;
   assign lock_rvalid  = (res_valid & res_ready) | (|ram_rvalid);
 
@@ -321,12 +321,13 @@ module axi_llc_tag_store #(
     assign ram_rdata = sram_rdata[TagDataLen-1:0];
 
     // shift register for a validtoken for read data, this pulses once for each read request
-    shift_reg #(
-      .dtype ( logic                        ),
+    cc_shift_register #(
+      .data_t ( logic                       ),
       .Depth ( axi_llc_pkg::TagMacroLatency )
     ) i_shift_reg_rvalid (
       .clk_i,
       .rst_ni,
+      .clr_i  ( 1'b0                    ),
       .d_i    ( ram_req[i] & ~ram_we[i] ),
       .d_o    ( ram_rvalid[i]           )
     );
@@ -372,12 +373,13 @@ module axi_llc_tag_store #(
   assign bist_valid_o = gen_eoc;
 
   // This shift register holds the pattern for comparison of the bist.
-  shift_reg #(
-    .dtype ( tag_data_t                   ),
+  cc_shift_register #(
+    .data_t ( tag_data_t                  ),
     .Depth ( axi_llc_pkg::TagMacroLatency )
   ) i_shift_reg_bist (
     .clk_i,
     .rst_ni,
+    .clr_i  ( 1'b0         ),
     .d_i    ( gen_pattern  ),
     .d_o    ( bist_pattern )
   );
@@ -400,11 +402,11 @@ module axi_llc_tag_store #(
     .valid_o     ( evict_valid   )
   );
 
-  onehot_to_bin #(
-    .ONEHOT_WIDTH ( Cfg.SetAssociativity )
+  cc_onehot_to_bin #(
+    .OnehotWidth ( Cfg.SetAssociativity )
   ) i_onehot_to_bin (
-    .onehot ( res.indicator ),
-    .bin    ( bin_ind       )
+    .onehot_i ( res.indicator ),
+    .bin_o    ( bin_ind       )
   );
 
   // Silence output when not in a mode where it is required.
@@ -437,12 +439,13 @@ module axi_llc_tag_store #(
   end
 
   // Output spill register for breaking timing path
-  spill_register #(
-    .T       ( store_res_t                 ),
+  cc_spill_register #(
+    .data_t  ( store_res_t                 ),
     .Bypass  ( !axi_llc_pkg::SpillTagStore )
   ) i_spill_register (
     .clk_i,
     .rst_ni,
+    .clr_i   ( 1'b0      ),
     .valid_i ( res_valid ),
     .ready_o ( res_ready ),
     .data_i  ( res       ),

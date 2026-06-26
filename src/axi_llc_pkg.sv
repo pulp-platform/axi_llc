@@ -208,10 +208,10 @@ package axi_llc_pkg;
   parameter int unsigned BloomHashRounds  = 32'd1;
   /// Width of the buckets of the counting bloom filter.
   parameter int unsigned BloomBucketWidth = 32'd3;
-  parameter cb_filter_pkg::cb_seed_t [BloomKHashes-1:0] BloomSeeds = '{
-    cb_filter_pkg::cb_seed_t'{PermuteSeed: 32'd299034753, XorSeed: 32'd4094834  },
-    cb_filter_pkg::cb_seed_t'{PermuteSeed: 32'd19921030,  XorSeed: 32'd995713   },
-    cb_filter_pkg::cb_seed_t'{PermuteSeed: 32'd294388,    XorSeed: 32'd65146511 }
+  parameter cc_pkg::cb_seed_t [BloomKHashes-1:0] BloomSeeds = '{
+    cc_pkg::cb_seed_t'{PermuteSeed: 32'd299034753, XorSeed: 32'd4094834  },
+    cc_pkg::cb_seed_t'{PermuteSeed: 32'd19921030,  XorSeed: 32'd995713   },
+    cc_pkg::cb_seed_t'{PermuteSeed: 32'd294388,    XorSeed: 32'd65146511 }
   };
 
   /// Depth of the W channel pipeline inside the write unit to reduce W stalling

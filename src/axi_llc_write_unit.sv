@@ -90,15 +90,15 @@ module axi_llc_write_unit #(
   // W channel pipeline FIFO
   // This FIFO buffers W beats as long as the corresponding AW
   // vector goes through the pipeline for lookup etc.
-  stream_fifo #(
-    .FALL_THROUGH ( 1'b0                          ),
-    .DEPTH        ( axi_llc_pkg::WChanBufferDepth ),
-    .T            ( w_chan_t                      )
+  cc_stream_fifo #(
+    .FallThrough ( 1'b0                          ),
+    .Depth       ( axi_llc_pkg::WChanBufferDepth ),
+    .data_t      ( w_chan_t                      )
   ) i_w_stream_fifo (
     .clk_i,
     .rst_ni,
+    .clr_i      ( 1'b0           ),
     .flush_i    ( 1'b0           ),
-    .testmode_i ( test_i         ),
     .usage_o    ( /*not used*/   ),
     .data_i     ( w_chan_slv_i   ),
     .valid_i    ( w_chan_valid_i ),
@@ -210,12 +210,13 @@ module axi_llc_write_unit #(
   };
 
   // Spill register so that the B response is one cycle after W last.
-  spill_register #(
-    .T      ( b_chan_t ),
+  cc_spill_register #(
+    .data_t ( b_chan_t ),
     .Bypass ( 1'b0     )
   ) i_spill_register_b (
     .clk_i,
     .rst_ni,
+    .clr_i   ( 1'b0           ),
     .valid_i ( b_valid        ),
     .ready_o ( b_ready        ),
     .data_i  ( b_chan         ),
@@ -224,6 +225,6 @@ module axi_llc_write_unit #(
     .data_o  ( b_chan_slv_o   )
   );
 
-  `FFLARN(desc_q, desc_d, load_desc, '0, clk_i, rst_ni)
-  `FFLARN(busy_q, busy_d, load_busy, '0, clk_i, rst_ni)
+  `FFL(desc_q, desc_d, load_desc, '0, clk_i, rst_ni)
+  `FFL(busy_q, busy_d, load_busy, '0, clk_i, rst_ni)
 endmodule

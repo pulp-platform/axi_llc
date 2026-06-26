@@ -251,15 +251,15 @@ module axi_llc_w_master #(
     end
   endfunction : load_new_desc
 
-  fifo_v3 #(
-    .FALL_THROUGH ( 1'b1          ),  // FIFO is in fall-through mode
-    .DEPTH        ( Cfg.NumBlocks ),  // can store a whole cache line
-    .dtype        ( data_t        )
+  cc_fifo #(
+    .FallThrough ( 1'b1          ),  // FIFO is in fall-through mode
+    .Depth       ( Cfg.NumBlocks ),  // can store a whole cache line
+    .data_t      ( data_t        )
   ) i_r_data_fifo (
     .clk_i        ( clk_i             ),  // Clock
     .rst_ni       ( rst_ni            ),  // Asynchronous reset active low
+    .clr_i        ( 1'b0              ),
     .flush_i      ( '0                ),  // flush the queue
-    .testmode_i   ( test_i            ),  // test_mode to bypass clock gating
     // status flags
     .full_o       ( fifo_full         ),  // queue is full
     .empty_o      ( fifo_empty        ),  // queue is empty
@@ -273,12 +273,12 @@ module axi_llc_w_master #(
   );
 
   // Cast such that synthesis does not complain about size miss match
-  counter #(
-    .WIDTH        ( Cfg.BlockOffsetLength ) // maximum AXI x_len signal width
+  cc_counter #(
+    .Width ( Cfg.BlockOffsetLength ) // maximum AXI x_len signal width
   ) i_block_offset_counter (
     .clk_i        ( clk_i        ),
     .rst_ni       ( rst_ni       ),
-    .clear_i      ( 1'b0         ), // counter do not get cleared
+    .clr_i        ( 1'b0         ), // counter do not get cleared
     .en_i         ( en_cnt_req   ),
     .load_i       ( load_cnt     ),
     .down_i       ( 1'b0         ),
@@ -287,12 +287,12 @@ module axi_llc_w_master #(
     .overflow_o   ( stop_req_gen )
   );
 
-  counter #(
-    .WIDTH        ( Cfg.BlockOffsetLength ) // maximum AXI len_t signal width
+  cc_counter #(
+    .Width ( Cfg.BlockOffsetLength ) // maximum AXI len_t signal width
   ) i_w_to_send_counter (
     .clk_i        ( clk_i         ),
     .rst_ni       ( rst_ni        ),
-    .clear_i      ( 1'b0          ), // counter do not get cleared
+    .clr_i        ( 1'b0          ), // counter do not get cleared
     .en_i         ( en_cnt_w_chan ),
     .load_i       ( load_cnt      ),
     .down_i       ( 1'b1          ), // count towards 0
@@ -302,9 +302,9 @@ module axi_llc_w_master #(
   );
 
   // Flip-flop with load-enable and asynchronous active-low reset
-  `FFLARN(desc_q, desc_d, load_desc, '0, clk_i, rst_ni) // descriptor
-  `FFLARN(busy_q, busy_d, load_busy, '0, clk_i, rst_ni) // unit busy flag
-  `FFLARN(send_q, send_d, load_send, '0, clk_i, rst_ni) // send descriptor along
+  `FFL(desc_q, desc_d, load_desc, '0, clk_i, rst_ni) // descriptor
+  `FFL(busy_q, busy_d, load_busy, '0, clk_i, rst_ni) // unit busy flag
+  `FFL(send_q, send_d, load_send, '0, clk_i, rst_ni) // send descriptor along
 
   // pragma translate_off
   `ifndef VERILATOR

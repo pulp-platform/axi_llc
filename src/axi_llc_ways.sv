@@ -50,7 +50,7 @@ module axi_llc_ways #(
   /// Read unit is ready for the response.
   input logic read_way_out_ready_i
 );
-  localparam int unsigned SelIdxWidth = cf_math_pkg::idx_width(Cfg.SetAssociativity);
+  localparam int unsigned SelIdxWidth = cc_pkg::idx_width(Cfg.SetAssociativity);
   typedef logic [SelIdxWidth-1:0]          way_sel_t; // Binary representation of the way selection
   typedef logic [Cfg.SetAssociativity-1:0] way_ind_t; // way indicator for switching decision
 
@@ -99,15 +99,15 @@ module axi_llc_ways #(
 
   // Selection signal of each unit to the ways.
   for (genvar i = 0; unsigned'(i) < 32'd4; i++) begin : gen_connect_demux
-    onehot_to_bin #(
-      .ONEHOT_WIDTH ( Cfg.SetAssociativity )
+    cc_onehot_to_bin #(
+      .OnehotWidth ( Cfg.SetAssociativity )
     ) i_onehot_to_bin (
-      .onehot ( way_inp_i[i].way_ind ),
-      .bin    ( way_sel[i]           )
+      .onehot_i ( way_inp_i[i].way_ind ),
+      .bin_o    ( way_sel[i]           )
     );
   end
 
-  stream_xbar #(
+  cc_stream_xbar #(
     .NumInp      ( 32'd4                ),
     .NumOut      ( Cfg.SetAssociativity ),
     .payload_t   ( way_inp_t            ),
@@ -118,7 +118,8 @@ module axi_llc_ways #(
   ) i_stream_xbar (
     .clk_i,
     .rst_ni,
-    .flush_i ( '0              ),
+    .clr_arb_i ( 1'b0          ),
+    .clr_i   ( '0              ),
     .rr_i    ( '0              ),
     .data_i  ( way_inp_i       ),
     .sel_i   ( way_sel         ),
@@ -160,15 +161,15 @@ module axi_llc_ways #(
 
   // SRAM has usually at least one cycle latency anyway.
   // Each way could have a read response request, and have buffer for latency.
-  fifo_v3 #(
-    .FALL_THROUGH ( 1'b0                                                 ),
-    .DEPTH        ( Cfg.SetAssociativity + axi_llc_pkg::DataMacroLatency ),
-    .dtype        ( way_ind_t                                            )
+  cc_fifo #(
+    .FallThrough ( 1'b0                                                 ),
+    .Depth       ( Cfg.SetAssociativity + axi_llc_pkg::DataMacroLatency ),
+    .data_t      ( way_ind_t                                            )
   ) i_r_switch_fifo (
     .clk_i,                                                     // Clock
     .rst_ni,                                                    // Asynchronous reset active low
+    .clr_i      ( 1'b0                                      ),
     .flush_i    ( '0                                        ),  // flush the queue
-    .testmode_i ( test_i                                    ),  // test_mode
     .full_o     ( r_switch_full                             ),  // queue is full
     .empty_o    ( r_switch_empty                            ),  // queue is empty
     .usage_o    (                                           ),  // fill pointer
@@ -177,15 +178,15 @@ module axi_llc_ways #(
     .data_o     ( r_switch                                  ),  // output data
     .pop_i      ( r_switch_pop                              )   // pop head from queue
   );
-  fifo_v3 #(
-    .FALL_THROUGH ( 1'b0                                                 ),
-    .DEPTH        ( Cfg.SetAssociativity + axi_llc_pkg::DataMacroLatency ),
-    .dtype        ( way_ind_t                                            )
+  cc_fifo #(
+    .FallThrough ( 1'b0                                                 ),
+    .Depth       ( Cfg.SetAssociativity + axi_llc_pkg::DataMacroLatency ),
+    .data_t      ( way_ind_t                                            )
   ) i_e_switch_fifo (
     .clk_i,                                                     // Clock
     .rst_ni,                                                    // Asynchronous reset active low
+    .clr_i      ( 1'b0                                      ),
     .flush_i    ( '0                                        ),  // flush the queue
-    .testmode_i ( test_i                                    ),  // test_mode
     .full_o     ( e_switch_full                             ),  // queue is full
     .empty_o    ( e_switch_empty                            ),  // queue is empty
     .usage_o    (                                           ),  // fill pointer
