@@ -4,7 +4,7 @@
 
 # Author: Thomas Benz <tbenz@iis.ee.ethz.ch>
 
-vsim -t 1ps -voptargs=+acc tb_axi_llc -logfile logs/axi_llc.vsim.log -wlf logs/axi_llc.wlf
+vsim -t 1ps -voptargs=+acc -sv_seed 1 tb_axi_llc -logfile logs/axi_llc.vsim.log -wlf logs/axi_llc.wlf
 
 set StdArithNoWarnings 1
 set NumericStdNoWarnings 1
