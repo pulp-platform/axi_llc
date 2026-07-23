@@ -229,11 +229,6 @@ package axi_llc_pkg;
   parameter int unsigned MissCntWidth     = 32'd5;
   /// Writes are counted separately. Writes have to be in order, only one counter.
   parameter int unsigned MissCntMaxWWidth = 32'd7;
-  /// This number tells us how many bits of the slave port AXI ID are used for pointing on a counter
-  /// * Translates in 2**`UseIdBits` counters inferred.
-  /// * Set this parameter to the slave port AXI ID width if you want one counter for each AXI ID.
-  parameter int unsigned UseIdBits        = 32'd4;
-
   /// This adds a spill register in the response path of the tag stroage unit.
   /// This should be used to achieve good timing characteristics in synthsis as the longest
   /// path in the design comes out of the tag storage macros.
