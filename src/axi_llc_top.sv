@@ -941,7 +941,7 @@ module axi_llc_top #(
     axi_id_width   : assert(AxiIdWidth > 32'd0) else
       $fatal(1, "Parameter `AxiIdWidth` has to be > 0!");
     axi_data_width : assert(AxiDataWidth inside {32'd8, 32'd16, 32'd32, 32'd64,
-                                                 32'd128, 32'd256, 32'd512, 32'd1028}) else
+                                                 32'd128, 32'd256, 32'd512, 32'd1024}) else
       $fatal(1, "Parameter `AxiDataWidth` has to be inside the AXI4+ATOP specification!");
     axi_user_width : assert(AxiUserWidth > 32'd0) else
       $fatal(1, "Parameter `AxiUserWidth` has to be > 0!");
