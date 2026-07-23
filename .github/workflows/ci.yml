@@ -130,7 +130,7 @@ jobs:
           path: contributions.txt
           retention-days: 7
   analyze-todos:
-    runs-on: 
+    runs-on: ubuntu-22.04
     needs: lint
     continue-on-error: true
     steps:
