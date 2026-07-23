@@ -41,7 +41,10 @@ proc run_id_width_test {name id_width lookup_bits} {
 
 run_id_width_test width1_lookup1 1 1
 run_id_width_test width2_lookup1 2 1
+run_id_width_test width3_lookup3 3 3
+run_id_width_test width5_lookup3 5 3
 run_id_width_test width6_lookup2 6 2
 run_id_width_test width6_lookup4 6 4
+run_id_width_test width6_lookup5 6 5
 
 quit -code $regression_failed -f
