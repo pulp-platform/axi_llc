@@ -17,6 +17,9 @@ module tb_axi_llc #(
   parameter int unsigned TbNumBlocks        = 32'd8,
   /// ID width of the Full AXI slave port, master port has ID `AxiIdWidthFull + 32'd1`
   parameter int unsigned TbAxiIdWidthFull   = 32'd6,
+  /// Number of low AXI ID bits used for demux tracking and miss counters.
+  parameter int unsigned TbAxiIdLookupBits  =
+      (TbAxiIdWidthFull < 32'd4) ? TbAxiIdWidthFull : 32'd4,
   /// Address width of the full AXI bus
   parameter int unsigned TbAxiAddrWidthFull = 32'd32,
   /// Data width of the full AXI bus
@@ -514,6 +517,7 @@ module tb_axi_llc #(
     .NumLines         ( TbNumLines         ),
     .NumBlocks        ( TbNumBlocks        ),
     .AxiIdWidth       ( TbAxiIdWidthFull   ),
+    .AxiIdLookupBits  ( TbAxiIdLookupBits  ),
     .AxiAddrWidth     ( TbAxiAddrWidthFull ),
     .AxiDataWidth     ( TbAxiDataWidthFull ),
     .AxiUserWidth     ( TbAxiUserWidthFull ),

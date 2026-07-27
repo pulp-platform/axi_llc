@@ -5,6 +5,8 @@
 // Author: Wolfgang Roenninger <wroennin@iis.ee.ethz.ch>
 // Date:   30.04.2019
 
+`include "common_cells/assertions.svh"
+
 /// Contains the top_level of the axi_llc with structs as AXI connections.
 /// The standard configuration is a cache size of 512KByte with a set-associativity
 /// of 8, and line length of 8 blocks, one block equals the AXI data width of the
@@ -187,7 +189,11 @@ module axi_llc_top #(
   parameter type axi_addr_t     = logic[AxiAddrWidth-1:0],
   /// Dependent parameter, do **not** overwrite!
   /// Data type of set associativity wide registers
-  parameter type way_ind_t      = logic[SetAssociativity-1:0]
+  parameter type way_ind_t      = logic[SetAssociativity-1:0],
+  /// Number of low AXI ID bits used for demux tracking and miss counters.
+  /// The number of inferred bookkeeping entries grows exponentially with this value.
+  parameter int unsigned AxiIdLookupBits =
+      (AxiIdWidth < 32'd4) ? AxiIdWidth : 32'd4
 ) (
   /// Rising-edge clock of all ports.
   input logic clk_i,
@@ -470,7 +476,7 @@ module axi_llc_top #(
     .axi_resp_t     ( slv_resp_t             ),
     .NoMstPorts     ( 32'd2                  ),
     .MaxTrans       ( axi_llc_pkg::MaxTrans  ),
-    .AxiLookBits    ( axi_llc_pkg::UseIdBits ),
+    .AxiLookBits    ( AxiIdLookupBits         ),
     .SpillAw        ( 1'b0                   ),
     .SpillW         ( 1'b0                   ),
     .SpillB         ( 1'b0                   ),
@@ -567,13 +573,14 @@ module axi_llc_top #(
   );
 
   axi_llc_hit_miss #(
-    .Cfg          ( Cfg          ),
-    .AxiCfg       ( AxiCfg       ),
-    .desc_t       ( llc_desc_t   ),
-    .lock_t       ( lock_t       ),
-    .cnt_t        ( cnt_t        ),
-    .way_ind_t    ( way_ind_t    ),
-    .PrintSramCfg ( PrintSramCfg )
+    .Cfg             ( Cfg             ),
+    .AxiCfg          ( AxiCfg          ),
+    .AxiIdLookupBits ( AxiIdLookupBits ),
+    .desc_t          ( llc_desc_t      ),
+    .lock_t          ( lock_t          ),
+    .cnt_t           ( cnt_t           ),
+    .way_ind_t       ( way_ind_t       ),
+    .PrintSramCfg    ( PrintSramCfg    )
   ) i_hit_miss_unit (
     .clk_i,
     .rst_ni,
@@ -932,6 +939,11 @@ module axi_llc_top #(
     r_chan_unit_req:    to_way_valid[axi_llc_pkg::RChanUnit] & to_way_ready[axi_llc_pkg::RChanUnit],
     default: '0
   };
+
+  `ASSERT_INIT(AxiIdLookupBitsNonZero, AxiIdLookupBits > 32'd0,
+      "AxiIdLookupBits must be greater than zero.")
+  `ASSERT_INIT(AxiIdLookupBitsValid, AxiIdLookupBits <= AxiIdWidth,
+      "AxiIdLookupBits must not exceed AxiIdWidth.")
 
 // pragma translate_off
 `ifndef VERILATOR

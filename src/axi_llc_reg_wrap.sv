@@ -189,7 +189,11 @@ module axi_llc_reg_wrap #(
   parameter type axi_addr_t     = logic[AxiAddrWidth-1:0],
   /// Dependent parameter, do **not** overwrite!
   /// Data type of set associativity wide registers
-  parameter type way_ind_t      = logic[SetAssociativity-1:0]
+  parameter type way_ind_t      = logic[SetAssociativity-1:0],
+  /// Number of low AXI ID bits used for demux tracking and miss counters.
+  /// The number of inferred bookkeeping entries grows exponentially with this value.
+  parameter int unsigned AxiIdLookupBits =
+      (AxiIdWidth < 32'd4) ? AxiIdWidth : 32'd4
 ) (
   /// Rising-edge clock of all ports.
   input logic clk_i,
@@ -264,6 +268,7 @@ module axi_llc_reg_wrap #(
     .NumLines         ( NumLines              ),
     .NumBlocks        ( NumBlocks             ),
     .AxiIdWidth       ( AxiIdWidth            ),
+    .AxiIdLookupBits  ( AxiIdLookupBits       ),
     .AxiAddrWidth     ( AxiAddrWidth          ),
     .AxiDataWidth     ( AxiDataWidth          ),
     .AxiUserWidth     ( AxiUserWidth          ),
