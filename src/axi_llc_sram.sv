@@ -157,7 +157,7 @@ module axi_llc_sram #(
   
   end else begin: gen_standard_sram
     assign gnt_o = 1'b1;
-    data_t                rdata_cmp, rdata_cmp_q;
+    data_t                rdata_cut, rdata_cut_q;
     tc_sram #(
         .NumWords   ( NumWords    ),
         .DataWidth  ( DataWidth   ),
@@ -174,26 +174,26 @@ module axi_llc_sram #(
         .addr_i  ( addr_i  ),
         .wdata_i ( wdata_i ),
         .be_i    ( be_i    ),
-        // .rdata_o ( rdata_o )
-        .rdata_o ( rdata_cmp )
+        .rdata_o ( rdata_cut )
       );
 
     shift_reg #(
-      .dtype(data_t),
-      .Depth(NumOutputCuts)
-    ) i_rdata_cmp_q (
-      .clk_i,
-      .rst_ni,
-      .d_i   (rdata_cmp),
-      .d_o   (rdata_cmp_q)
-    );
+        .dtype(data_t),
+        .Depth(NumOutputCuts)
+      ) i_rdata_cut_q (
+        .clk_i,
+        .rst_ni,
+        .d_i   (rdata_cut),
+        .d_o   (rdata_cut_q)
+      );
 
+    assign rdata_o = rdata_cut_q;
 
   // // Assertions
   // // pragma translate_off
   // `ifndef VERILATOR
   // data_cmp:  assert property ( @(posedge clk_i) disable iff (!rst_ni)
-  //     (hsk_d & ~we_i) ##(NumOutputCuts+1) 1 |-> (rdata_o == rdata_cmp_q)) else
+  //     (hsk_d & ~we_i) ##(NumOutputCuts+1) 1 |-> (rdata_o == rdata_cut_q)) else
   //     $info(1, "[data_cmp] data mismatch");
   // `endif
   // // pragma translate_on
