@@ -19,7 +19,7 @@ env:
 
 jobs:
   check-clean:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -40,7 +40,7 @@ jobs:
           make clean
           git status && test -z "$(git status --porcelain)"
   check-stale:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -60,7 +60,7 @@ jobs:
           make -B pickle doc graph regs
           git status && test -z "$(git status --porcelain)"
   lint:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: [check-clean, check-stale]
     strategy:
       fail-fast: false
@@ -83,7 +83,7 @@ jobs:
         if: ${{ matrix.lint_check == 'python' }}
         run: scripts/python-lint
   lint-commit:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: [check-clean, check-stale]
     steps:
       - uses: actions/checkout@v4
@@ -117,7 +117,7 @@ jobs:
   #         reviewdog_reporter: github-check
 
   analyze-contributors:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: lint
     steps:
       - uses: actions/checkout@v4
@@ -130,7 +130,7 @@ jobs:
           path: contributions.txt
           retention-days: 7
   analyze-todos:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: lint
     continue-on-error: true
     steps:

@@ -3,4 +3,4 @@
 # Solderpad Hardware License, Version 0.51, see LICENSE for details.
 # SPDX-License-Identifier: SHL-0.51
 
-bin/axi_llc.vcs +vcs+lic+wait | tee logs/axi_llc.vcs.log
+bin/axi_llc.vcs +vcs+lic+wait +ntb_random_seed=1 | tee logs/axi_llc.vcs.log

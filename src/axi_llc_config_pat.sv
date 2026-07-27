@@ -766,29 +766,32 @@ module axi_llc_config_pat #(
         // This state determines which cache way should be flushed
         // it also sets up the counters for state-keeping how far
         // the flush operation has progressed
-        // define if the user requested a flush       
         end else if (|conf_regs_i.cfg_flush) begin
           to_flush_d              = conf_regs_i.cfg_flush & ~conf_regs_i.flushed;
           index_based_flush_d = 1'b0; //meaning that the current flush operation is way-based
           if (to_flush_d == '0) begin
             // nothing to flush, go to idle
             flush_state_d = FsmIdle;
-            
+
             conf_regs_o.cfg_flush = set_asso_t'(1'b0);
+            // reset the flushed register to SPM.
+            conf_regs_o.flushed     = conf_regs_i.cfg_spm;
+            conf_regs_o.flushed_en  = 1'b1;
           end else begin
             flush_state_d = FsmSendFlush;
             load_cnt      = 1'b1;
           end
         end else begin
           to_flush_d              = conf_regs_i.cfg_spm & ~conf_regs_i.flushed;
-          conf_regs_o.flushed     = conf_regs_i.cfg_spm & conf_regs_i.flushed;
-          conf_regs_o.flushed_en  = 1'b1;
           index_based_flush_d = 1'b0; //meaning that the current flush operation is way-based
           if (to_flush_d == '0) begin
             // nothing to flush, go to idle
             flush_state_d = FsmIdle;
-            
+
             conf_regs_o.cfg_flush = set_asso_t'(1'b0);
+            // reset the flushed register to SPM.
+            conf_regs_o.flushed     = conf_regs_i.cfg_spm;
+            conf_regs_o.flushed_en  = 1'b1;
           end else begin
             flush_state_d = FsmSendFlush;
             load_cnt      = 1'b1;

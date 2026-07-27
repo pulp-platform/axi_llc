@@ -58,7 +58,9 @@ module axi_llc_hit_miss #(
   /// Cache partition table
   parameter type                       partition_table_t = logic,
   /// Whether to print SRAM configs
-  parameter bit                        PrintSramCfg   = 0
+  parameter bit                        PrintSramCfg   = 0,
+  /// Number of low AXI ID bits used for miss counters.
+  parameter int unsigned               AxiIdLookupBits = 32'd0
 ) (
   /// Clock, positive edge triggered.
   input  logic     clk_i,
@@ -400,8 +402,9 @@ module axi_llc_hit_miss #(
   assign cnt_up.valid = ~desc_o.flush & miss_valid_o & miss_ready_i;
 
   axi_llc_miss_counters #(
-    .Cfg     ( Cfg    ),
-    .cnt_t   ( cnt_t  )
+    .Cfg             ( Cfg             ),
+    .AxiIdLookupBits ( AxiIdLookupBits ),
+    .cnt_t           ( cnt_t           )
   ) i_miss_counters (
     .clk_i      (      clk_i ),
     .rst_ni     (     rst_ni ),

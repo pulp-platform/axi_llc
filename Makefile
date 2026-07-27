@@ -6,6 +6,7 @@
 
 BENDER ?= bender
 PYTHON ?= python3
+VSIM   ?= vsim
 
 REGGEN_PATH  = $(shell $(BENDER) path register_interface)/vendor/lowrisc_opentitan/util/regtool.py
 REGGEN	     = $(PYTHON) $(REGGEN_PATH)
@@ -40,6 +41,7 @@ help:
 	@echo "-------------"
 	@echo ""
 	@echo "bin/axi_llc.vcs:                   creates the VCS executable"
+	@echo "sim_id_widths:                     simulates representative AXI ID lookup widths"
 	@echo "pickle:                            uses morty to generate a pickled version of the hardware"
 	@echo "doc:                               generates the documentation in doc/morty"
 	@echo "graph:                             generates the module hierarchy graph in doc/morty-graph"
@@ -75,7 +77,7 @@ set_partition_config:
 # QuestaSim
 # --------------
 
-.PHONY: sim_clean
+.PHONY: sim_id_widths sim_clean
 
 VLOG_ARGS += -suppress vlog-2583 -suppress vlog-13314 -suppress vlog-13233 -timescale \"1 ns / 1 ps\"
 
@@ -87,6 +89,9 @@ endef
 
 scripts/compile_vsim.tcl: Bender.yml
 	$(call generate_vsim, $@, -t rtl -t test,..)
+
+sim_id_widths: scripts/compile_vsim.tcl
+	$(VSIM) -c -do "source scripts/compile_vsim.tcl; source scripts/test_id_widths_vsim.tcl"
 
 sim_clean:
 	rm -rf scripts/compile_vsim.tcl

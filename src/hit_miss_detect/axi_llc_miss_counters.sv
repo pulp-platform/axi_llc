@@ -19,7 +19,9 @@ module axi_llc_miss_counters #(
   ///   logic        rw;        // 0:read, 1:write
   ///   logic        valid;     // valid, equals enable of the counter
   /// } cnt_t;
-  parameter type cnt_t  = logic
+  parameter type cnt_t  = logic,
+  /// Number of low AXI ID bits used to select a miss counter.
+  parameter int unsigned AxiIdLookupBits = 32'd0
 ) (
   /// Clock, positive edge triggered.
   input  logic clk_i,
@@ -34,7 +36,7 @@ module axi_llc_miss_counters #(
   /// One of the counters is overflowing, stall descriptor!
   output logic stall_o
 );
-  localparam int unsigned NoCounters = 2**axi_llc_pkg::UseIdBits;
+  localparam int unsigned NoCounters = 2**AxiIdLookupBits;
   // stall signal for each counter (no minus 1, because the write counter is extra )
   logic [NoCounters:0]   stall;
   logic [NoCounters-1:0] en;
@@ -55,12 +57,12 @@ module axi_llc_miss_counters #(
       en[i]     = 1'b0;
       down[i]   = 1'b0;
       // we should count up
-      if ((cnt_up_i.id[0+:axi_llc_pkg::UseIdBits] == i) && cnt_up_i.valid) begin
+      if ((cnt_up_i.id[0+:AxiIdLookupBits] == i) && cnt_up_i.valid) begin
         en[i]   = 1'b1;
       end
 
       // we should count down, or do nothing, if we are already counting up
-      if ((cnt_down_i.id[0+:axi_llc_pkg::UseIdBits] == i) && cnt_down_i.valid) begin
+      if ((cnt_down_i.id[0+:AxiIdLookupBits] == i) && cnt_down_i.valid) begin
         if (en[i] == 1'b1) begin
           en[i]   = 1'b0;
         end else begin
@@ -69,7 +71,7 @@ module axi_llc_miss_counters #(
         end
       end
       // do we have to send the descriptor to the miss pipeline?
-      if (cnt_up_i.id[0+:axi_llc_pkg::UseIdBits] == i) begin
+      if (cnt_up_i.id[0+:AxiIdLookupBits] == i) begin
         // first check the counter mapped to the id
         to_miss_o = |q_miss[i];
         // if it is a write also check if there are other writes in the miss pipeline
