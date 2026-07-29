@@ -23,7 +23,7 @@ package axi_llc_pkg;
   /// Version parameter, can be read out from configuration port.
   ///
   /// This is ASCII encoded after the semantic versioning: `vAA.BB.C`
-  parameter logic [63:0] AxiLlcVersion = 64'h7630_302E_3032_2E31;
+  parameter logic [63:0] AxiLlcVersion = 64'h7630_302E_3033_2E30;
 
   /// Cache configuration, used internally as localparam in the LLC submodules.
   /// Automatically set in (module.axi_llc_top).
