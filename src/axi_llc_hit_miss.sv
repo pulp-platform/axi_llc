@@ -101,6 +101,8 @@ module axi_llc_hit_miss #(
   localparam int unsigned IndexBase = Cfg.ByteOffsetLength + Cfg.BlockOffsetLength;
   localparam int unsigned TagBase   = Cfg.ByteOffsetLength + Cfg.BlockOffsetLength +
                                       Cfg.IndexLength;
+  // Pick the base here to keep part-selects in bounds
+  localparam int unsigned TagSliceBase = CachePartition ? IndexBase : TagBase;
 
   // Type definitions for the requests and responses to/from the tag storage
       // typedef logic [Cfg.SetAssociativity-1:0] way_ind_t;
@@ -268,7 +270,7 @@ module axi_llc_hit_miss #(
                           mode:      desc_temp.flush ? axi_llc_pkg::Flush : axi_llc_pkg::Lookup,
                           indicator: desc_temp.flush ? desc_temp.way_ind     : ~flushed_i,
                           index:     desc_temp.flush ? desc_temp.a_x_addr[IndexBase+:Cfg.IndexLength] : desc_temp.index_partition,
-                          tag:       desc_temp.flush ? tag_t'(0)          : desc_temp.a_x_addr[IndexBase+:Cfg.TagLength],
+                          tag:       desc_temp.flush ? tag_t'(0)          : desc_temp.a_x_addr[TagSliceBase+:Cfg.TagLength],
                           dirty:     desc_temp.rw,
                           default:   '0
                         };
@@ -278,7 +280,7 @@ module axi_llc_hit_miss #(
                           mode:      desc_temp.flush ? axi_llc_pkg::Flush : axi_llc_pkg::Lookup,
                           indicator: desc_temp.flush ? desc_temp.way_ind     : ~flushed_i,
                           index:     desc_temp.a_x_addr[IndexBase+:Cfg.IndexLength],
-                          tag:       desc_temp.flush ? tag_t'(0)          : desc_temp.a_x_addr[TagBase+:Cfg.TagLength],
+                          tag:       desc_temp.flush ? tag_t'(0)          : desc_temp.a_x_addr[TagSliceBase+:Cfg.TagLength],
                           dirty:     desc_temp.rw,
                           default:   '0
                         };
@@ -327,7 +329,7 @@ module axi_llc_hit_miss #(
                 mode:      desc_temp.flush ? axi_llc_pkg::Flush : axi_llc_pkg::Lookup,
                 indicator: desc_temp.flush ? desc_temp.way_ind  : ~flushed_i,
                 index:     desc_temp.flush ? desc_temp.a_x_addr[IndexBase+:Cfg.IndexLength] : desc_temp.index_partition,
-                tag:       desc_temp.flush ? tag_t'(0)          : desc_temp.a_x_addr[IndexBase+:Cfg.TagLength],
+                tag:       desc_temp.flush ? tag_t'(0)          : desc_temp.a_x_addr[TagSliceBase+:Cfg.TagLength],
                 dirty:     desc_temp.rw,
                 default:   '0
               };
@@ -337,7 +339,7 @@ module axi_llc_hit_miss #(
                 mode:      desc_temp.flush ? axi_llc_pkg::Flush : axi_llc_pkg::Lookup,
                 indicator: desc_temp.flush ? desc_temp.way_ind  : ~flushed_i,
                 index:     desc_temp.a_x_addr[IndexBase+:Cfg.IndexLength],
-                tag:       desc_temp.flush ? tag_t'(0)          : desc_temp.a_x_addr[TagBase+:Cfg.TagLength],
+                tag:       desc_temp.flush ? tag_t'(0)          : desc_temp.a_x_addr[TagSliceBase+:Cfg.TagLength],
                 dirty:     desc_temp.rw,
                 default:   '0
               };
