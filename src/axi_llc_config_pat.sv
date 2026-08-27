@@ -763,31 +763,17 @@ module axi_llc_config_pat #(
             flush_state_d = FsmSendFlush;
             load_cnt_set      = 1'b1;
           end
-        // This state determines which cache way should be flushed
+        // this state determines which cache way should be flushed
         // it also sets up the counters for state-keeping how far
         // the flush operation has progressed
-        end else if (|conf_regs_i.cfg_flush) begin
-          to_flush_d              = conf_regs_i.cfg_flush & ~conf_regs_i.flushed;
-          index_based_flush_d = 1'b0; //meaning that the current flush operation is way-based
-          if (to_flush_d == '0) begin
-            // nothing to flush, go to idle
-            flush_state_d = FsmIdle;
-
-            conf_regs_o.cfg_flush = set_asso_t'(1'b0);
-            // reset the flushed register to SPM.
-            conf_regs_o.flushed     = conf_regs_i.cfg_spm;
-            conf_regs_o.flushed_en  = 1'b1;
-          end else begin
-            flush_state_d = FsmSendFlush;
-            load_cnt      = 1'b1;
-          end
         end else begin
-          to_flush_d              = conf_regs_i.cfg_spm & ~conf_regs_i.flushed;
+          to_flush_d              = (conf_regs_i.cfg_flush | conf_regs_i.cfg_spm) & ~conf_regs_i.flushed;
           index_based_flush_d = 1'b0; //meaning that the current flush operation is way-based
+          // now determine if we have something to do at all
           if (to_flush_d == '0) begin
             // nothing to flush, go to idle
             flush_state_d = FsmIdle;
-
+            // clear the cfg_flush register.
             conf_regs_o.cfg_flush = set_asso_t'(1'b0);
             // reset the flushed register to SPM.
             conf_regs_o.flushed     = conf_regs_i.cfg_spm;
@@ -859,7 +845,7 @@ module axi_llc_config_pat #(
             // reset the flushed register to SPM as new requests can enter the cache
             for (int unsigned i = 0; i < num_set_flush_reg; i++) begin
                 conf_regs_o.flushed_set[i]    = 64'b0;
-                conf_regs_o.flushed_set_en[i] = 1'b1; 
+                conf_regs_o.flushed_set_en[i] = 1'b1;
             end
             to_flush_set_d              = set_t'(1'b0);
             // Reset the `CfgFlushPartition` register to -1, load enable is default '1
