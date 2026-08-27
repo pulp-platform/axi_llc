@@ -82,7 +82,7 @@ module axi_llc_miss_counters #(
     end
   end
   // assignment of the inputs to the write counter
-  // this assignment was calculated using a karnot diagramm
+  // this assignment was calculated using a Karnaugh map
   assign en_w = ( ~cnt_up_i.rw     & cnt_down_i.rw  &   cnt_down_i.valid ) |
                 ( ~cnt_up_i.valid  & cnt_down_i.rw  &   cnt_down_i.valid ) |
                 (  cnt_up_i.rw     & cnt_up_i.valid &  ~cnt_down_i.rw    ) |

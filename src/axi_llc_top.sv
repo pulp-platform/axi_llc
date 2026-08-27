@@ -950,7 +950,7 @@ endgenerate
     .mst_resp_i  ( mst_resp_i                 )
   );
 
-  // Events output track successfull handshakes at different `axi_llc` units.
+  // Events output track successful handshakes at different `axi_llc` units.
   // Function definition see `axi_llc_pkg`.
   assign axi_llc_events_o = axi_llc_pkg::events_t'{
     aw_slv_transfer:    axi_llc_pkg::event_num_bytes(
