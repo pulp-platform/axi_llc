@@ -11,7 +11,7 @@
 /// onto a cache line
 /// It computes the remaining channel struct, all remaining parts of the burst
 /// which map onto other cache lines
-/// This module further caclulates the exact data way where an spm access will go to.
+/// This module further calculates the exact data way where an spm access will go to.
 module axi_llc_burst_cutter #(
   /// LLC configuration struct, with static parameters.
   parameter axi_llc_pkg::llc_cfg_t     Cfg    = axi_llc_pkg::llc_cfg_t'{default: '0},
