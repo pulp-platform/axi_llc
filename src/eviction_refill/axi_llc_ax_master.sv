@@ -35,19 +35,19 @@ module axi_llc_ax_master #(
   /// AR channel: axi_llc_pkg::RefilUnit
   parameter axi_llc_pkg::cache_unit_e  cache_unit = axi_llc_pkg::EvictUnit
 ) (
-  /// Clock, poitive edge triggered.
+  /// Clock, positive edge triggered.
   input logic clk_i,
   /// Asynchronous reset, active low.
   input logic rst_ni,
-  /// Input descripor payload.
+  /// Input descriptor payload.
   input desc_t desc_i,
   /// Input descriptor is valid.
   input logic desc_valid_i,
   /// `axi_llc_ax_master` is ready to accept an descriptor.
   output logic desc_ready_o,
-  /// Output descriptor paylaod.
+  /// Output descriptor payload.
   output desc_t desc_o,
-  /// Output descripor is valid .
+  /// Output descriptor is valid .
   output logic desc_valid_o,
   /// Next unit is ready to accept the output descriptor.
   input logic desc_ready_i,

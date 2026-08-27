@@ -48,7 +48,7 @@ package axi_llc_pkg;
     int unsigned SPMLength;
   } llc_cfg_t;
 
-  /// Number of bytes transfered in an Ax transfer. Is used in `evens_t`. There they correspond to
+  /// Number of bytes transferred in an Ax transfer. Is used in `evens_t`. There they correspond to
   /// the fields labeled `*_num_bytes`. They are valid if the corresponding `active` field is `1`
   /// Can be used for bandwidth estimation.
   typedef struct packed {
@@ -57,7 +57,7 @@ package axi_llc_pkg;
     /// The `event_num_bytes` is valid/active.
     ///
     /// This corresponds to either a descriptor being handed from one LLC unit to another, or
-    /// an AXI Ax vector being transfered within the LLC.
+    /// an AXI Ax vector being transferred within the LLC.
     logic        active;
   } event_num_bytes_t;
 
@@ -229,7 +229,7 @@ package axi_llc_pkg;
   parameter int unsigned MissCntWidth     = 32'd5;
   /// Writes are counted separately. Writes have to be in order, only one counter.
   parameter int unsigned MissCntMaxWWidth = 32'd7;
-  /// This adds a spill register in the response path of the tag stroage unit.
+  /// This adds a spill register in the response path of the tag storage unit.
   /// This should be used to achieve good timing characteristics in synthsis as the longest
   /// path in the design comes out of the tag storage macros.
   /// `0`: no spill register

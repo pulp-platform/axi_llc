@@ -10,7 +10,7 @@
 /// `axi_llc_pkg::Bist`:
 ///   The pattern gets written or read to all macros, BIST resulte gets activated
 /// `axi_llc_pkg::Flush`:
-///   Perform a way trageted eviction, the tag is written in with all zero.
+///   Perform a way targeted eviction, the tag is written in with all zero.
 /// `axi_llc_pkg::Lookup`:
 ///   Perform a tag lookup in all non SPM ways, hit/eviction gets set if needed.
 ///   Writes the tag into the macro if needed.

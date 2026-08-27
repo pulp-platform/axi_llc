@@ -463,7 +463,7 @@ module tb_axi_llc #(
       // in the scoreboard of the memory and X in the CPU memory.
       if (cpu_byte !== 8'hxx) begin
         assert (cpu_byte === mem_byte) /*$display("Pass addr: %h", compare_addr);*/ else
-          $error("At addr: %h differeing memory values are encoutered! \n CPU: %h \n MEM: %h",
+          $error("At addr: %h differing memory values are encountered! \n CPU: %h \n MEM: %h",
               compare_addr, cpu_byte, mem_byte);
       end
       compare_addr++;
