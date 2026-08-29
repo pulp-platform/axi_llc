@@ -71,6 +71,10 @@ module axi_llc_write_unit #(
 );
   `include "common_cells/registers.svh"
   typedef logic [AxiCfg.AddrWidthFull-1:0] addr_t;
+  // line offset is the index where we are interested in, or where the line index starts
+  localparam int unsigned LineOffset = Cfg.ByteOffsetLength + Cfg.BlockOffsetLength;
+  typedef logic [LineOffset-1:0]           lofs_t;
+
   // flip flops
   desc_t         desc_d,      desc_q;
   logic          busy_d,      busy_q;
@@ -122,6 +126,10 @@ module axi_llc_write_unit #(
     way_ind: desc_q.way_ind
   };
 
+  // static cast of transaction size in bytes
+  addr_t          a_x_bytes;
+  assign a_x_bytes = addr_t'(axi_pkg::num_bytes(desc_q.a_x_size));
+
   // unit control
   always_comb begin
     desc_d           = desc_q;
@@ -169,10 +177,16 @@ module axi_llc_write_unit #(
             load_desc      = 1'b1;
             desc_d.a_x_len = desc_q.a_x_len - axi_pkg::len_t'(1);
             // update the address when necessary
-            if (desc_q.a_x_burst != axi_pkg::BURST_FIXED) begin
-              desc_d.a_x_addr = axi_pkg::aligned_addr(desc_q.a_x_addr +
-                                    axi_pkg::num_bytes(desc_q.a_x_size), desc_q.a_x_size);
-            end
+            unique case (desc_q.a_x_burst)
+              axi_pkg::BURST_INCR: begin // update the address
+                desc_d.a_x_addr = axi_pkg::aligned_addr(desc_q.a_x_addr + a_x_bytes, desc_q.a_x_size);
+              end
+              axi_pkg::BURST_WRAP: begin // update the address (inside current burst)
+                // AXI4 spec requires already aligned address for BURST_WRAP
+                desc_d.a_x_addr[LineOffset -1:0] = desc_q.a_x_addr[LineOffset -1:0] + lofs_t'(a_x_bytes);
+              end
+              default: ; // Do nothing
+            endcase
           end
         end
 
