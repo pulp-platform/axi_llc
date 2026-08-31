@@ -499,23 +499,12 @@ module axi_llc_config #(
         end
       end
       FsmEndFlush: begin
-        // this state decides, if we have other ways to flush, or if we can go back to idle
+        // this state updates the set of ways we have flushed. if we have
+        // flushed all the ways, then FsmInitFlush will continue to FsmIdle.
         clear_cnt = 1'b1;
-        if (to_flush_q == flush_way_ind) begin
-          flush_state_d = FsmIdle;
-          // reset the flushed register to SPM as new requests can enter the cache
-          conf_regs_o.flushed     = spm_lock_q;
-          conf_regs_o.flushed_en  = 1'b1;
-          to_flush_d    = set_asso_t'(1'b0);
-          // Clear the `CfgFlush` register, load enable is default '1
-          conf_regs_o.cfg_flush = set_asso_t'(1'b0);
-          conf_regs_o.cfg_flush_en = 1'b1;
-        end else begin
-          // there are still ways to flush
-          flush_state_d = FsmInitFlush;
-          conf_regs_o.flushed     = conf_regs_i.flushed | flush_way_ind;
-          conf_regs_o.flushed_en  = 1'b1;
-        end
+        flush_state_d = FsmInitFlush;
+        conf_regs_o.flushed     = conf_regs_i.flushed | flush_way_ind;
+        conf_regs_o.flushed_en  = 1'b1;
       end
       FsmPreInit: begin
         // The state machine starts in this state. It remains in this state until the
