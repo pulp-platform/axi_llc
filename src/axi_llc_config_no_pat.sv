@@ -274,7 +274,7 @@ module axi_llc_config_no_pat #(
   // register macros from `common_cells`
   `include "common_cells/registers.svh"
 
-  // Type for the Set Associativity puls padding
+  // Type for the Set Associativity plus padding
   localparam int unsigned SetAssoPadWidth = RegWidth - Cfg.SetAssociativity;
    
   localparam int unsigned FlushIdxWidth = cc_pkg::idx_width(Cfg.SetAssociativity);
@@ -284,7 +284,7 @@ module axi_llc_config_no_pat #(
   logic                       clear_cnt;
   logic                       en_send_cnt, en_recv_cnt;
   logic                       load_cnt;
-  logic [Cfg.IndexLength-1:0] flush_addr,  to_recieve;
+  logic [Cfg.IndexLength-1:0] flush_addr,  to_receive;
   // Trailing zero counter signals, for flush descriptor generation.
   flush_idx_t                 to_flush_nub;
   logic                       lzc_empty;
@@ -483,7 +483,7 @@ module axi_llc_config_no_pat #(
       FsmWaitFlush : begin
         // this state waits till all flush operations have exited the cache, then `FsmEndFlush`
         if (flush_desc_recv_i) begin
-          if(to_recieve == {Cfg.IndexLength{1'b0}}) begin
+          if(to_receive == {Cfg.IndexLength{1'b0}}) begin
             flush_state_d = FsmEndFlush;
           end else begin
             en_recv_cnt = 1'b1;
@@ -589,7 +589,7 @@ module axi_llc_config_no_pat #(
     .load_i     ( load_cnt                ),
     .down_i     ( 1'b1                    ),
     .d_i        ( {Cfg.IndexLength{1'b1}} ),
-    .q_o        ( to_recieve              ),
+    .q_o        ( to_receive              ),
     .overflow_o ( /*not used*/            )
   );
 
