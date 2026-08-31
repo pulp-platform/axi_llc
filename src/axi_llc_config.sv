@@ -447,7 +447,7 @@ module axi_llc_config #(
         // this state determines which cache way should be flushed
         // it also sets up the counters for state-keeping how far
         // the flush operation has progressed
-        to_flush_d = (conf_regs_i.cfg_flush | conf_regs_i.cfg_spm) & ~conf_regs_i.flushed;
+        to_flush_d = (conf_regs_i.cfg_flush | spm_lock_q) & ~conf_regs_i.flushed;
         // now determine if we have something to do at all
         if (to_flush_d == '0) begin
           // nothing to flush, go to idle
@@ -456,7 +456,7 @@ module axi_llc_config #(
           conf_regs_o.cfg_flush = set_asso_t'(1'b0);
           conf_regs_o.cfg_flush_en = 1'b1;
           // reset the flushed register to SPM.
-          conf_regs_o.flushed     = conf_regs_i.cfg_spm;
+          conf_regs_o.flushed     = spm_lock_q;
           conf_regs_o.flushed_en  = 1'b1;
         end else begin
           flush_state_d = FsmSendFlush;
@@ -496,7 +496,7 @@ module axi_llc_config #(
         if (to_flush_q == flush_way_ind) begin
           flush_state_d = FsmIdle;
           // reset the flushed register to SPM as new requests can enter the cache
-          conf_regs_o.flushed     = conf_regs_i.cfg_spm;
+          conf_regs_o.flushed     = spm_lock_q;
           conf_regs_o.flushed_en  = 1'b1;
           to_flush_d    = set_asso_t'(1'b0);
           // Clear the `CfgFlush` register, load enable is default '1
