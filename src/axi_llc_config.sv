@@ -427,6 +427,9 @@ module axi_llc_config #(
           conf_regs_o.commit_cfg      = 1'b0;   // Clear the commit configuration flag
           conf_regs_o.commit_cfg_en   = 1'b1;
           flush_state_d               = FsmWaitAx;
+          // Capture software's requested flush ways here, in case they change
+          // it out from under us later.
+          to_flush_d = conf_regs_i.cfg_flush;
         end
       end
       FsmWaitAx: begin
@@ -441,13 +444,18 @@ module axi_llc_config #(
           flush_state_d = FsmInitFlush;
           // Now that AXI is free and splitters are empty, update hardware config
           spm_lock_d = conf_regs_i.cfg_spm;
+          // Also flush the new SPM configuration using the same value. Note
+          // that the old SPM  configuration, stored in conf_regs_i.flushed
+          // will be excluded in FsmInitFlush.
+          to_flush_d = to_flush_q | conf_regs_i.cfg_spm;
         end
       end
       FsmInitFlush: begin
         // this state determines which cache way should be flushed
         // it also sets up the counters for state-keeping how far
-        // the flush operation has progressed
-        to_flush_d = (conf_regs_i.cfg_flush | spm_lock_q) & ~conf_regs_i.flushed;
+        // the flush operation has progressed. to_flush_q is input into the lzc
+        // and gives us the 'way_ind' variable.
+        to_flush_d = to_flush_q & ~conf_regs_i.flushed;
         // now determine if we have something to do at all
         if (to_flush_d == '0) begin
           // nothing to flush, go to idle
