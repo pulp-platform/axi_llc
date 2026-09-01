@@ -17,8 +17,6 @@ module axi_llc_read_unit #(
   parameter axi_llc_pkg::llc_cfg_t Cfg = axi_llc_pkg::llc_cfg_t'{default: 0},
   /// Static LLC AXI configuration parameters.
   parameter axi_llc_pkg::llc_axi_cfg_t AxiCfg = axi_llc_pkg::llc_axi_cfg_t'{default: '0},
-  /// Cache partitioning enabling parameter
-  parameter logic CachePartition              = 1,
   /// LLC descriptor type definition.
   parameter type                       desc_t    = logic,
   /// Data way request payload type definition.
@@ -100,13 +98,13 @@ module axi_llc_read_unit #(
   logic           meta_fifo_pop;
 
   // way_inp assignments
-  // Cache-Partition: use new index from descripter
+  // Cache-Partition: use new index from descriptor
   assign way_inp_o = '{
     cache_unit: axi_llc_pkg::RChanUnit,
     way_ind:    desc_q.way_ind,
     // line_addr:  desc_q.index_partition,
-    line_addr:  CachePartition ? desc_q.index_partition : 
-                                 desc_q.a_x_addr[(Cfg.ByteOffsetLength + Cfg.BlockOffsetLength)+:Cfg.IndexLength],
+    line_addr:  Cfg.CachePartition ? desc_q.index_partition :
+                                     desc_q.a_x_addr[(Cfg.ByteOffsetLength + Cfg.BlockOffsetLength)+:Cfg.IndexLength],
     blk_offset: desc_q.a_x_addr[ Cfg.ByteOffsetLength +: Cfg.BlockOffsetLength],
     default: '0
   }; // other fields not needed, `we` is `1'b0.
@@ -114,8 +112,8 @@ module axi_llc_read_unit #(
   // unlock assignment
   assign r_unlock_o = '{
     // index:   desc_q.index_partition,
-    index:   CachePartition ? desc_q.index_partition : 
-                              desc_q.a_x_addr[(Cfg.ByteOffsetLength + Cfg.BlockOffsetLength)+:Cfg.IndexLength],
+    index:   Cfg.CachePartition ? desc_q.index_partition :
+                                  desc_q.a_x_addr[(Cfg.ByteOffsetLength + Cfg.BlockOffsetLength)+:Cfg.IndexLength],
     way_ind: desc_q.way_ind
   };
 

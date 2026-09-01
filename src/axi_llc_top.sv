@@ -158,7 +158,7 @@ module axi_llc_top #(
   /// The same restriction as of parameter `NumLines` applies.
   parameter int unsigned NumBlocks       = 32'd0,
   /// Cache partitioning enabling parameter, bool type.
-  parameter logic        CachePartition  = 1,
+  parameter logic        CachePartition  = 0,
   /// Max. number of partitions supported for partitioning.
   ///
   /// Restrictions:
@@ -297,7 +297,10 @@ module axi_llc_top #(
     IndexLength       : unsigned'($clog2(NumLines)),
     BlockOffsetLength : unsigned'($clog2(NumBlocks)),
     ByteOffsetLength  : unsigned'($clog2(AxiCfg.DataWidthFull / 32'd8)),
-    SPMLength         : SetAssociativity * NumLines * NumBlocks * (AxiCfg.DataWidthFull / 32'd8)
+    SPMLength         : SetAssociativity * NumLines * NumBlocks * (AxiCfg.DataWidthFull / 32'd8),
+    CachePartition    : CachePartition,
+    MaxPartition      : MaxPartition,
+    RemapHash         : RemapHash
   };
 
   typedef struct packed {
@@ -564,7 +567,7 @@ generate
     );
   end
 endgenerate
-  
+
 
   // Isolation module before demux to easy flushing,
   // AXI requests get stalled while flush is active
@@ -619,9 +622,6 @@ endgenerate
   axi_llc_chan_splitter #(
     .Cfg    ( Cfg           ),
     .AxiCfg ( AxiCfg        ),
-    .CachePartition ( CachePartition      ),
-    .MaxPartition   ( MaxPartition        ),
-    .RemapHash      ( RemapHash           ),
     .chan_t ( slv_aw_chan_t ),
     .Write  ( 1'b1          ),
     .desc_t ( llc_desc_t    ),
@@ -647,9 +647,6 @@ endgenerate
   axi_llc_chan_splitter #(
     .Cfg               ( Cfg               ),
     .AxiCfg            ( AxiCfg            ),
-    .CachePartition    ( CachePartition    ),
-    .MaxPartition      ( MaxPartition      ),
-    .RemapHash         ( RemapHash         ),
     .chan_t            ( slv_ar_chan_t     ),
     .Write             ( 1'b0              ),
     .desc_t            ( llc_desc_t        ),
@@ -708,8 +705,6 @@ endgenerate
     .Cfg               ( Cfg               ),
     .AxiCfg            ( AxiCfg            ),
     .AxiIdLookupBits   ( AxiIdLookupBits   ),
-    .CachePartition    ( CachePartition    ),
-    .RemapHash         ( RemapHash         ),
     .desc_t            ( llc_desc_t        ),
     .lock_t            ( lock_t            ),
     .cnt_t             ( cnt_t             ),
@@ -746,7 +741,6 @@ endgenerate
   axi_llc_evict_unit #(
     .Cfg            ( Cfg            ),
     .AxiCfg         ( AxiCfg         ),
-    .CachePartition ( CachePartition ),
     .desc_t         ( llc_desc_t     ),
     .way_inp_t      ( way_inp_t      ),
     .way_oup_t      ( way_oup_t      ),
@@ -785,7 +779,6 @@ endgenerate
   axi_llc_refill_unit #(
     .Cfg            ( Cfg            ),
     .AxiCfg         ( AxiCfg         ),
-    .CachePartition ( CachePartition ),
     .desc_t         ( llc_desc_t     ),
     .way_inp_t      ( way_inp_t      ),
     .ar_chan_t      ( slv_ar_chan_t  ),
@@ -838,7 +831,6 @@ endgenerate
   axi_llc_write_unit #(
     .Cfg            ( Cfg            ),
     .AxiCfg         ( AxiCfg         ),
-    .CachePartition ( CachePartition ),
     .desc_t         ( llc_desc_t     ),
     .way_inp_t      ( way_inp_t      ),
     .lock_t         ( lock_t         ),
@@ -869,7 +861,6 @@ endgenerate
   axi_llc_read_unit #(
     .Cfg            ( Cfg            ),
     .AxiCfg         ( AxiCfg         ),
-    .CachePartition ( CachePartition ),
     .desc_t         ( llc_desc_t     ),
     .way_inp_t      ( way_inp_t      ),
     .way_oup_t      ( way_oup_t      ),

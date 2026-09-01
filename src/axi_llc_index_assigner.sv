@@ -12,8 +12,6 @@ module axi_llc_index_assigner #(
   parameter axi_llc_pkg::llc_cfg_t   Cfg       = axi_llc_pkg::llc_cfg_t'{default: '0},
   /// Type for pat_size_i and share_size_i
   parameter type partition_size_t              = logic,
-  /// Index remapping hash function used in cache partitioning
-  parameter axi_llc_pkg::algorithm_e RemapHash = axi_llc_pkg::Modulo,
   /// Type for start_index_i, share_index_i and index_partition_o
   parameter type index_t                       = logic,
   /// AXI AW or AR channel struct definition.
@@ -60,7 +58,7 @@ module axi_llc_index_assigner #(
     size        = (pat_size_i == 0) ? share_size_i  : pat_size_i;
     start_index = (pat_size_i == 0) ? share_index_i : start_index_i;
 
-    case (RemapHash)
+    case (Cfg.RemapHash)
       axi_llc_pkg::Modulo: begin
         index_partition_o = index_i % size + start_index;
       end
