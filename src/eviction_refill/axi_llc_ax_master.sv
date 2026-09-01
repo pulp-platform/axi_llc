@@ -26,8 +26,6 @@ module axi_llc_ax_master #(
   ///
   /// Required struct definition in: `axi_llc_pkg`.
   parameter axi_llc_pkg::llc_axi_cfg_t AxiCfg = axi_llc_pkg::llc_axi_cfg_t'{default: '0},
-  /// Cache partitioning enabling parameter
-  parameter logic CachePartition              = 1,
   /// AXI LLC descriptor type definition,
   parameter type desc_t = logic,
   /// AXI master port Ax channel type definition.
@@ -92,7 +90,7 @@ module axi_llc_ax_master #(
   localparam int AddrOffset = Cfg.BlockOffsetLength + Cfg.ByteOffsetLength;
 
   generate
-    if(CachePartition) begin
+    if(Cfg.CachePartition) begin
       assign evict_addr  = {desc_i.evict_tag, {AddrOffset{1'b0}}};
       assign refill_addr = {desc_i.a_x_addr[AddrOffset+:Cfg.TagLength], {AddrOffset{1'b0}}};
     end else begin
