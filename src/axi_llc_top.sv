@@ -462,14 +462,26 @@ module axi_llc_top #(
   end
 
   always_comb begin
-    to_isolate_req = slv_req_i;
-    slv_resp_o = to_isolate_resp;
-
-    to_isolate_req.aw.user = '0;
-    to_isolate_req.aw.user[AxiUserIdMsb-AxiUserIdLsb:0] = slv_req_i.aw.user[AxiUserIdMsb:AxiUserIdLsb];
-    to_isolate_req.ar.user = '0;
-    to_isolate_req.ar.user[AxiUserIdMsb-AxiUserIdLsb:0] = slv_req_i.ar.user[AxiUserIdMsb:AxiUserIdLsb];
   end
+
+generate
+  if (CachePartition) begin
+    always_comb begin
+      to_isolate_req = slv_req_i;
+      slv_resp_o = to_isolate_resp;
+
+      to_isolate_req.aw.user = '0;
+      to_isolate_req.aw.user[AxiUserIdMsb-AxiUserIdLsb:0] = slv_req_i.aw.user[AxiUserIdMsb:AxiUserIdLsb];
+      to_isolate_req.ar.user = '0;
+      to_isolate_req.ar.user[AxiUserIdMsb-AxiUserIdLsb:0] = slv_req_i.ar.user[AxiUserIdMsb:AxiUserIdLsb];
+    end
+  end else begin
+    always_comb begin
+      to_isolate_req = slv_req_i;
+      slv_resp_o = to_isolate_resp;
+    end
+  end
+endgenerate
 
 generate
   if (CachePartition) begin
