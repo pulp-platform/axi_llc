@@ -31,10 +31,6 @@ module axi_llc_hit_miss #(
   parameter axi_llc_pkg::llc_cfg_t     Cfg            = axi_llc_pkg::llc_cfg_t'{default: '0},
   /// AXI parameter configuration
   parameter axi_llc_pkg::llc_axi_cfg_t AxiCfg         = axi_llc_pkg::llc_axi_cfg_t'{default: '0},
-  /// Cache partitioning enabling parameter
-  parameter logic                      CachePartition = 1,
-  /// Index remapping hash function used in cache partitioning
-  parameter axi_llc_pkg::algorithm_e   RemapHash      = axi_llc_pkg::Modulo,
   /// LLC descriptor type
   parameter type                       desc_t         = logic,
   /// Lock struct definition. The lock signal indicate that a cache line is unlocked.
@@ -102,7 +98,7 @@ module axi_llc_hit_miss #(
   localparam int unsigned TagBase   = Cfg.ByteOffsetLength + Cfg.BlockOffsetLength +
                                       Cfg.IndexLength;
   // Pick the base here to keep part-selects in bounds
-  localparam int unsigned TagSliceBase = CachePartition ? IndexBase : TagBase;
+  localparam int unsigned TagSliceBase = Cfg.CachePartition ? IndexBase : TagBase;
 
   // Type definitions for the requests and responses to/from the tag storage
       // typedef logic [Cfg.SetAssociativity-1:0] way_ind_t;
@@ -170,7 +166,7 @@ module axi_llc_hit_miss #(
     // output
     // Cache-Partition: If flush, recalculate the new index use old method to ensure the flush-by-set correct
     desc_o    = desc_q; // some fields get combinatorically overwritten from the tag lookup
-    if (CachePartition) begin
+    if (Cfg.CachePartition) begin
       desc_o.index_partition = desc_q.flush ? desc_q.a_x_addr[IndexBase+:Cfg.IndexLength] : desc_q.index_partition;
     end
     load_desc = 1'b0;
@@ -264,7 +260,7 @@ module axi_llc_hit_miss #(
                       desc_d    = desc_temp;
                       load_desc = 1'b1;
                     end else begin
-                      if (CachePartition) begin
+                      if (Cfg.CachePartition) begin
                         // use the new index and tag to store the tag
                         store_req = store_req_t'{
                           mode:      desc_temp.flush ? axi_llc_pkg::Flush : axi_llc_pkg::Lookup,
@@ -323,7 +319,7 @@ module axi_llc_hit_miss #(
             desc_d    = desc_temp;
             load_desc = 1'b1;
           end else begin
-            if (CachePartition) begin 
+            if (Cfg.CachePartition) begin
               // use the new index and tag to store the tag
               store_req = store_req_t'{
                 mode:      desc_temp.flush ? axi_llc_pkg::Flush : axi_llc_pkg::Lookup,
@@ -419,8 +415,8 @@ module axi_llc_hit_miss #(
   // inputs to the lock box
   // Cache-Partition: the lock signal also needs to used the new index
   assign lock = '{
-    index:   CachePartition ? desc_o.index_partition : 
-                              desc_o.a_x_addr[(Cfg.ByteOffsetLength + Cfg.BlockOffsetLength)+:Cfg.IndexLength],
+    index:   Cfg.CachePartition ? desc_o.index_partition :
+                                  desc_o.a_x_addr[(Cfg.ByteOffsetLength + Cfg.BlockOffsetLength)+:Cfg.IndexLength],
     way_ind: desc_o.way_ind
   };
   // Lock it if a transfer happens on ether channel and no flush!
@@ -445,7 +441,7 @@ module axi_llc_hit_miss #(
   );
 
 generate
-  if (CachePartition && (RemapHash == (axi_llc_pkg::TruncDual))) begin
+  if (Cfg.CachePartition && (Cfg.RemapHash == (axi_llc_pkg::TruncDual))) begin
     axi_llc_trdl_index #(
       .Cfg    ( Cfg       ),
       .desc_t ( desc_t    )

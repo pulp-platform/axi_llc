@@ -25,6 +25,16 @@ package axi_llc_pkg;
   /// This is ASCII encoded after the semantic versioning: `vAA.BB.C`
   parameter logic [63:0] AxiLlcVersion = 64'h7630_302E_3033_2E30;
 
+  /// Indicates the algorithm used in index_assigner for partitioning
+  typedef enum logic [1:0] {
+    /// Modulo
+    Modulo = 2'b00,
+    /// Multiply-shifting
+    Mulsft = 2'b01,
+    /// Truncation and mapping on both side
+    TruncDual = 2'b10
+  } algorithm_e;
+
   /// Cache configuration, used internally as localparam in the LLC submodules.
   /// Automatically set in (module.axi_llc_top).
   typedef struct packed {
@@ -46,6 +56,12 @@ package axi_llc_pkg;
     int unsigned ByteOffsetLength;
     /// SPM address region length, in bytes.
     int unsigned SPMLength;
+    /// Cache Partitioning enabled, bool type
+    logic CachePartition;
+    /// Max. number of partitions supported for partitioning.
+    int unsigned MaxPartition;
+    /// Index remapping hash function used in cache partitioning
+    algorithm_e RemapHash;
   } llc_cfg_t;
 
   /// Number of bytes transferred in an Ax transfer. Is used in `evens_t`. There they correspond to
@@ -265,14 +281,4 @@ package axi_llc_pkg;
     /// Configuration module (Flush descriptors)
     ConfigUnit = 2'b10
   } desc_unit_e;
-
-  /// Indicates the algorithm used in index_assigner for partitioning
-  typedef enum logic [1:0] {
-    /// Modulo
-    Modulo = 2'b00,
-    /// Multiply-shifting
-    Mulsft = 2'b01,
-    /// Truncation and mapping on both side
-    TruncDual = 2'b10
-  } algorithm_e;
 endpackage

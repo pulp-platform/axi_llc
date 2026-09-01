@@ -16,11 +16,6 @@ module axi_llc_chan_splitter #(
   ///
   /// Required struct definition in: `axi_llc_pkg`.
   parameter axi_llc_pkg::llc_axi_cfg_t AxiCfg  = axi_llc_pkg::llc_axi_cfg_t'{default: '0},
-  /// Cache partitioning enabling parameter
-  parameter logic CachePartition               = 1,
-  parameter int unsigned MaxPartition          = 0,
-  /// Index remapping hash function used in cache partitioning
-  parameter axi_llc_pkg::algorithm_e RemapHash = axi_llc_pkg::Modulo,
   /// AXI4 AX channel type. This can either be the AW or AR channel.
   parameter type chan_t = logic,
   /// This defines if the unit is on the AW or the AR channel.
@@ -60,7 +55,7 @@ module axi_llc_chan_splitter #(
   /// matching.
   /// Only `start_addr` is used.
   input rule_t spm_rule_i,
-  input partition_table_t [MaxPartition:0] partition_table_i
+  input partition_table_t [Cfg.MaxPartition:0] partition_table_i
 );
   `include "common_cells/registers.svh"
   // Registers
@@ -144,9 +139,6 @@ module axi_llc_chan_splitter #(
   axi_llc_burst_cutter #(
     .Cfg            ( Cfg                 ),
     .AxiCfg         ( AxiCfg              ),
-    .CachePartition ( CachePartition      ),
-    .MaxPartition   ( MaxPartition        ),
-    .RemapHash      ( RemapHash           ),
     .chan_t         ( chan_t              ),
     .Write          ( Write               ),
     .desc_t         ( desc_t              ),
