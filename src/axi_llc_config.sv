@@ -389,23 +389,25 @@ module axi_llc_config #(
     // Hw config
     spm_lock_d = spm_lock_q;
 
-    // Registers
+    // Registers - SW writeable
     conf_regs_o.cfg_spm       = conf_regs_i.cfg_spm;
     conf_regs_o.cfg_flush     = conf_regs_i.cfg_flush;
     conf_regs_o.commit_cfg    = conf_regs_i.commit_cfg;
-    conf_regs_o.flushed       = conf_regs_i.flushed;
-    
-    // Register enables
-    conf_regs_o.cfg_spm_en    = 1'b1;   // default one
-    conf_regs_o.cfg_flush_en  = 1'b1;   // default one
+    // Register enables. SW can change conf_regs_o.cfg* values regardless of these.
+    // SW also takes priority over HW's writes.
+    conf_regs_o.cfg_spm_en    = 1'b0;   // default disabled
+    conf_regs_o.cfg_flush_en  = 1'b0;   // default disabled
     conf_regs_o.commit_cfg_en = 1'b0;   // default disabled
+
+    // Registers - SW read-only. Safe to use for HW state tracking of flushed ways.
+    conf_regs_o.flushed       = conf_regs_i.flushed;
     conf_regs_o.flushed_en    = 1'b0;   // default disabled
     
     // Flush state machine
     flush_state_d  = flush_state_q;
     // Slave port is isolated during flush.
     llc_isolate_o  = 1'b1;
-    // To flush register, holds the ways which have to be flushed.
+    // To flush register, holds the ways which have (yet) to be flushed.
     to_flush_d     = to_flush_q;
     // Emit flush descriptors.
     desc_valid_o   = 1'b0;
@@ -418,16 +420,16 @@ module axi_llc_config #(
     // FSM for controlling the AW AR input to the cache and flush control
     unique case (flush_state_q)
       FsmIdle:  begin
-        // this state is normal operation, allow Cfg editing of the fields `CfgSpm` and `CfgFlush`
-        // and do not isolate main AXI
-        conf_regs_o.cfg_spm_en    = 1'b0;
-        conf_regs_o.cfg_flush_en  = 1'b0;
+        // this state is normal operation, do not isolate main AXI
         llc_isolate_o             = 1'b0;
         // Change state, if there is a flush request, i.e. CommitCfg was set
         if (conf_regs_i.commit_cfg) begin
           conf_regs_o.commit_cfg      = 1'b0;   // Clear the commit configuration flag
           conf_regs_o.commit_cfg_en   = 1'b1;
           flush_state_d               = FsmWaitAx;
+          // Capture software's requested flush ways here, in case they change
+          // it out from under us later.
+          to_flush_d = conf_regs_i.cfg_flush;
         end
       end
       FsmWaitAx: begin
@@ -442,21 +444,27 @@ module axi_llc_config #(
           flush_state_d = FsmInitFlush;
           // Now that AXI is free and splitters are empty, update hardware config
           spm_lock_d = conf_regs_i.cfg_spm;
+          // Also flush the new SPM configuration using the same value. Note
+          // that the old SPM  configuration, stored in conf_regs_i.flushed
+          // will be excluded in FsmInitFlush.
+          to_flush_d = to_flush_q | conf_regs_i.cfg_spm;
         end
       end
       FsmInitFlush: begin
         // this state determines which cache way should be flushed
         // it also sets up the counters for state-keeping how far
-        // the flush operation has progressed
-        to_flush_d = (conf_regs_i.cfg_flush | conf_regs_i.cfg_spm) & ~conf_regs_i.flushed;
+        // the flush operation has progressed. to_flush_q is input into the lzc
+        // and gives us the 'way_ind' variable.
+        to_flush_d = to_flush_q & ~conf_regs_i.flushed;
         // now determine if we have something to do at all
         if (to_flush_d == '0) begin
           // nothing to flush, go to idle
           flush_state_d = FsmIdle;
           // clear the cfg_flush register.
           conf_regs_o.cfg_flush = set_asso_t'(1'b0);
+          conf_regs_o.cfg_flush_en = 1'b1;
           // reset the flushed register to SPM.
-          conf_regs_o.flushed     = conf_regs_i.cfg_spm;
+          conf_regs_o.flushed     = spm_lock_q;
           conf_regs_o.flushed_en  = 1'b1;
         end else begin
           flush_state_d = FsmSendFlush;
@@ -491,22 +499,12 @@ module axi_llc_config #(
         end
       end
       FsmEndFlush: begin
-        // this state decides, if we have other ways to flush, or if we can go back to idle
+        // this state updates the set of ways we have flushed. if we have
+        // flushed all the ways, then FsmInitFlush will continue to FsmIdle.
         clear_cnt = 1'b1;
-        if (to_flush_q == flush_way_ind) begin
-          flush_state_d = FsmIdle;
-          // reset the flushed register to SPM as new requests can enter the cache
-          conf_regs_o.flushed     = conf_regs_i.cfg_spm;
-          conf_regs_o.flushed_en  = 1'b1;
-          to_flush_d    = set_asso_t'(1'b0);
-          // Clear the `CfgFlush` register, load enable is default '1
-          conf_regs_o.cfg_flush = set_asso_t'(1'b0);
-        end else begin
-          // there are still ways to flush
-          flush_state_d = FsmInitFlush;
-          conf_regs_o.flushed     = conf_regs_i.flushed | flush_way_ind;
-          conf_regs_o.flushed_en  = 1'b1;
-        end
+        flush_state_d = FsmInitFlush;
+        conf_regs_o.flushed     = conf_regs_i.flushed | flush_way_ind;
+        conf_regs_o.flushed_en  = 1'b1;
       end
       FsmPreInit: begin
         // The state machine starts in this state. It remains in this state until the
@@ -518,7 +516,7 @@ module axi_llc_config #(
         if (bist_valid_i) begin
           flush_state_d = FsmIdle;
           conf_regs_o.cfg_spm     = bist_res_i;
-          // No load specified for CfgSpm, as per default the reg is loaded anyway.
+          conf_regs_o.cfg_spm_en  = 1'b1;
           conf_regs_o.flushed     = bist_res_i;
           conf_regs_o.flushed_en  = 1'b1;
         end
