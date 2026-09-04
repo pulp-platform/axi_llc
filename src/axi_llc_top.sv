@@ -158,7 +158,7 @@ module axi_llc_top #(
   /// The same restriction as of parameter `NumLines` applies.
   parameter int unsigned NumBlocks       = 32'd0,
   /// Cache partitioning enabling parameter, bool type.
-  parameter logic        CachePartition  = 1,
+  parameter logic        CachePartition  = 0,
   /// Max. number of partitions supported for partitioning.
   ///
   /// Restrictions:
@@ -297,7 +297,10 @@ module axi_llc_top #(
     IndexLength       : unsigned'($clog2(NumLines)),
     BlockOffsetLength : unsigned'($clog2(NumBlocks)),
     ByteOffsetLength  : unsigned'($clog2(AxiCfg.DataWidthFull / 32'd8)),
-    SPMLength         : SetAssociativity * NumLines * NumBlocks * (AxiCfg.DataWidthFull / 32'd8)
+    SPMLength         : SetAssociativity * NumLines * NumBlocks * (AxiCfg.DataWidthFull / 32'd8),
+    CachePartition    : CachePartition,
+    MaxPartition      : MaxPartition,
+    RemapHash         : RemapHash
   };
 
   typedef struct packed {
@@ -459,14 +462,26 @@ module axi_llc_top #(
   end
 
   always_comb begin
-    to_isolate_req = slv_req_i;
-    slv_resp_o = to_isolate_resp;
-
-    to_isolate_req.aw.user = '0;
-    to_isolate_req.aw.user[AxiUserIdMsb-AxiUserIdLsb:0] = slv_req_i.aw.user[AxiUserIdMsb:AxiUserIdLsb];
-    to_isolate_req.ar.user = '0;
-    to_isolate_req.ar.user[AxiUserIdMsb-AxiUserIdLsb:0] = slv_req_i.ar.user[AxiUserIdMsb:AxiUserIdLsb];
   end
+
+generate
+  if (CachePartition) begin
+    always_comb begin
+      to_isolate_req = slv_req_i;
+      slv_resp_o = to_isolate_resp;
+
+      to_isolate_req.aw.user = '0;
+      to_isolate_req.aw.user[AxiUserIdMsb-AxiUserIdLsb:0] = slv_req_i.aw.user[AxiUserIdMsb:AxiUserIdLsb];
+      to_isolate_req.ar.user = '0;
+      to_isolate_req.ar.user[AxiUserIdMsb-AxiUserIdLsb:0] = slv_req_i.ar.user[AxiUserIdMsb:AxiUserIdLsb];
+    end
+  end else begin
+    always_comb begin
+      to_isolate_req = slv_req_i;
+      slv_resp_o = to_isolate_resp;
+    end
+  end
+endgenerate
 
 generate
   if (CachePartition) begin
@@ -564,7 +579,7 @@ generate
     );
   end
 endgenerate
-  
+
 
   // Isolation module before demux to easy flushing,
   // AXI requests get stalled while flush is active
@@ -619,9 +634,6 @@ endgenerate
   axi_llc_chan_splitter #(
     .Cfg    ( Cfg           ),
     .AxiCfg ( AxiCfg        ),
-    .CachePartition ( CachePartition      ),
-    .MaxPartition   ( MaxPartition        ),
-    .RemapHash      ( RemapHash           ),
     .chan_t ( slv_aw_chan_t ),
     .Write  ( 1'b1          ),
     .desc_t ( llc_desc_t    ),
@@ -647,9 +659,6 @@ endgenerate
   axi_llc_chan_splitter #(
     .Cfg               ( Cfg               ),
     .AxiCfg            ( AxiCfg            ),
-    .CachePartition    ( CachePartition    ),
-    .MaxPartition      ( MaxPartition      ),
-    .RemapHash         ( RemapHash         ),
     .chan_t            ( slv_ar_chan_t     ),
     .Write             ( 1'b0              ),
     .desc_t            ( llc_desc_t        ),
@@ -708,8 +717,6 @@ endgenerate
     .Cfg               ( Cfg               ),
     .AxiCfg            ( AxiCfg            ),
     .AxiIdLookupBits   ( AxiIdLookupBits   ),
-    .CachePartition    ( CachePartition    ),
-    .RemapHash         ( RemapHash         ),
     .desc_t            ( llc_desc_t        ),
     .lock_t            ( lock_t            ),
     .cnt_t             ( cnt_t             ),
@@ -746,7 +753,6 @@ endgenerate
   axi_llc_evict_unit #(
     .Cfg            ( Cfg            ),
     .AxiCfg         ( AxiCfg         ),
-    .CachePartition ( CachePartition ),
     .desc_t         ( llc_desc_t     ),
     .way_inp_t      ( way_inp_t      ),
     .way_oup_t      ( way_oup_t      ),
@@ -785,7 +791,6 @@ endgenerate
   axi_llc_refill_unit #(
     .Cfg            ( Cfg            ),
     .AxiCfg         ( AxiCfg         ),
-    .CachePartition ( CachePartition ),
     .desc_t         ( llc_desc_t     ),
     .way_inp_t      ( way_inp_t      ),
     .ar_chan_t      ( slv_ar_chan_t  ),
@@ -838,7 +843,6 @@ endgenerate
   axi_llc_write_unit #(
     .Cfg            ( Cfg            ),
     .AxiCfg         ( AxiCfg         ),
-    .CachePartition ( CachePartition ),
     .desc_t         ( llc_desc_t     ),
     .way_inp_t      ( way_inp_t      ),
     .lock_t         ( lock_t         ),
@@ -869,7 +873,6 @@ endgenerate
   axi_llc_read_unit #(
     .Cfg            ( Cfg            ),
     .AxiCfg         ( AxiCfg         ),
-    .CachePartition ( CachePartition ),
     .desc_t         ( llc_desc_t     ),
     .way_inp_t      ( way_inp_t      ),
     .way_oup_t      ( way_oup_t      ),
@@ -950,7 +953,7 @@ endgenerate
     .mst_resp_i  ( mst_resp_i                 )
   );
 
-  // Events output track successfull handshakes at different `axi_llc` units.
+  // Events output track successful handshakes at different `axi_llc` units.
   // Function definition see `axi_llc_pkg`.
   assign axi_llc_events_o = axi_llc_pkg::events_t'{
     aw_slv_transfer:    axi_llc_pkg::event_num_bytes(

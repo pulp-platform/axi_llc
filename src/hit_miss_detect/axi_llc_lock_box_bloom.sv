@@ -8,7 +8,7 @@
 /// This module implements the locking with a bloom filter
 /// Seeding Parameters are at the default of the `cb_filter` module for
 /// number of hashes and respective seeds
-/// unlock happens from anoter unit and is registered in a FIFO
+/// unlock happens from another unit and is registered in a FIFO
 /// the `rr_arb_tree` then merges the unlock requests onto the bloom decrement
 module axi_llc_lock_box_bloom #(
   /// Static LLC parameter configuration struct.
@@ -33,7 +33,7 @@ module axi_llc_lock_box_bloom #(
   input  logic  lock_req_i,
   /// This signal indicates that the lookup performed from `lock_i` Found a locked cache line.
   /// This means that another descriptor is currently using the cacheline.
-  /// Wait with asserting `lock_req_i` untill this is `'0`;
+  /// Wait with asserting `lock_req_i` until this is `'0`;
   output logic  locked_o,
   /// Unlock payload from the write unit.
   input  lock_t w_unlock_i,

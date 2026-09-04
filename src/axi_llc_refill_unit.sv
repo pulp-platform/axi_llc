@@ -7,14 +7,12 @@
 
 /// Houses the components for the refill operation.
 /// Is Ar/R Axi Master and refills lines to the different cache ways.
-/// Descripors enter, go to the ar master, then to a fifo, then to r master, then leave.
+/// Descriptors enter, go to the ar master, then to a fifo, then to r master, then leave.
 module axi_llc_refill_unit #(
   /// Static LLC configuration parameters.
   parameter axi_llc_pkg::llc_cfg_t Cfg = axi_llc_pkg::llc_cfg_t'{default: '0},
   /// Static LLC AXI configuration parameters.
   parameter axi_llc_pkg::llc_axi_cfg_t AxiCfg = axi_llc_pkg::llc_axi_cfg_t'{default: '0},
-  /// Cache partitioning enabling parameter
-  parameter logic CachePartition              = 1,
   /// LLC descriptor type definition.
   parameter type desc_t = logic,
   /// LLC way input request payload type.
@@ -32,7 +30,7 @@ module axi_llc_refill_unit #(
   input logic test_i,
   /// Descriptor payload input. Comes from the eviction pipeline.
   input desc_t desc_i,
-  /// Input descriptor is vaild.
+  /// Input descriptor is valid.
   input logic desc_valid_i,
   /// Module is ready to accept a descriptor.
   output logic desc_ready_o,
@@ -75,7 +73,6 @@ module axi_llc_refill_unit #(
   axi_llc_ax_master #(
     .Cfg        ( Cfg                    ),
     .AxiCfg     ( AxiCfg                 ),
-    .CachePartition ( CachePartition     ),
     .desc_t     ( desc_t                 ),
     .ax_chan_t  ( ar_chan_t              ),
     .cache_unit ( axi_llc_pkg::RefilUnit )
@@ -117,7 +114,6 @@ module axi_llc_refill_unit #(
   axi_llc_r_master #(
     .Cfg       ( Cfg       ),
     .AxiCfg    ( AxiCfg    ),
-    .CachePartition ( CachePartition ),
     .desc_t    ( desc_t    ),
     .way_inp_t ( way_inp_t ),
     .r_chan_t  ( r_chan_t  )

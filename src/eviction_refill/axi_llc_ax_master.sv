@@ -26,8 +26,6 @@ module axi_llc_ax_master #(
   ///
   /// Required struct definition in: `axi_llc_pkg`.
   parameter axi_llc_pkg::llc_axi_cfg_t AxiCfg = axi_llc_pkg::llc_axi_cfg_t'{default: '0},
-  /// Cache partitioning enabling parameter
-  parameter logic CachePartition              = 1,
   /// AXI LLC descriptor type definition,
   parameter type desc_t = logic,
   /// AXI master port Ax channel type definition.
@@ -37,19 +35,19 @@ module axi_llc_ax_master #(
   /// AR channel: axi_llc_pkg::RefilUnit
   parameter axi_llc_pkg::cache_unit_e  cache_unit = axi_llc_pkg::EvictUnit
 ) (
-  /// Clock, poitive edge triggered.
+  /// Clock, positive edge triggered.
   input logic clk_i,
   /// Asynchronous reset, active low.
   input logic rst_ni,
-  /// Input descripor payload.
+  /// Input descriptor payload.
   input desc_t desc_i,
   /// Input descriptor is valid.
   input logic desc_valid_i,
   /// `axi_llc_ax_master` is ready to accept an descriptor.
   output logic desc_ready_o,
-  /// Output descriptor paylaod.
+  /// Output descriptor payload.
   output desc_t desc_o,
-  /// Output descripor is valid .
+  /// Output descriptor is valid .
   output logic desc_valid_o,
   /// Next unit is ready to accept the output descriptor.
   input logic desc_ready_i,
@@ -92,7 +90,7 @@ module axi_llc_ax_master #(
   localparam int AddrOffset = Cfg.BlockOffsetLength + Cfg.ByteOffsetLength;
 
   generate
-    if(CachePartition) begin
+    if(Cfg.CachePartition) begin
       assign evict_addr  = {desc_i.evict_tag, {AddrOffset{1'b0}}};
       assign refill_addr = {desc_i.a_x_addr[AddrOffset+:Cfg.TagLength], {AddrOffset{1'b0}}};
     end else begin
