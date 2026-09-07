@@ -169,6 +169,8 @@
 ///
 /// This register enables flushing of a single cache partition.
 ///
+/// Writing MaxPartition+1 will flush all partitions.
+///
 /// Register Bit Map:
 /// | Bits                           | Reset Value | Function                                                    |
 /// |:------------------------------:|:-----------:|:-----------------------------------------------------------:|
@@ -751,8 +753,13 @@ module axi_llc_config_pat #(
         if (conf_regs_i.cfg_flush_partition != -1) begin
           to_flush_set_d          = conf_regs_i_cfg_flush_set & ~conf_regs_i_flushed_set;
           index_based_flush_d = 1'b1; // meaning that the current flush operation is index-based
+          if (conf_regs_i.cfg_flush_partition > (MaxPartition + 1)) begin
+            $fatal("flushing partition outside of range [MaxPartition:0] & MaxPartition+1(all): %d", conf_regs_i.cfg_flush_partition);
+          end
           // If the input partition that is to be flushed has size 0, then flush shared region
-          flush_set_partition_d  = partition_table_o[conf_regs_i.cfg_flush_partition].NumIndex ? conf_regs_i.cfg_flush_partition : MaxPartition;
+          flush_set_partition_d  =
+            (conf_regs_i.cfg_flush_partition == MaxPartition + 1) ? MaxPartition + 1
+            : partition_table_o[conf_regs_i.cfg_flush_partition].NumIndex ? conf_regs_i.cfg_flush_partition : MaxPartition;
           if (to_flush_set_d == '0) begin
             // nothing to flush, go to idle, reset flushing type and partition flushing ID signal
             flush_state_d = FsmIdle;
