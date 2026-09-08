@@ -186,7 +186,7 @@ module axi_llc_top #(
   parameter int unsigned AxiUserWidth    = 32'd0, 
   /// Internal register width
   parameter int unsigned RegWidth        = 64,
-  /// AXI4 User signal offset
+  /// AXI4 User signal offset for partition IDs
   parameter int unsigned AxiUserIdMsb    = 7,
   parameter int unsigned AxiUserIdLsb    = 0,
   /// Register type for HW -> Register direction
@@ -1097,6 +1097,10 @@ endgenerate
       $fatal(1, "Parameter `AxiDataWidth` has to be inside the AXI4+ATOP specification!");
     axi_user_width : assert(AxiUserWidth > 32'd0) else
       $fatal(1, "Parameter `AxiUserWidth` has to be > 0!");
+    axi_user_width_lsb : assert(AxiUserIdLsb <= AxiUserIdMsb) else
+      $fatal(1, "Parameter `AxiUserIdLsb` has to be < `AxiUserIdMsb`");
+    axi_user_width_msb : assert(AxiUserIdMsb < AxiUserWidth) else
+      $fatal(1, "Parameter `AxiUserIdMsb` has to be < `AxiUserWidth`");
 
     // check the address rule fields for the right size
     axi_start_addr : assert($bits(cached_addr_rule.start_addr) == AxiAddrWidth) else
