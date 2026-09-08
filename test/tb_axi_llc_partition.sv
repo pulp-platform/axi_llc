@@ -33,6 +33,9 @@ module tb_axi_llc #(
   parameter axi_llc_pkg::algorithm_e RemapHash = axi_llc_pkg::Modulo,
   /// ID width of the Full AXI slave port, master port has ID `AxiIdWidthFull + 32'd1`
   parameter int unsigned TbAxiIdWidthFull   = 32'd6,
+  /// Number of low AXI ID bits used for demux tracking and miss counters.
+  parameter int unsigned TbAxiIdLookupBits  =
+      (TbAxiIdWidthFull < 32'd4) ? TbAxiIdWidthFull : 32'd4,
   /// Address width of the full AXI bus
   parameter int unsigned TbAxiAddrWidthFull = 32'd48,
   /// Data width of the full AXI bus
@@ -696,6 +699,7 @@ module tb_axi_llc #(
     .MaxPartition     ( TbMaxPartition     ),
     .RemapHash        ( RemapHash          ),
     .AxiIdWidth       ( TbAxiIdWidthFull   ),
+    .AxiIdLookupBits  ( TbAxiIdLookupBits  ),
     .AxiAddrWidth     ( TbAxiAddrWidthFull ),
     .AxiDataWidth     ( TbAxiDataWidthFull ),
     .AxiUserWidth     ( TbAxiUserWidthFull ),
