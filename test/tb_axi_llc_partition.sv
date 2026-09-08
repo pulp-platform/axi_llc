@@ -43,7 +43,7 @@ module tb_axi_llc #(
   parameter int unsigned TbNumWrites        = 32'd1100,
   /// Number of random read transactions in a testblock.
   parameter int unsigned TbNumReads         = 32'd1500,
-  parameter int unsigned TbAxiUserIdMsb     = $clog2(TbMaxPartition),
+  parameter int unsigned TbAxiUserIdMsb     = $clog2(TbMaxPartition) - 1,
   parameter int unsigned TbAxiUserIdLsb     = 32'd0,
   /// Cycle time for the TB clock generator
   parameter time         TbCyclTime         = 10ns,
@@ -186,7 +186,7 @@ module tb_axi_llc #(
     .AXI_BURST_FIXED      ( 1'b0               ),
     .AXI_BURST_INCR       ( 1'b1               ),
     .AXI_BURST_WRAP       ( 1'b0               ),
-    .AX_USER_RANGE        ( TbMaxPartition+1   ),
+    .AX_USER_RANGE        ( (1 << TbAxiUserIdMsb) - 1 ),
     .AX_USER_RAND         ( 1'b1               )
   ) axi_rand_master_t;
 
