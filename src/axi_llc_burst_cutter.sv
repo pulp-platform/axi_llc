@@ -14,17 +14,12 @@
 /// onto a cache line
 /// It computes the remaining channel struct, all remaining parts of the burst
 /// which map onto other cache lines
-/// This module further caclulates the exact data way where an spm access will go to.
+/// This module further calculates the exact data way where an spm access will go to.
 module axi_llc_burst_cutter #(
   /// LLC configuration struct, with static parameters.
   parameter axi_llc_pkg::llc_cfg_t     Cfg            = axi_llc_pkg::llc_cfg_t'{default: '0},
   /// AXI channel configuration struct.
   parameter axi_llc_pkg::llc_axi_cfg_t AxiCfg         = axi_llc_pkg::llc_axi_cfg_t'{default: '0},
-  /// Cache partitioning enabling parameter
-  parameter logic                      CachePartition = 1,
-  parameter int unsigned               MaxPartition   = 0,
-  /// Index remapping hash function used in cache partitioning
-  parameter axi_llc_pkg::algorithm_e   RemapHash      = axi_llc_pkg::Modulo,
   /// AXI AW or AR channel struct definition.
   parameter type                       chan_t         = logic,
   /// The type of channel, how the write bit in the descriptor should be set.
@@ -58,7 +53,7 @@ module axi_llc_burst_cutter #(
   /// one for each cache way.
   input  rule_t spm_rule_i, 
   /// cache partition table
-  input  partition_table_t [MaxPartition:0] partition_table_i
+  input  partition_table_t [Cfg.MaxPartition:0] partition_table_i
   );
 
   // typedefs for casting
@@ -97,7 +92,7 @@ module axi_llc_burst_cutter #(
 
   // Cache-Partition
 generate 
-  if (CachePartition) begin
+  if (Cfg.CachePartition) begin
     typedef logic [Cfg.IndexLength:0]     partition_size_t;
     typedef logic [Cfg.IndexLength-1:0]   index_t;
 
@@ -105,15 +100,14 @@ generate
     index_t          start_index, share_index, index_partition, tcdl_max_offset;
     logic            tcdl_overflow;
 
-    assign share_size  =  partition_table_i[MaxPartition].NumIndex;
-    assign share_index =  partition_table_i[MaxPartition].StartIndex;
-    assign pat_size    =  (curr_chan_i.user <= MaxPartition) ? partition_table_i[curr_chan_i.user].NumIndex : share_size;
-    assign start_index =  (curr_chan_i.user <= MaxPartition) ? partition_table_i[curr_chan_i.user].StartIndex : share_index;
+    assign share_size  =  partition_table_i[Cfg.MaxPartition].NumIndex;
+    assign share_index =  partition_table_i[Cfg.MaxPartition].StartIndex;
+    assign pat_size    =  (curr_chan_i.user <= Cfg.MaxPartition) ? partition_table_i[curr_chan_i.user].NumIndex : share_size;
+    assign start_index =  (curr_chan_i.user <= Cfg.MaxPartition) ? partition_table_i[curr_chan_i.user].StartIndex : share_index;
 
     axi_llc_index_assigner #(
       .Cfg              ( Cfg              ),
       .partition_size_t ( partition_size_t ),
-      .RemapHash        ( RemapHash        ),
       .index_t          ( index_t          ),
       .addr_t           ( addr_t           )
     ) i_index_assigner (
@@ -145,7 +139,7 @@ generate
         x_resp:          axi_pkg::RESP_OKAY,
         rw:              Write,
         // If the patid is larger than the table supported, assign it to the shared region
-        patid:           (curr_chan_i.user <= MaxPartition) ? curr_chan_i.user : MaxPartition,
+        patid:           (curr_chan_i.user <= Cfg.MaxPartition) ? curr_chan_i.user : Cfg.MaxPartition,
         index_partition: index_partition,
         pat_size:        tcdl_pat_size,
         tcdl_overflow:   tcdl_overflow,

@@ -20,7 +20,7 @@ module axi_llc_tag_pattern_gen #(
   parameter axi_llc_pkg::llc_cfg_t Cfg = axi_llc_pkg::llc_cfg_t'{default: '0},
   /// Pattern type for generation.
   parameter type pattern_t = logic,
-  /// Way indicator type. Each way is checked indiviually. Bit position id the index of the way.
+  /// Way indicator type. Each way is checked individually. Bit position id the index of the way.
   parameter type way_ind_t = logic,
   /// Cache line index type (macro address).
   parameter type index_t   = logic
