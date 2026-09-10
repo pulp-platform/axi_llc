@@ -4,6 +4,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## 0.3.0 - 2026-07-29
+
+### Added
+- Add a simulation matrix for representative AXI ID and lookup widths.
+  [#36](https://github.com/pulp-platform/axi_llc/pull/36)
+
+### Changed
+- Make the AXI ID lookup width configurable through `AxiIdLookupBits`, replacing the package-level
+  `axi_llc_pkg::UseIdBits` parameter. [#36](https://github.com/pulp-platform/axi_llc/pull/36)
+- Update dependencies and improve VCS simulation coverage for flush and SPM transitions.
+  [#32](https://github.com/pulp-platform/axi_llc/pull/32)
+- Pin CI jobs to Ubuntu 22.04. [#34](https://github.com/pulp-platform/axi_llc/pull/34)
+
+### Fixed
+- Fix coalesced explicit and SPM flushes. [#22](https://github.com/pulp-platform/axi_llc/pull/22)
+- Fix a flush hang caused by incorrect `flushed` state handling.
+  [#30](https://github.com/pulp-platform/axi_llc/pull/30)
+- Fix BIST valid and dirty-bit comparisons in the tag store.
+  [#29](https://github.com/pulp-platform/axi_llc/pull/29)
+- Fix the maximum legal AXI data width assertion. [#33](https://github.com/pulp-platform/axi_llc/pull/33)
+- Fix the missing runner for TODO analysis in CI.
+  [#37](https://github.com/pulp-platform/axi_llc/pull/37)
+- Fix the project name in the README license section.
+  [#27](https://github.com/pulp-platform/axi_llc/pull/27)
+
 ## 0.2.2 - 2025-02-27
 
 ### Changed

@@ -7,7 +7,7 @@
 
 /// Houses the components for the refill operation.
 /// Is Ar/R Axi Master and refills lines to the different cache ways.
-/// Descripors enter, go to the ar master, then to a fifo, then to r master, then leave.
+/// Descriptors enter, go to the ar master, then to a fifo, then to r master, then leave.
 module axi_llc_refill_unit #(
   /// Static LLC configuration parameters.
   parameter axi_llc_pkg::llc_cfg_t Cfg = axi_llc_pkg::llc_cfg_t'{default: '0},
@@ -32,7 +32,7 @@ module axi_llc_refill_unit #(
   input logic test_i,
   /// Descriptor payload input. Comes from the eviction pipeline.
   input desc_t desc_i,
-  /// Input descriptor is vaild.
+  /// Input descriptor is valid.
   input logic desc_valid_i,
   /// Module is ready to accept a descriptor.
   output logic desc_ready_o,
