@@ -82,6 +82,7 @@ module axi_llc_read_unit #(
   logic           load_desc;
   logic           busy_d,    busy_q;  // status if descriptor occupies unit
   logic           load_busy;
+  logic           load_new_desc;
   // R FIFO control signals
   r_chan_t        r_fifo_inp;      // the assembled R beat to put on the channel
   logic           r_fifo_push;     // push a read response from way into FIFO
@@ -123,6 +124,7 @@ module axi_llc_read_unit #(
     desc_ready_o    = 1'b0;
     // unlock signal
     r_unlock_req_o = 1'b0;
+    load_new_desc  = 1'b0;
 
     // control
     if (busy_q) begin
@@ -138,7 +140,7 @@ module axi_llc_read_unit #(
             load_busy = 1'b1;
             // unlock the line, line is free when the bloom filter is updated in the next cycle
             r_unlock_req_o = 1'b1;
-            load_new_desc();
+            load_new_desc = 1'b1;
           end else begin
             // more read requests have to be made, update the address and update the length
             if (desc_q.a_x_burst != axi_pkg::BURST_FIXED) begin
@@ -153,21 +155,21 @@ module axi_llc_read_unit #(
       end
     end else begin
       // be ready to load a new descriptor, when not busy
-      load_new_desc();
+      load_new_desc = 1'b1;
+    end
+
+    // load a new descriptor and send the first read request to the data storage
+    if (load_new_desc) begin
+      desc_ready_o = 1'b1;
+      // we have a new descriptor, send the read request to the macros and initialize the counters
+      if (desc_valid_i) begin
+        desc_d    = desc_i;
+        load_desc = 1'b1;
+        busy_d    = 1'b1;
+        load_busy = 1'b1;
+      end
     end
   end
-
-  // this function loads a new descriptor and sends the first read request to the data storage
-  function void load_new_desc ();
-    desc_ready_o = 1'b1;
-    // we have a new descriptor, send the read request to the macros and initialize the counters
-    if (desc_valid_i) begin
-      desc_d    = desc_i;
-      load_desc = 1'b1;
-      busy_d    = 1'b1;
-      load_busy = 1'b1;
-    end
-  endfunction : load_new_desc
 
   // Metadata FIFO
   assign meta_fifo_inp = '{

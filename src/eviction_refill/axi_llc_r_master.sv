@@ -61,6 +61,7 @@ module axi_llc_r_master #(
   logic    busy_d,       busy_q;               // unit busy flag
   logic    send_d,       send_q;               // send descriptor along flag
   logic    load_desc,    load_busy, load_send; // load flipflop signals
+  logic    load_new_desc;
   // offset counter signals
   offset_t block_offset;
   logic    en_cnt,       load_cnt;
@@ -95,11 +96,12 @@ module axi_llc_r_master #(
     // offset counter enable and load
     en_cnt   = 1'b0;
     load_cnt = 1'b0;
+    load_new_desc = 1'b0;
 
     // do different things depending on the state of the two flipflops `busy_q` and `send_q`
     case ({busy_q, send_q})
       2'b00 : begin // idle, be ready to get a new descriptor
-        load_new_desc();
+        load_new_desc = 1'b1;
       end
       2'b01 : begin // send the descriptor further
         desc_valid_o = 1'b1;
@@ -108,7 +110,7 @@ module axi_llc_r_master #(
           // update to idle state, gets overridden by the task if necessary
           send_d    = 1'b0;
           load_send = 1'b1;
-          load_new_desc();
+          load_new_desc = 1'b1;
         end
       end
       2'b10 : begin // the unit puts for R beats towards the ways
@@ -125,7 +127,7 @@ module axi_llc_r_master #(
             busy_d    = 1'b0;
             load_busy = 1'b1;
             if (desc_ready_i) begin
-              load_new_desc();
+              load_new_desc = 1'b1;
             end else begin
               // go to send state on no transaction
               send_d    = 1'b1;
@@ -144,31 +146,28 @@ module axi_llc_r_master #(
         load_send = 1'b1;
       end
     endcase
-  end
 
-  // this function sets the input descriptor handshaking and loads a new descriptor
-  // sets both the busy and send flipflop depending on the input refill flag
-  // intended for use only in the always_comb block above
-  // the function can here be used, as the sensitivity list is inferred automatically
-  function void load_new_desc();
-    desc_ready_o = 1'b1;
-    // new descriptor at the input
-    if (desc_valid_i) begin
-      desc_d    = desc_i;
-      load_desc = 1'b1;
-      if (desc_i.refill) begin
-        // prepare for refill r beats from the AXI channel, load the offset counter
-        busy_d    = 1'b1;
-        load_busy = 1'b1;
-        // load in the line address as we are refilling one line at a time
-        load_cnt  = 1'b1;
-      end else begin
-        // load the new descriptor to send further in next cycle
-        send_d    = 1'b1;
-        load_send = 1'b1;
+    // set the input descriptor handshaking and load a new descriptor
+    if (load_new_desc) begin
+      desc_ready_o = 1'b1;
+      // new descriptor at the input
+      if (desc_valid_i) begin
+        desc_d    = desc_i;
+        load_desc = 1'b1;
+        if (desc_i.refill) begin
+          // prepare for refill r beats from the AXI channel, load the offset counter
+          busy_d    = 1'b1;
+          load_busy = 1'b1;
+          // load in the line address as we are refilling one line at a time
+          load_cnt  = 1'b1;
+        end else begin
+          // load the new descriptor to send further in next cycle
+          send_d    = 1'b1;
+          load_send = 1'b1;
+        end
       end
     end
-  endfunction : load_new_desc
+  end
 
   // counter to count up the block offset, as the refill will always be all blocks
   counter #(

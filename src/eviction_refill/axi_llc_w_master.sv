@@ -99,6 +99,7 @@ module axi_llc_w_master #(
   logic          busy_d,       busy_q;               // busy flag
   logic          send_d,       send_q;               // b_beat was received
   logic          load_desc,    load_busy, load_send; // flipflop load signals
+  logic          load_new_desc;
   // internal signals to manage register and counter
   offset_t       block_offset;  // output of the counter, determines the block offset of eviction
   logic          load_cnt;      // load the counters
@@ -168,11 +169,12 @@ module axi_llc_w_master #(
     desc_valid_o      = 1'b0;
     // flush descriptor output to cfg
     flush_desc_recv_o = 1'b0;
+    load_new_desc     = 1'b0;
 
     // do different things depending on the state of the two flipflops `busy_q` and `send_q`
     unique case ({busy_q, send_q})
       2'b00 : begin // unit is idle, it can load a new descriptor
-        load_new_desc();
+        load_new_desc = 1'b1;
       end
       2'b01 : begin // unit wants to send the descriptor further, load a new one when possible
         if (desc_q.flush) begin
@@ -180,14 +182,14 @@ module axi_llc_w_master #(
           flush_desc_recv_o = 1'b1;
           send_d            = 1'b0;
           load_send         = 1'b1;
-          load_new_desc();
+          load_new_desc     = 1'b1;
         end else begin
           desc_valid_o = 1'b1;
           if (desc_ready_i) begin
             // go to idle and load a potential new descriptor
             send_d    = 1'b0;
             load_send = 1'b1;
-            load_new_desc();
+            load_new_desc = 1'b1;
           end
         end
       end
@@ -225,28 +227,28 @@ module axi_llc_w_master #(
       end
       default: /*do nothing*/ ;
     endcase
-  end
 
-  // this function loads a descriptor into the unit
-  function void load_new_desc();
-    desc_ready_o = 1'b1;
-    // transfer new descriptor in
-    if (desc_valid_i) begin
-      desc_d    = desc_i;
-      load_desc = 1'b1;
-      if (desc_i.evict) begin
-        // prepare the unit for evicting
-        busy_d    = 1'b1;
-        load_busy = 1'b1;
-        // load the block offset
-        load_cnt  = 1'b1; // load the counters with the values
-      end else begin
-        // send the descriptor along
-        send_d    = 1'b1;
-        load_send = 1'b1;
+    // load a descriptor into the unit
+    if (load_new_desc) begin
+      desc_ready_o = 1'b1;
+      // transfer new descriptor in
+      if (desc_valid_i) begin
+        desc_d    = desc_i;
+        load_desc = 1'b1;
+        if (desc_i.evict) begin
+          // prepare the unit for evicting
+          busy_d    = 1'b1;
+          load_busy = 1'b1;
+          // load the block offset
+          load_cnt  = 1'b1; // load the counters with the values
+        end else begin
+          // send the descriptor along
+          send_d    = 1'b1;
+          load_send = 1'b1;
+        end
       end
     end
-  endfunction : load_new_desc
+  end
 
   fifo_v3 #(
     .FALL_THROUGH ( 1'b1          ),  // FIFO is in fall-through mode

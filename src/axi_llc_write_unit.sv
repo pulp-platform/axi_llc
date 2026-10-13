@@ -75,6 +75,7 @@ module axi_llc_write_unit #(
   desc_t         desc_d,      desc_q;
   logic          busy_d,      busy_q;
   logic          load_desc,   load_busy;
+  logic          load_new_desc;
 
   // W channel FIFO signals
   w_chan_t       w_chan;
@@ -136,6 +137,7 @@ module axi_llc_write_unit #(
     w_unlock_req_o   = 1'b0;
     // b response FIFO push signal
     b_valid          = 1'b0;
+    load_new_desc    = 1'b0;
     // control
     if (busy_q) begin
       // only do something if the B response could be send
@@ -163,7 +165,7 @@ module axi_llc_write_unit #(
             busy_d         = 1'b0;
             load_busy      = 1'b1;
             w_unlock_req_o = 1'b1;
-            load_new_desc(); // a new descriptor can be loaded if there is one
+            load_new_desc  = 1'b1; // a new descriptor can be loaded if there is one
           end else begin
             // update the descriptor, when not
             load_desc      = 1'b1;
@@ -179,21 +181,21 @@ module axi_llc_write_unit #(
       end
     end else begin
       // not busy, can load a new descriptor
-      load_new_desc();
+      load_new_desc = 1'b1;
+    end
+
+    // load a new descriptor and send the first read request to the data storage
+    if (load_new_desc) begin
+      desc_ready_o = 1'b1;
+      // we have a new descriptor, send the read request to the macros and initialize the counters
+      if (desc_valid_i) begin
+        desc_d    = desc_i;
+        load_desc = 1'b1;
+        busy_d    = 1'b1;
+        load_busy = 1'b1;
+      end
     end
   end
-
-  // this function loads a new descriptor and sends the first read request to the data storage
-  function void load_new_desc ();
-    desc_ready_o = 1'b1;
-    // we have a new descriptor, send the read request to the macros and initialize the counters
-    if (desc_valid_i) begin
-      desc_d    = desc_i;
-      load_desc = 1'b1;
-      busy_d    = 1'b1;
-      load_busy = 1'b1;
-    end
-  endfunction : load_new_desc
 
   // assign of the B channel FIFO input
   assign b_chan = '{
