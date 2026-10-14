@@ -9,7 +9,7 @@
 
 module axi_llc_index_assigner #(
   /// LLC configuration struct, with static parameters.
-  parameter axi_llc_pkg::llc_cfg_t   Cfg       = axi_llc_pkg::llc_cfg_t'{default: '0},
+  parameter axi_llc_pkg::llc_cfg_t   Cfg       = axi_llc_pkg::llc_cfg_t'{RemapHash: axi_llc_pkg::Modulo, default: '0},
   /// Type for pat_size_i and share_size_i
   parameter type partition_size_t              = logic,
   /// Type for start_index_i, share_index_i and index_partition_o

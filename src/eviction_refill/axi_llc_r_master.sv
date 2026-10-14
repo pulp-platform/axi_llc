@@ -10,7 +10,7 @@
 /// in its control always comb block.
 module axi_llc_r_master #(
   /// Static LLC parameter configuration.
-  parameter axi_llc_pkg::llc_cfg_t Cfg = axi_llc_pkg::llc_cfg_t'{default: '0},
+  parameter axi_llc_pkg::llc_cfg_t Cfg = axi_llc_pkg::llc_cfg_t'{RemapHash: axi_llc_pkg::Modulo, default: '0},
   /// Give the exact AXI parameters in struct form. This is passed down from
   /// [`axi_llc_top`](module.axi_llc_top).
   ///

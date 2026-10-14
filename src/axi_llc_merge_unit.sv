@@ -11,7 +11,7 @@
 /// eviction/refill pipeline.
 module axi_llc_merge_unit #(
   /// Static LLC configuration struct.
-  parameter axi_llc_pkg::llc_cfg_t Cfg = axi_llc_pkg::llc_cfg_t'{default: '0},
+  parameter axi_llc_pkg::llc_cfg_t Cfg = axi_llc_pkg::llc_cfg_t'{RemapHash: axi_llc_pkg::Modulo, default: '0},
   /// LLC descriptor type definition.
   parameter type desc_t = logic,
   /// Counter struct, is used in the miss counters for  ensuring the right ordering of

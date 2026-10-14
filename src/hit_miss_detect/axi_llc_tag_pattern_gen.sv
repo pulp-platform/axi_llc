@@ -17,7 +17,7 @@
 //              } pattern_t;
 module axi_llc_tag_pattern_gen #(
   /// Stattic LLC configuration struct.
-  parameter axi_llc_pkg::llc_cfg_t Cfg = axi_llc_pkg::llc_cfg_t'{default: '0},
+  parameter axi_llc_pkg::llc_cfg_t Cfg = axi_llc_pkg::llc_cfg_t'{RemapHash: axi_llc_pkg::Modulo, default: '0},
   /// Pattern type for generation.
   parameter type pattern_t = logic,
   /// Way indicator type. Each way is checked individually. Bit position id the index of the way.

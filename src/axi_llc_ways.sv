@@ -16,7 +16,7 @@
 /// in which ordering the requests were made.
 module axi_llc_ways #(
   /// Static LLC configuration parameter struct.
-  parameter axi_llc_pkg::llc_cfg_t Cfg = axi_llc_pkg::llc_cfg_t'{default: '0},
+  parameter axi_llc_pkg::llc_cfg_t Cfg = axi_llc_pkg::llc_cfg_t'{RemapHash: axi_llc_pkg::Modulo, default: '0},
   /// Data way request payload type definition.
   parameter type way_inp_t = logic,
   /// Data way response payload type definition.

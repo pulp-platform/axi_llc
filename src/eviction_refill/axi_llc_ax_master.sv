@@ -20,7 +20,7 @@
 ///        It looks, if the refill flag is set in the descriptor.
 module axi_llc_ax_master #(
   /// Static LLC configuration struct.
-  parameter axi_llc_pkg::llc_cfg_t Cfg = axi_llc_pkg::llc_cfg_t'{default: '0},
+  parameter axi_llc_pkg::llc_cfg_t Cfg = axi_llc_pkg::llc_cfg_t'{RemapHash: axi_llc_pkg::Modulo, default: '0},
   /// Give the exact AXI parameters in struct form. This is passed down from
   /// [`axi_llc_top`](module.axi_llc_top).
   ///

@@ -17,7 +17,7 @@
 /// This module further calculates the exact data way where an spm access will go to.
 module axi_llc_burst_cutter #(
   /// LLC configuration struct, with static parameters.
-  parameter axi_llc_pkg::llc_cfg_t     Cfg            = axi_llc_pkg::llc_cfg_t'{default: '0},
+  parameter axi_llc_pkg::llc_cfg_t     Cfg            = axi_llc_pkg::llc_cfg_t'{RemapHash: axi_llc_pkg::Modulo, default: '0},
   /// AXI channel configuration struct.
   parameter axi_llc_pkg::llc_axi_cfg_t AxiCfg         = axi_llc_pkg::llc_axi_cfg_t'{default: '0},
   /// AXI AW or AR channel struct definition.

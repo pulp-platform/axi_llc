@@ -28,7 +28,7 @@
 /// descriptors, so that new ones from other IDs can use the hit bypass.
 module axi_llc_hit_miss #(
   /// Stattic LLC configuration struct.
-  parameter axi_llc_pkg::llc_cfg_t     Cfg            = axi_llc_pkg::llc_cfg_t'{default: '0},
+  parameter axi_llc_pkg::llc_cfg_t     Cfg            = axi_llc_pkg::llc_cfg_t'{RemapHash: axi_llc_pkg::Modulo, default: '0},
   /// AXI parameter configuration
   parameter axi_llc_pkg::llc_axi_cfg_t AxiCfg         = axi_llc_pkg::llc_axi_cfg_t'{default: '0},
   /// LLC descriptor type

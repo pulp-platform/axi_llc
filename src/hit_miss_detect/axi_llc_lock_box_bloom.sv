@@ -12,7 +12,7 @@
 /// the `rr_arb_tree` then merges the unlock requests onto the bloom decrement
 module axi_llc_lock_box_bloom #(
   /// Static LLC parameter configuration struct.
-  parameter axi_llc_pkg::llc_cfg_t Cfg = axi_llc_pkg::llc_cfg_t'{default: '0},
+  parameter axi_llc_pkg::llc_cfg_t Cfg = axi_llc_pkg::llc_cfg_t'{RemapHash: axi_llc_pkg::Modulo, default: '0},
   /// Struct for bundling the signals defining the locking.
   /// Required fields:
   /// typedef struct packed {

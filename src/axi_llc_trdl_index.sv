@@ -13,7 +13,7 @@
 
 module axi_llc_trdl_index #(
   /// LLC configuration struct, with static parameters.
-  parameter axi_llc_pkg::llc_cfg_t  Cfg = axi_llc_pkg::llc_cfg_t'{default: '0},
+  parameter axi_llc_pkg::llc_cfg_t  Cfg = axi_llc_pkg::llc_cfg_t'{RemapHash: axi_llc_pkg::Modulo, default: '0},
   /// LLC descriptor type
   parameter type desc_t                 = logic
 ) (

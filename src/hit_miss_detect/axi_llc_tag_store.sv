@@ -17,7 +17,7 @@
 `include "common_cells/registers.svh"
 module axi_llc_tag_store #(
   /// Static LLC configuration struct
-  parameter axi_llc_pkg::llc_cfg_t Cfg = axi_llc_pkg::llc_cfg_t'{default: '0},
+  parameter axi_llc_pkg::llc_cfg_t Cfg = axi_llc_pkg::llc_cfg_t'{RemapHash: axi_llc_pkg::Modulo, default: '0},
   /// Way indicator type
   /// EG: typedef logic [Cfg.SetAssociativity-1:0] way_ind_t;
   parameter type way_ind_t = logic,

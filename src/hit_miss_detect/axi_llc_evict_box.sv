@@ -11,7 +11,7 @@
 /// advances every clock cycle for pseudo randomness as eviction strategy.
 module axi_llc_evict_box #(
   /// Static configuration parameters of the LLC.
-  parameter axi_llc_pkg::llc_cfg_t Cfg = axi_llc_pkg::llc_cfg_t'{default: '0},
+  parameter axi_llc_pkg::llc_cfg_t Cfg = axi_llc_pkg::llc_cfg_t'{RemapHash: axi_llc_pkg::Modulo, default: '0},
   /// Way indicator type. This segnal has the width equal to the set-associativity.
   parameter type way_ind_t = logic
 ) (

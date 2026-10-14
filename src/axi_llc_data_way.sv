@@ -13,7 +13,7 @@
 `include "common_cells/registers.svh"
 module axi_llc_data_way #(
   /// Static AXI LLC configuration
-  parameter axi_llc_pkg::llc_cfg_t Cfg = axi_llc_pkg::llc_cfg_t'{default: '0},
+  parameter axi_llc_pkg::llc_cfg_t Cfg = axi_llc_pkg::llc_cfg_t'{RemapHash: axi_llc_pkg::Modulo, default: '0},
   /// The input struct has to be defined as follows (is done in `axi_llc_top`):
   /// typedef struct packed {
   ///   axi_axi_llc_pkg::cache_unit_e     cache_unit;   // which unit does the access

@@ -12,7 +12,7 @@
 /// ended its journey through the eviction pipeline.
 module axi_llc_evict_unit #(
   /// Static LLC configuration parameters.
-  parameter axi_llc_pkg::llc_cfg_t Cfg = axi_llc_pkg::llc_cfg_t'{default: '0},
+  parameter axi_llc_pkg::llc_cfg_t Cfg = axi_llc_pkg::llc_cfg_t'{RemapHash: axi_llc_pkg::Modulo, default: '0},
   /// Static LLC AXI configuration parameters.
   parameter axi_llc_pkg::llc_axi_cfg_t AxiCfg = axi_llc_pkg::llc_axi_cfg_t'{default: '0},
   /// LLC descriptor type definition.
