@@ -757,6 +757,9 @@ module axi_llc_config_pat #(
           flush_state_d = FsmInitFlush;
           // Now that AXI is free and splitters are empty, update hardware config
           spm_lock_d = conf_regs_i.cfg_spm;
+          // Write back the latched config, clearing bits of non-existent ways
+          conf_regs_o.cfg_spm    = conf_regs_i.cfg_spm;
+          conf_regs_o.cfg_spm_en = 1'b1;
           // Also flush the new SPM configuration using the same value. Note
           // that the old SPM  configuration, stored in conf_regs_i.flushed
           // will be excluded in FsmInitFlush.
